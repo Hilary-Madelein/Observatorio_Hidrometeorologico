@@ -1,0 +1,68 @@
+.custom-navbar {
+    background: #0C2840;
+    width: 100%;
+    padding: 10px 40px; 
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header1 {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    width: 100%;
+    max-width: 1600px;
+    padding: 10px 2%;
+}
+
+.logoBarra {
+    width: 40px;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+}
+
+.logoBarra:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(2px 2px 5px rgba(255, 255, 255, 0.178));
+}
+
+.tituloBarra {
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    white-space: nowrap; 
+    background: none; 
+    -webkit-text-fill-color: white;
+    border-bottom: none;
+    padding-bottom: 0;
+
+    transition: text-shadow 0.3s ease-in-out;
+}
+
+.titulo:hover {
+    text-shadow: 4px 4px 8px rgba(255, 255, 255, 0.247); 
+}
+
+
+@media (max-width: 768px) {
+
+    .header1 {
+        flex-direction: row; 
+        padding-left: 0;
+        margin-left: 10px;
+    }
+
+    .titulo {
+        font-size: 1rem; 
+    }
+
+    .logo {
+        width: 30px;
+    }
+}

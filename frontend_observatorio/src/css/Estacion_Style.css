@@ -1,0 +1,35 @@
+.pagina-microcuencas {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .card-estacion-horizontal {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    height: 150px;
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .card-estacion-horizontal:hover {
+    transform: translateY(-5px);
+  }
+  
+  .img-estacion-horizontal {
+    height: 100%;
+    width: 180px;
+    object-fit: cover;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+  }
+  
+  .titulo-estacion {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #0C2840;
+  }
+  

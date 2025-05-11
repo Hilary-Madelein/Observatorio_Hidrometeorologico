@@ -1,0 +1,178 @@
+.contenedor-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    padding-top: 20px;
+    padding-bottom: 15px;
+    margin: 0 auto;
+}
+
+.custom-card {
+    flex: 1 1 calc(33.333% - 20px);
+    max-width: 350px; 
+    height: 100px;
+    border-radius: 6px;
+    border: 1px solid #f0f0f0;
+    cursor: pointer;
+    background: #ffffff;
+    box-shadow: #0000006b 0px 3px 4px;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    position: relative;
+    display: flex;
+    text-align: left;
+    padding: 10px;
+    overflow: hidden;
+}
+
+.custom-card:hover {
+    transform: translateY(-3px);
+}
+
+.icono-variable {
+    width: 60px;
+    height: 60px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.contenido-card {
+    margin-left: 75px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.titulo-variables {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #0C2840;
+}
+
+.unidad-medida {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #555;
+}
+
+.estacion-valor {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #034d8f;
+    background-color: #e0ecff !important;
+    margin-bottom: 5px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    justify-items: end;
+}
+
+.estaciones-container {
+    margin-top: 5px;
+    font-size: 0.8rem;
+}
+
+.estacion-nombre {
+    font-weight: 500;
+    color: #333;
+}
+
+/********** RESPONSIVE DESIGN **********/
+
+@media (max-width: 1270px) {
+    .contenedor-cards {
+        gap: 15px;
+    }
+
+    .custom-card {
+        flex: 1 1 calc(50% - 20px);
+        max-width: 350px;
+        padding: 10px;
+    }
+
+    .estacion-valor {
+        font-size: 0.9rem;
+    }
+
+    .icono-variable {
+        width: 60px;
+        height: 60px;
+        left: 8px;
+    }
+
+    .contenido-card {
+        margin-left: 75px;
+    }
+
+    .estacion-nombre {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .contenedor-cards {
+        gap: 12px;
+    }
+
+    .custom-card {
+        flex: 1 1 calc(50% - 15px);
+        max-width: 280px;
+        padding: 15px;
+    }
+
+    .icono-variable {
+        width: 50px;
+        height: 50px;
+        left: 6px;
+    }
+
+    .contenido-card {
+        margin-left: 50px;
+    }
+
+    .titulo-variables {
+        font-size: 1.2rem;
+    }
+
+    .estacion-valor {
+        font-size: 0.65rem;
+    }
+
+    .estacion-nombre {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 540px) {
+    .contenedor-cards {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .custom-card {
+        width: 90%;
+        max-width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .icono-variable {
+        width: 50px;
+        height: 50px;
+        position: static;
+        transform: none;
+    }
+
+    .contenido-card {
+        margin-left: 0;
+    }
+
+    .titulo-variables {
+        font-size: 1rem;
+    }
+}
