@@ -39,7 +39,7 @@ function AgregarEstacion({ external_id }) {
             if (info.code !== 200) {
                 mensajes(info.msg, 'error', 'Error');
                 borrarSesion();
-                navigate('/admin');
+                navigate(-1);
             } else {
                 mensajes(info.msg);
                 setTimeout(() => {

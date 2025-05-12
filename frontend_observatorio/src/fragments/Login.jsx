@@ -28,8 +28,8 @@ const Login = () => {
 
     const onSubmit = (data, event) => {
         var datos = {
-            "correo": data.correo,
-            "clave": data.clave
+            "email": data.correo,
+            "password": data.clave
         };
 
         InicioSesion(datos).then((info) => {

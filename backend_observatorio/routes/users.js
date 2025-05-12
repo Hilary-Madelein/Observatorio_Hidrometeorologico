@@ -7,16 +7,16 @@ const uuid = require('uuid');
 const { body, validationResult,isDate } = require('express-validator');
 const MedidaController = require('../controls/MedidaController');
 let medidaController = new MedidaController();
-const EntidadController = require('../controls/EntidadController');
-let entidadController = new EntidadController();
-const CuentaController = require('../controls/CuentaController');
-let cuentaController = new CuentaController();
-const MicrocuencaController = require('../controls/MicrocuencaController');
-let microcuencaController = new MicrocuencaController();
-const EstacionController = require('../controls/EstacionController');
-let estacionController = new EstacionController();
-const TipoMedidaController = require('../controls/TipoMedidaController');
-let tipoMedidaController = new TipoMedidaController();
+const EntityController = require('../controls/EntityController');
+let entityController = new EntityController();
+const AccountController = require('../controls/AccountController');
+let accountController = new AccountController();
+const MicrobasinController = require('../controls/MicrobasinController');
+let microbasinController = new MicrobasinController();
+const StationController = require('../controls/StationController');
+let stationController = new StationController();
+const PhenomenonTypeController = require('../controls/PhenomenonTypeController');
+let phenomenonTypeController = new PhenomenonTypeController();
 const MedicionController = require('../controls/MedicionController');
 let medicionController = new MedicionController();
 const MedidaEstacionController = require('../controls/MedidaEstacionController');
@@ -141,11 +141,11 @@ router.post('/guardar/entidad', (req, res, next) => {
         });
       }
       return res.status(400).json({
-        msg: "Error al cargar el archivo: " + error.message,
+        msg: "Error al cargar el archivo de la persona: " + error.message,
         code: 400
       });
     }
-    entidadController.guardar(req, res, next);
+    entityController.create(req, res, next);
   });
 });
 
@@ -159,24 +159,24 @@ router.put('/modificar/entidad', (req, res, next) => {
         });
       }
       return res.status(400).json({
-        msg: "Error al cargar el archivo: " + error.message,
+        msg: "Error al actualizar el archivo de la persona: " + error.message,
         code: 400
       });
     }
-    entidadController.modificar(req, res, next);
+    entityController.update(req, res, next);
   });
 });
-router.get('/listar/entidad', entidadController.listar);
-router.get('/obtener/entidad/:external',  entidadController.obtener);
+router.get('/listar/entidad', entityController.list);
+router.get('/obtener/entidad/:external',  entityController.get);
 
 /**
  * RUTAS DE CUENTA
  */
 
 router.post('/sesion', [
-  body('correo', 'Ingrese un correo valido').exists().not().isEmpty().isEmail(),
-  body('clave', 'Ingrese una clave valido').exists().not().isEmpty(),
-], cuentaController.sesion)
+  body('email', 'Ingrese un correo valido').exists().not().isEmpty().isEmail(),
+  body('password', 'Ingrese una clave valido').exists().not().isEmpty(),
+], accountController.login)
 
 
 /**
@@ -193,11 +193,11 @@ router.post('/guardar/microcuenca', (req, res, next) => {
         });
       }
       return res.status(400).json({
-        msg: "Error al cargar el archivo: " + error.message,
+        msg: "Error al cargar el archivo de la microcuenca: " + error.message,        
         code: 400
       });
     }
-    microcuencaController.guardar(req, res, next);
+    microbasinController.create(req, res, next);
   });
 });
 
@@ -211,17 +211,17 @@ router.put('/modificar/microcuenca', (req, res, next) => {
         });
       }
       return res.status(400).json({
-        msg: "Error al cargar el archivo: " + error.message,
+        msg: "Error al cargar el archivo de la microcuenca: " + error.message,
         code: 400
       });
     }
-    microcuencaController.modificar(req, res, next);
+    microbasinController.update(req, res, next);
   });
 });
-router.get('/listar/microcuenca', microcuencaController.listar);
-router.get('/listar/microcuenca/operativas', microcuencaController.listarOperativas);
-router.get('/obtener/microcuenca/:external',  microcuencaController.obtener);
-router.get('/microcuenca/estaciones', microcuencaController.obtenerMicrocuencaConEstaciones);
+router.get('/listar/microcuenca', microbasinController.list);
+router.get('/listar/microcuenca/operativas', microbasinController.listActive);
+router.get('/obtener/microcuenca/:external',  microbasinController.get);
+router.get('/microcuenca/estaciones', microbasinController.getWithStations);
 
 
 /**
@@ -238,11 +238,11 @@ router.post('/guardar/estacion', (req, res, next) => {
         });
       }
       return res.status(400).json({
-        msg: "Error al cargar el archivo: " + error.message,
+        msg: "Error al cargar el archivo de la estacion: " + error.message,
         code: 400
       });
     }
-    estacionController.guardar(req, res, next);
+    stationController.create(req, res, next);
   });
 });
 
@@ -256,20 +256,20 @@ router.put('/modificar/estacion', (req, res, next) => {
         });
       }
       return res.status(400).json({
-        msg: "Error al cargar el archivo: " + error.message,
+        msg: "Error al actualizar el archivo de la estacion: " + error.message,
         code: 400
       });
     }
-    estacionController.modificar(req, res, next);
+    stationController.update(req, res, next);
   });
 });
-router.get('/listar/estacion', estacionController.listar);
-router.get('/listar/estacion/operativas', estacionController.listarOperativas);
-router.get('/obtener/estacion/:external',  estacionController.obtener);
-router.post('/estaciones/operativas/microcuenca', estacionController.obtenerPorMicrocuenca)
+router.get('/listar/estacion', stationController.list);
+router.get('/listar/estacion/operativas', stationController.listActive);
+router.get('/obtener/estacion/:external',  stationController.getByMicrobasinParam);
+router.post('/estaciones/operativas/microcuenca', stationController.getByMicrobasinBody)
 
 /**
- * RUTAS DE TIPOS DE MEDIDAS
+ * RUTAS DE TIPOS DE FENOMENOS
  */
 
 router.post('/guardar/tipo_medida', (req, res, next) => {
@@ -282,11 +282,11 @@ router.post('/guardar/tipo_medida', (req, res, next) => {
         });
       }
       return res.status(400).json({
-        msg: "Error al cargar el archivo: " + error,
+        msg: "Error al cargar el archivo del fenonemo: " + error,
         code: 400
       });
     }
-    tipoMedidaController.guardar(req, res, next);
+    phenomenonTypeController.create(req, res, next);
   });
 });
 
@@ -300,15 +300,15 @@ router.put('/modificar/tipo_medida', (req, res, next) => {
         });
       }
       return res.status(400).json({
-        msg: "Error al cargar el archivo: " + error.message,
+        msg: "Error al actualizar el archivo del fenomeno: " + error.message,
         code: 400
       });
     }
-    tipoMedidaController.modificar(req, res, next);
+    phenomenonTypeController.update(req, res, next);
   });
 });
-router.get('/listar/tipo_medida', tipoMedidaController.listar);
-router.get('/obtener/tipo_medida/:external', tipoMedidaController.obtener);
+router.get('/listar/tipo_medida', phenomenonTypeController.list);
+router.get('/obtener/tipo_medida/:external', phenomenonTypeController.get);
 
 /**
  * RUTAS DE MEDIDA ESTACION

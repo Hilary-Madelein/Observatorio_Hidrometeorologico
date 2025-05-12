@@ -85,18 +85,18 @@ function MapaConEstaciones() {
             let hasValidCoordinates = false;
 
             response.info.forEach((estacion) => {
-                const coordenadas = [estacion.longitud, estacion.latitud];
+                const coordenadas = [estacion.length, estacion.latitude];
 
                 if (coordenadas && coordenadas.length === 2 && !isNaN(coordenadas[0]) && !isNaN(coordenadas[1])) {
                     const popupContent = `
                         <div style="text-align: center; font-family: Arial, sans-serif;">
-                            <h5 style="color: #333; font-weight: bold;">${estacion.nombre}</h5>
+                            <h5 style="color: #333; font-weight: bold;">${estacion.name}</h5>
                             <p style="color: #777; font-size: 12px;">
-                                Microcuenca: ${selectedMicrocuenca?.nombre || 'No disponible'}
+                                Microcuenca: ${selectedMicrocuenca?.name || 'No disponible'}
                             </p>
                             <img 
-                                src="${URLBASE}/images/estaciones/${estacion.foto}" 
-                                alt="${estacion.nombre}"
+                                src="${URLBASE}/images/estaciones/${estacion.picture}" 
+                                alt="${estacion.name}"
                                 style="width: 100%; border-radius: 8px; border: 1px solid #ddd;"
                             />
                         </div>
@@ -207,15 +207,15 @@ function MapaConEstaciones() {
                                         <div className="modern-card">
                                             <img
                                                 className="card-img-top"
-                                                src={`${URLBASE}/images/estaciones/${item.foto}`}
-                                                alt={item.nombre}
+                                                src={`${URLBASE}/images/estaciones/${item.picture}`}
+                                                alt={item.name}
                                             />
                                             <div className="card-body">
-                                                <h5 className="card-title">{item.nombre}</h5>
-                                                <p className="card-text">{item.descripcion}</p>
+                                                <h5 className="card-title">{item.name}</h5>
+                                                <p className="card-text">{item.description}</p>
                                                 <button
                                                     className="btn-principal"
-                                                    onClick={() => localizarEstacion(item.latitud, item.longitud)}
+                                                    onClick={() => localizarEstacion(item.latitude, item.length)}
                                                 >
                                                     Localizar Estación
                                                 </button>
@@ -238,12 +238,12 @@ function MapaConEstaciones() {
                                     <div className="modern-card">
                                         <img
                                             className="card-img-top"
-                                            src={`${URLBASE}/images/microcuencas/${microcuenca.foto}`}
-                                            alt={microcuenca.nombre}
+                                            src={`${URLBASE}/images/microcuencas/${microcuenca.picture}`}
+                                            alt={microcuenca.name}
                                         />
                                         <div className="card-body">
-                                            <h5 className="card-title">{microcuenca.nombre}</h5>
-                                            <p className="card-text">{microcuenca.descripcion}</p>
+                                            <h5 className="card-title">{microcuenca.name}</h5>
+                                            <p className="card-text">{microcuenca.description}</p>
                                             <button
                                                 className="btn-principal"
                                                 onClick={() => obtenerEstacionesMicrocuenca(microcuenca.external_id)}

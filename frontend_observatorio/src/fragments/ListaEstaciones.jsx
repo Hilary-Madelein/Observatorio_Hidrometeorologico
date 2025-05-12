@@ -14,7 +14,7 @@ import ModalAgregarEstacion from './ModalAgregarEstacion';
 
 const ListaEstaciones = () => {
     const navegation = useNavigate();
-    const { external_id } = useParams();
+    const { external_id } = useParams();    
 
     // DATOS
     const [data, setData] = useState([]);
@@ -64,12 +64,12 @@ const ListaEstaciones = () => {
                             <div className="col-md-4" key={estacion.id}>
                                 <div className="card card-estacion-horizontal d-flex flex-row align-items-center">
                                     <img
-                                        src={URLBASE + "/images/estaciones/" + estacion.foto}
-                                        alt={`Imagen de ${estacion.nombre}`}
+                                        src={URLBASE + "/images/estaciones/" + estacion.picture}
+                                        alt={`Imagen de ${estacion.name}`}
                                         className="img-estacion-horizontal"
                                     />
                                     <div className="card-body px-3">
-                                        <h6 className="titulo-estacion mb-2">{estacion.nombre}</h6>
+                                        <h6 className="titulo-estacion mb-2">{estacion.name}</h6>
                                         <Button className="btn btn-dark btn-sm">
                                             Configurar variables
                                         </Button>
@@ -83,7 +83,7 @@ const ListaEstaciones = () => {
                 </div>
             </div>
             {/* < VENTANA MODAL AGREGAR> */}
-            <ModalAgregarEstacion show={show} handleClose={handleClose} />
+            <ModalAgregarEstacion show={show} handleClose={handleClose} external_id={external_id} />
 
             <Footer />
         </div>

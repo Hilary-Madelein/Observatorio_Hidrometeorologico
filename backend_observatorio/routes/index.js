@@ -1,71 +1,75 @@
-var express = require('express');
-var router = express.Router();
-const AbortController = require('abort-controller');
-require('dotenv').config();  // Cargar las variables de entorno
+'use strict';
 
-const { CosmosClient } = require('@azure/cosmos');
+const express = require('express');
+const mqtt = require('mqtt');
+const router = express.Router();
+require('dotenv').config();
 
-// Definir AbortController globalmente si no existe
-if (typeof global.AbortController === 'undefined') {
-  global.AbortController = AbortController;
+const { Sequelize } = require('sequelize');
+const models = require('./../models'); // Modelos Sequelize
+const sequelize = models.sequelize;
+
+const DESPLAZAMIENTO_HORARIO_MINUTOS = -300;
+
+// MQTT (TTN) Configuración
+const ttnServer = 'mqtt://nam1.cloud.thethings.network:1883';
+const mqttOptions = {
+  username: 'puar-unl-esp32@ttn',
+  password: 'NNSXS.FGSQU3PH2K2E32I5U5QDUFKURE4OB42PWDP6N7A.GBTQGXU4TRE3ELIOBWTBLGXDOFQPFIN5UH6CVDHU27Q2E4XMHO3Q'
+};
+const mqttClient = mqtt.connect(ttnServer, mqttOptions);
+
+// Ajustar fecha a UTC-5
+function ajustarZonaHoraria(timestamp) {
+  const date = new Date(timestamp);
+  date.setMinutes(date.getMinutes() + DESPLAZAMIENTO_HORARIO_MINUTOS);
+  return date.toISOString();
 }
 
-// Cargar variables de entorno para Cosmos DB
-const endpoint = process.env.COSMOS_ENDPOINT;
-const key = process.env.COSMOS_KEY;
-const databaseId = "PUEAR";
+// Conexión a MQTT y recepción de mensajes
+mqttClient.on('connect', () => {
+  console.log('Conectado a TTN MQTT');
 
-// Crear cliente de Cosmos
-const client = new CosmosClient({ endpoint, key });
+  mqttClient.subscribe('v3/puar-unl-esp32@ttn/devices/eui-70b3d57ed0060a67/up');
+  mqttClient.subscribe('v3/puar-unl-esp32@ttn/devices/eui-70b3d57ed00611db/up');
+});
 
-router.get('/privado/:external', async function(req, res, next) {
-  const llave = req.params.external;
-  const envKey = process.env.KEY_SQ;  
+mqttClient.on('message', (topic, message) => {
+  try {
+    const data = JSON.parse(message.toString());
+    if (data.received_at) data.received_at = ajustarZonaHoraria(data.received_at);
 
-  console.log("Llave recibida:", llave);  // Imprimir la llave recibida
-  console.log("Llave esperada (desde .env):", envKey);  // Imprimir la llave esperada desde .env
-
-  if (llave === envKey) {
-    try {
-      // Conexión a Cosmos DB
-      const database = client.database(databaseId);
-      console.log(`Conectado a la base de datos Cosmos: ${databaseId}`);
-      
-      // Conexión a MySQL
-      const models = require('./../models');  // Cargar el modelo para MySQL
-      await models.sequelize.sync();  // Conectar y sincronizar MySQL
-      console.log('Se ha conectado a MySQL');
-
-      res.status(200).send(`Conectado a la base de datos Cosmos: ${databaseId} y MySQL`);
-    } catch (err) {
-      console.error('Error conectando a Cosmos DB o MySQL:', err);
-      res.status(500).json({
-        message: 'Error conectando a las bases de datos',
-        error: err.message
-      });
-    }
-  } else {
-    res.status(401).json({ message: 'Llave incorrecta!' });
+    console.log('Datos TTN recibidos:', {
+      fecha: data.received_at,
+      dispositivo: data.end_device_ids?.device_id,
+      payload: data.uplink_message?.decoded_payload
+    });
+  } catch (err) {
+    console.error('Error procesando mensaje MQTT:', err.message);
   }
 });
 
+// Ruta de verificación
+router.get('/privado/:external', async function (req, res) {
+  const llave = req.params.external;
+  const envKey = process.env.KEY_SQ;
 
-async function getAllContainers() {
-  try {
-    const database = client.database(databaseId);
-    
-    const { resources: containers } = await database.containers.readAll().fetchAll();
-    
-    return containers.map(container => container.id);
-  } catch (err) {
-    console.error('Error obteniendo contenedores:', err);
-    throw new Error('No se pudo obtener la lista de contenedores');
+  if (llave !== envKey) {
+    return res.status(401).json({ message: 'Llave incorrecta!' });
   }
-}
+
+  try {
+    await sequelize.authenticate();
+    console.log('Conectado a PostgreSQL');
+
+    return res.status(200).send('Conexión exitosa a PostgreSQL y TTN activa');
+  } catch (err) {
+    console.error('Error en conexión a PostgreSQL:', err.message);
+    return res.status(500).json({ message: 'Error conectando a PostgreSQL', error: err.message });
+  }
+});
 
 module.exports = {
   router,
-  client,
-  databaseId,
-  getAllContainers  
+  mqttClient
 };

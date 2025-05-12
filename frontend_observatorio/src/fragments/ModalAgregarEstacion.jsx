@@ -3,7 +3,7 @@ import { Modal, Button } from 'react-bootstrap';
 import '../css/ModalEstacion_Style.css';
 import AgregarEstacion from './AgregarEstacion';
 
-const ModalAgregarEstacion = ({ show, handleClose }) => {
+const ModalAgregarEstacion = ({ show, handleClose, external_id }) => {
   return (
     <Modal
       show={show}
@@ -19,7 +19,7 @@ const ModalAgregarEstacion = ({ show, handleClose }) => {
       </Modal.Header>
 
       <Modal.Body className="modal-body">
-        <AgregarEstacion />
+      <AgregarEstacion external_id={external_id} />
       </Modal.Body>
 
       <Modal.Footer className="modal-footer">

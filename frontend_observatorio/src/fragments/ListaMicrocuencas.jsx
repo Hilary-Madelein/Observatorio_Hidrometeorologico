@@ -52,7 +52,7 @@ const ListaMicrocuencas = () => {
     const obtenerId = (external_id) => {
         navegation(`/estaciones/${external_id}`);
     };
-
+ 
     return (
         <div className="pagina-microcuencas">
             <Header />
@@ -67,13 +67,13 @@ const ListaMicrocuencas = () => {
                             <div className="col-md-4" key={microcuenca.id}>
                                 <div className="card-microcuenca shadow-sm">
                                     <img
-                                        src={data[0]?.foto ? `${URLBASE}/images/microcuencas/${data[0].foto}` : '/img/microcuenca-default.jpg'}
-                                        alt={`Imagen de ${microcuenca.nombre}`}
+                                        src={data[0]?.picture ? `${URLBASE}/images/microcuencas/${data[0].picture}` : '/img/microcuenca-default.jpg'}
+                                        alt={`Imagen de ${microcuenca.name}`}
                                         className="card-img-top img-microcuenca"
                                     />
 
                                     <div className="card-body">
-                                        <h5 className="titulo-microcuenca">{microcuenca.nombre}</h5>
+                                        <h5 className="titulo-microcuenca">{microcuenca.name}</h5>
                                         <div className="d-flex justify-content-end">
                                             <button
                                                 className="btn btn-dark btn-sm"

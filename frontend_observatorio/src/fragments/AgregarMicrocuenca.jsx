@@ -29,7 +29,7 @@ function AgregarMicrocuenca() {
             if (info.code !== 200) {
                 mensajes(info.msg, 'error', 'Error');
                 borrarSesion();
-                navigate('/admin');
+                navigate('/principal/admin');
             } else {
                 mensajes(info.msg);
                 setTimeout(() => {
