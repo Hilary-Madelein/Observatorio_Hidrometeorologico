@@ -19,8 +19,9 @@ const Header = () => {
       </div>
 
       <nav className="navbar">
-        <a href="/perfil">Perfil</a>
+        <a href="/principal/admin">Microcuencas</a>
         <a href="/principal/variable">Variables</a>
+        <a href="/perfil">Perfil</a>
         <a onClick={handleClick} style={{ cursor: 'pointer' }}>Cerrar sesión</a>
       </nav>
     </header>

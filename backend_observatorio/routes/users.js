@@ -17,13 +17,10 @@ const StationController = require('../controls/StationController');
 let stationController = new StationController();
 const PhenomenonTypeController = require('../controls/PhenomenonTypeController');
 let phenomenonTypeController = new PhenomenonTypeController();
-const MedicionController = require('../controls/MedicionController');
-let medicionController = new MedicionController();
-const MedidaEstacionController = require('../controls/MedidaEstacionController');
-let medidaEstacionController = new MedidaEstacionController();
-
 let MeasurementController = require('../controls/MeasurementController');
 const measurementController = new MeasurementController();
+let DailyMeasurementController = require('../controls/DailyMeasurementController');
+const dailyMeasurementController = new DailyMeasurementController();
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -139,22 +136,12 @@ const uploadFotoMicrocuenca = uploadFoto('../public/images/microcuencas');
 const uploadFotoEstacion = uploadFoto('../public/images/estaciones');
 const uploadIconoEstacion = uploadIcono('../public/images/icons_estaciones');
 
-// Ruta para obtener los últimos 10 registros de los contenedores EMA y EHA
-router.get('/listar/ultimasMedidasTen', medidaController.getUltimasTenMedidas);
-
 /** RUTAS DE MEASUREMENT */
 router.get('/listar/ultima/medida', measurementController.getUltimasMediciones);
 router.get('/mediciones/por-tiempo', measurementController.getMedicionesPorTiempo);
 
-
-/** RUTAS DE MEDIDA */
-router.post('/listar/medidas/diaria', medidaController.getMedidasPromediadasPorDia);
-//router.post('/listar/medidas/mes', medidaController.getMedidasPromediadasPorMes);
-router.get('/listar/ultimaMedida', medidaController.getUltimasMedidas);
-router.post('/listar/medidas/escala', medidaController.getDatosClimaticosPorEscala);
-router.post('/listar/todasMedidas/escala', medidaController.getAllDatosClimaticosPorEscala);
-//router.post('/listar/temperatura/mensual', medidaController.getDatosClimaticosPorEscalaMensual);
-//router.post('/listar/temperatura/mensual/datos', medidaController.getDatosClimaticosMensual);
+/** RUTAS DE DAILY MEASUREMENT */
+router.get('/mediciones/historicas', dailyMeasurementController.getMedicionesHistoricas);
 
 /**
  * RUTAS DE PERSONA
@@ -295,6 +282,7 @@ router.put('/modificar/estacion', (req, res, next) => {
 router.get('/listar/estacion', stationController.list);
 router.get('/listar/estacion/operativas', stationController.listActive);
 router.get('/obtener/estacion/:external',  stationController.getByMicrobasinParam);
+router.get('/get/estacion/:external_id', stationController.getByExternal);
 router.post('/estaciones/operativas/microcuenca', stationController.getByMicrobasinBody)
 
 /**
@@ -338,19 +326,5 @@ router.put('/modificar/tipo_medida', (req, res, next) => {
 });
 router.get('/listar/tipo_medida', phenomenonTypeController.list);
 router.get('/obtener/tipo_medida/:external', phenomenonTypeController.get);
-
-/**
- * RUTAS DE MEDIDA ESTACION
- */
-
-router.post('/asignar/medidas/estaciones', medidaEstacionController.asignarMedidasEstacion);
-
-/**
- * RUTAS DE MEDICION CONTROLLER
- */
-
-router.post('/medidas/mensuales/promediadas', medicionController.getDatosClimaticosPorEscala);
-router.post('/medidas/rango/promediadas', medicionController.getDatosClimaticosPorRango);
-router.post('/medidas/desglosemes/promediadas', medicionController.getDatosClimaticosPorMes);
 
 module.exports = router;

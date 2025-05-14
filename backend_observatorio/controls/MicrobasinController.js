@@ -27,6 +27,7 @@ class MicrobasinController {
             const results = await Microbasin.findAll({
                 attributes: ['external_id', 'status', 'picture', 'name', 'description'],
             });
+            
             res.json({ msg: 'OK!', code: 200, info: results });
         } catch (error) {
             res.status(500).json({ msg: 'Error al listar microcuencas: ' + error.message, code: 500, info: error });

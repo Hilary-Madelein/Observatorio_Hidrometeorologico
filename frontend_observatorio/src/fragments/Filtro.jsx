@@ -36,17 +36,13 @@ function Filtro({ onFiltrar }) {
             } else if (new Date(fechaInicio) > new Date(fechaFin)) {
                 errorMsg = "La fecha de inicio no puede ser mayor que la fecha de fin.";
             }
-        } else if (filtroSeleccionado === "mesAnio") {
-            if (!mesSeleccionado || !anioSeleccionado) {
-                errorMsg = "Debe seleccionar tanto el mes como el año.";
-            }
         } else if (!filtroSeleccionado) {
             mensajes('Debe seleccionar una escala temporal.', 'info', 'Selección Inválida');
             return;
         }
 
         if (errorMsg) {
-            alert(errorMsg);
+            mensajes(errorMsg, 'warning', 'Error de selección');
             return;
         }
 
@@ -54,9 +50,7 @@ function Filtro({ onFiltrar }) {
             tipo: filtroSeleccionado,
             estacion: estacionSeleccionada,
             fechaInicio: filtroSeleccionado === "rangoFechas" ? fechaInicio : null,
-            fechaFin: filtroSeleccionado === "rangoFechas" ? fechaFin : null,
-            mes: filtroSeleccionado === "mesAnio" ? mesSeleccionado : null,
-            anio: filtroSeleccionado === "mesAnio" ? anioSeleccionado : null,
+            fechaFin: filtroSeleccionado === "rangoFechas" ? fechaFin : null
         };
 
         actualizarDescripcionFiltro(datosFiltro);

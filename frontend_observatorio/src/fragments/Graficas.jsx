@@ -21,13 +21,9 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointEleme
 
 const chartColors = ['#BF3131', '#00ADB5', '#FFB1B1', '#1679AB', '#FF0075', '#AE00FB'];
 
-// Reformatea nombres como "NIVEL_DE_AGUA" → "Nivel de agua"
 const formatName = (name) => {
   if (!name) return '';
-  return name
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/^\w/, (c) => c.toUpperCase());
+  return name.replace(/_/g, ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
 };
 
 function Graficas({ filtro }) {
@@ -41,40 +37,31 @@ function Graficas({ filtro }) {
         setDatosGrafica([]);
         return;
       }
-    
+
       setLoading(true);
-    
+
       try {
         let info;
         let url;
-    
+
         if (['15min', '30min', 'hora', 'diaria'].includes(filtro.tipo)) {
           url = `/mediciones/por-tiempo?rango=${filtro.tipo}`;
-          
           if (filtro.estacion) {
             url += `&estacion=${filtro.estacion}`;
           }
-    
           info = await ObtenerGet(getToken(), url);
-        } else {
-          let body;
-          if (filtro.tipo === 'mesAnio') {
-            url = '/medidas/desglosemes/promediadas';
-            body = { mes: filtro.mes, anio: filtro.anio, external_id: filtro.estacion };
-          } else if (filtro.tipo === 'rangoFechas') {
-            url = '/medidas/rango/promediadas';
-            body = {
-              fechaInicio: new Date(filtro.fechaInicio).toISOString(),
-              fechaFin: new Date(filtro.fechaFin).toISOString(),
-              external_id: filtro.estacion
-            };
-          } else if (filtro.tipo === 'mensual') {
-            url = '/medidas/mensuales/promediadas';
-            body = { escalaDeTiempo: filtro.tipo, external_id: filtro.estacion };
+        } else if (filtro.tipo === 'mensual' || filtro.tipo === 'rangoFechas') {
+          url = `/mediciones/historicas?rango=${filtro.tipo}`;
+          if (filtro.tipo === 'rangoFechas') {
+            url += `&fechaInicio=${new Date(filtro.fechaInicio).toISOString()}`;
+            url += `&fechaFin=${new Date(filtro.fechaFin).toISOString()}`;
           }
-          info = await ObtenerPost(getToken(), url, body);
+          if (filtro.estacion) {
+            url += `&estacion=${filtro.estacion}`;
+          }
+          info = await ObtenerGet(getToken(), url);
         }
-    
+        
         if (info.code !== 200) {
           mensajes(info.msg, 'error', '¡Algo salió mal!');
           if (info.msg === 'Acceso denegado. Token ha expirado') {
@@ -82,10 +69,14 @@ function Graficas({ filtro }) {
             navigate('/login');
           }
           setDatosGrafica([]);
+        } else if (!info.info || info.info.length === 0) {
+          mensajes('No existen datos registrados', 'info', 'Sin datos');
+          setDatosGrafica([]);
         } else {
           setDatosGrafica(info.info);
         }
-    
+        
+
       } catch (error) {
         console.error(error);
         mensajes('Error de conexión con el servidor.', 'error');
@@ -94,7 +85,6 @@ function Graficas({ filtro }) {
         setLoading(false);
       }
     };
-    
 
     obtenerDatosPorFiltro();
   }, [filtro, navigate]);
@@ -104,26 +94,30 @@ function Graficas({ filtro }) {
       return { labels: [], datasets: [] };
     }
 
-    // Formatear etiquetas
-  const labels = datosGrafica.map(item => {
-    const fecha = new Date(item.hora);
-    return fecha.toLocaleString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
+    const labels = datosGrafica.map(item => {
+      const fecha = new Date(item.hora);
+      if (filtro.tipo === 'mensual') {
+        return fecha.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+      } else if (filtro.tipo === 'rangoFechas') {
+        return fecha.toLocaleDateString('es-ES');
+      } else {
+        return fecha.toLocaleString('es-ES', {
+          day: '2-digit',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
     });
-  });
-  
+
     const esEstructuraCruda = datosGrafica[0]?.Temperatura !== undefined;
-  
     const datasets = [];
-  
+
     if (esEstructuraCruda) {
       const colorIndex = medidaIndex % chartColors.length;
       const borderColor = chartColors[colorIndex] || '#FF0000';
       const backgroundColor = borderColor;
-  
+
       datasets.push({
         label: `${medida}`,
         data: datosGrafica.map(item => item[medida] || null),
@@ -138,14 +132,14 @@ function Graficas({ filtro }) {
       });
     } else if (datosGrafica[0]?.medidas?.[medida]) {
       const metricas = Object.keys(datosGrafica[0].medidas[medida]);
-  
+
       metricas.forEach((metrica, metricaIndex) => {
         const colorIndex = (medidaIndex + metricaIndex) % chartColors.length;
         const borderColor = chartColors[colorIndex] || '#FF0000';
         const backgroundColor = borderColor;
-  
+
         datasets.push({
-          label: `${medida} - ${metrica}`, // Corregido con las comillas invertidas (backticks)
+          label: `${medida} - ${metrica}`,
           data: datosGrafica.map(item => item.medidas[medida]?.[metrica] || null),
           borderColor,
           backgroundColor,
@@ -158,12 +152,9 @@ function Graficas({ filtro }) {
         });
       });
     }
-  
+
     return { labels, datasets };
   };
-  
-  // Si no hay datos, mostrar un mensaje de carga
-
 
   if (loading) {
     return (
@@ -184,12 +175,12 @@ function Graficas({ filtro }) {
         {medidasDisponibles.map((medida, index) => (
           <div className={`${datosGrafica.length > 50 ? 'col-12' : 'col-lg-6 col-md-6'} mb-4`} key={medida}>
             <div style={{
-                padding: '20px',
-                border: '1px solid #fff',
-                borderRadius: '8px',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-                background: '#fff'
-              }}>
+              padding: '20px',
+              border: '1px solid #fff',
+              borderRadius: '8px',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+              background: '#fff'
+            }}>
               {medida === 'LLUVIA' ? (
                 <Bar
                   data={prepararDatosPorMedida(medida, index)}
@@ -205,7 +196,7 @@ function Graficas({ filtro }) {
                       },
                     },
                     scales: {
-                      x: { grid: { display: '#e5e5e5' }, ticks: { maxRotation:45, minRotation:45 } },
+                      x: { grid: { display: '#e5e5e5' }, ticks: { maxRotation: 45, minRotation: 45 } },
                       y: { grid: { color: '#e5e5e5' } },
                     },
                   }}
@@ -225,7 +216,7 @@ function Graficas({ filtro }) {
                       },
                     },
                     scales: {
-                      x: { grid: { display: '#e5e5e5' }, ticks: { maxRotation:45, minRotation:45 } },
+                      x: { grid: { display: '#e5e5e5' }, ticks: { maxRotation: 45, minRotation: 45 } },
                       y: { grid: { color: '#e5e5e5' } },
                     },
                   }}

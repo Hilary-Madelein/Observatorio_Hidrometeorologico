@@ -220,7 +220,6 @@ class MeasurementController {
             const info = Object.values(seriesMap);
 
             console.log(info);
-            
 
             return res.status(200).json({
                 msg: 'Series de estadísticas por ventana de tiempo',

@@ -1,102 +1,153 @@
-import { borrarSesion } from '../utils/SessionUtil';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getToken } from '../utils/SessionUtil';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes from '../utils/Mensajes';
 import '../css/Microcuenca_Style.css';
-import 'boxicons';
+import '../css/Principal_Style.css';
 import Header from './Header';
-import { ObtenerGet, URLBASE } from '../hooks/Conexion';
-import React, { useEffect, useState } from 'react';
-import { Button, Modal } from 'react-bootstrap';
-import AgregarMicrocuenca from '../fragments/AgregarMicrocuenca'
 import Footer from './Footer';
+import { ObtenerGet, URLBASE } from '../hooks/Conexion';
+import { Dropdown } from 'react-bootstrap';
+import swal from 'sweetalert';
+
+// Importa tu modal
 import ModalAgregarMicrocuenca from './ModalAgregarMicrocuenca';
 
-
 const ListaMicrocuencas = () => {
-    const navegation = useNavigate();
-
-    // DATOS
+    const navigate = useNavigate();
     const [data, setData] = useState([]);
-    const [microcuencaObtenida, setMicrocuencaObtenida] = useState([]);
-    const [showEdit, setShowEdit] = useState(false);
-    const handleCloseEdit = () => setShowEdit(false);
-    const handleShowEdit = () => setShowEdit(true);
 
-    //SHOW AGREGAR
-    const [show, setShow] = useState(false);
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+    // Para agregar
+    const [showAdd, setShowAdd] = useState(false);
+    const handleAddClose = () => setShowAdd(false);
+    const handleAddShow = () => setShowAdd(true);
+
+    // Para editar
+    const [showEdit, setShowEdit] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
+    const handleEditClose = () => {
+        setShowEdit(false);
+        setSelectedId(null);
+    };
 
     useEffect(() => {
-        ObtenerGet(getToken(), '/listar/microcuenca').then((info) => {
-            if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
+        ObtenerGet(getToken(), '/listar/microcuenca').then(info => {
+            if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
                 borrarSesion();
-                mensajes(info.msg);
-                navegation("/admin");
+                mensajes(info.msg, 'error');
+                navigate('/admin');
             } else {
                 setData(info.info);
             }
         });
-    }, [navegation]);
-
-    // ACCION HABILITAR EDICION CAMPOS
-    const handleChange = e => {
-        const { name, value } = e.target;
-        setMicrocuencaObtenida((prevState) => ({
-            ...prevState,
-            [name]: value
-        }));
-    }
-
-    const obtenerId = (external_id) => {
-        navegation(`/estaciones/${external_id}`);
+    }, [navigate]);
+    
+    const handleEditClick = (externalId) => {
+        setSelectedId(externalId);
+        setShowEdit(true);
     };
- 
+
     return (
         <div className="pagina-microcuencas">
             <Header />
             <div className="container-microcuenca shadow-lg rounded p-5">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h1 style={{ fontWeight: 'bold', color: '#0C2840' }}>Microcuencas Registradas</h1>
-                    <button type="button" class="btn btn-outline-success" onClick={handleShow}>Agregar Microcuenca</button>
+                    <h1 className="titulo-admin">Microcuencas Registradas</h1>
+                    <button className="btn-registrar" onClick={handleAddShow}>
+                        Agregar Microcuenca
+                    </button>
                 </div>
-                <div className="containerUsuarios">
+
+                {data.length === 0 ? (
+                    <p className="no-data-message">No existen microcuencas registradas.</p>
+                ) : (
                     <div className="row gx-4 gy-4">
-                        {data.map((microcuenca) => (
-                            <div className="col-md-4" key={microcuenca.id}>
+                        {data.map(mc => (
+                            <div className="col-md-4" key={mc.external_id}>
                                 <div className="card-microcuenca shadow-sm">
                                     <img
-                                        src={data[0]?.picture ? `${URLBASE}/images/microcuencas/${data[0].picture}` : '/img/microcuenca-default.jpg'}
-                                        alt={`Imagen de ${microcuenca.name}`}
+                                        src={
+                                            mc.picture
+                                                ? `${URLBASE}/images/microcuencas/${mc.picture}`
+                                                : '/img/microcuenca-default.jpg'
+                                        }
+                                        alt={mc.name}
                                         className="card-img-top img-microcuenca"
                                     />
-
                                     <div className="card-body">
-                                        <h5 className="titulo-microcuenca">{microcuenca.name}</h5>
-                                        <div className="d-flex justify-content-end">
-                                            <button
-                                                className="btn btn-dark btn-sm"
-                                                onClick={() => obtenerId(microcuenca.external_id)}
-                                            >
-                                                Acceder a estaciones
-                                            </button>
+                                        <div className="d-flex justify-content-between">
+                                            <h5><strong>{mc.name}</strong></h5>
+                                            <Dropdown onClick={e => e.stopPropagation()}>
+                                                <Dropdown.Toggle variant="light" size="sm">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-sliders" viewBox="0 0 16 16">
+                                                        <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z" />
+                                                    </svg>
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu>
+                                                    <Dropdown.Item
+                                                        onClick={() => handleEditClick(mc.external_id)}
+                                                    >
+                                                        Editar
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        onClick={() => {
+                                                            swal({
+                                                                title: "¿Está seguro?",
+                                                                text: "No podrás revertir esto.",
+                                                                icon: "warning",
+                                                                buttons: ["Cancelar", "Eliminar"],
+                                                                dangerMode: true,
+                                                            }).then(async ok => {
+                                                                if (!ok) return;
+                                                                const res = await ObtenerGet(
+                                                                    getToken(),
+                                                                    `/microcuenca/eliminar/${mc.external_id}`
+                                                                );
+                                                                if (res.code === 200) {
+                                                                    mensajes("Eliminado", "success");
+                                                                    setData(data.filter(x => x.external_id !== mc.external_id));
+                                                                } else {
+                                                                    mensajes(res.msg, 'error');
+                                                                }
+                                                            });
+                                                        }}
+                                                    >
+                                                        Eliminar
+                                                    </Dropdown.Item>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
                                         </div>
+                                        <button
+                                            className="btn-acceder mt-2"
+                                            onClick={() => navigate(`/estaciones/${mc.external_id}`)}
+                                        >
+                                            Acceder a estaciones
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
-
-                </div>
+                )}
             </div>
-            {/* < VENTANA MODAL AGREGAR> */}
-            <ModalAgregarMicrocuenca show={show} handleClose={handleClose} />
+
+            {/* Modal para AGREGAR */}
+            <ModalAgregarMicrocuenca
+                show={showAdd}
+                handleClose={handleAddClose}
+                external_id={null}
+            />
+
+            {/* Modal para EDITAR */}
+            <ModalAgregarMicrocuenca
+                show={showEdit}
+                handleClose={handleEditClose}
+                external_id={selectedId}
+            />
 
             <Footer />
         </div>
-
     );
-}
+};
 
 export default ListaMicrocuencas;

@@ -1,29 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { borrarSesion, getToken } from '../utils/SessionUtil';
-import mensajes from '../utils/Mensajes';
-import { GuardarImages } from '../hooks/Conexion';
+import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
+import { GuardarImages, ActualizarImagenes, ObtenerGet } from '../hooks/Conexion';
 import swal from 'sweetalert';
 
 function AgregarEstacion({ external_id }) {
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register, setValue, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
     const [descripcion, setDescripcion] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [uploadedPhoto, setUploadedPhoto] = useState(null);
+    const [modoEdicion, setModoEdicion] = useState(false);
     const maxCaracteres = 150;
 
-    const handleDescripcionChange = (event) => {
+    useEffect(() => {
+        if (!external_id) return;
+        (async () => {
+            try {
+                const response = await ObtenerGet(getToken(), `/get/estacion/${external_id}`);
+                if (response.code === 200) {
+                    const e = response.info;
+                    setModoEdicion(true);
+                    setValue('nombre', e.name);
+                    setValue('descripcion', e.description);
+                    setValue('estado', e.status);
+                    setValue('longitud', e.length);
+                    setValue('latitud', e.latitude);
+                    setValue('altitud', e.altitude);
+                    setValue('tipo', e.type);
+                    setValue('id_dispositivo', e.id_device);
+                    setDescripcion(e.description);
+                } else {
+                    mensajes(`Error al obtener estación: ${response.msg}`, 'error');
+                }
+            } catch {
+                mensajes('Error al procesar la solicitud', 'error');
+            }
+        })();
+    }, [external_id, setValue]);
+
+    const handleDescripcionChange = event => {
         const { value } = event.target;
         if (value.length <= maxCaracteres) {
             setDescripcion(value);
         }
     };
 
-    console.log("externalito", external_id);
+    const handleRemovePhoto = () => {
+        setUploadedPhoto(null);
+        setValue("foto", null);
+    };
 
+    const toggleModal = () => {
+        setShowModal(v => !v);
+    };
+
+    const handlePhotoChange = event => {
+        const file = event.target.files[0];
+        if (file) {
+            setUploadedPhoto(file);
+        }
+    };
 
     const onSubmit = data => {
         const formData = new FormData();
+        if (modoEdicion) formData.append('external_id', external_id);
         formData.append('nombre', data.nombre.toUpperCase());
         formData.append('descripcion', data.descripcion);
         formData.append('estado', data.estado);
@@ -33,16 +76,24 @@ function AgregarEstacion({ external_id }) {
         formData.append('tipo', data.tipo);
         formData.append('id_dispositivo', data.id_dispositivo);
         formData.append('id_microcuenca', external_id);
-        formData.append('foto', data.foto[0]);
+        if (data.foto && data.foto[0]) {
+            formData.append('foto', data.foto[0]);
+        }
 
-        GuardarImages(formData, getToken(), "/guardar/estacion").then(info => {
+        const endpoint = modoEdicion ? '/modificar/estacion' : '/guardar/estacion';
+        const accion = modoEdicion ? ActualizarImagenes : GuardarImages;
+
+        accion(formData, getToken(), endpoint).then(info => {
             if (info.code !== 200) {
                 mensajes(info.msg, 'error', 'Error');
-                borrarSesion();
-                navigate(-1);
+                if (info.msg.includes('Token')) {
+                    borrarSesion();
+                    navigate(-1);
+                }
             } else {
                 mensajes(info.msg);
                 setTimeout(() => {
+                    navigate(`/estaciones/${external_id}`);
                     window.location.reload();
                 }, 1200);
             }
@@ -56,10 +107,10 @@ function AgregarEstacion({ external_id }) {
             icon: "warning",
             buttons: ["No", "Sí"],
             dangerMode: true,
-        }).then((willCancel) => {
+        }).then(willCancel => {
             if (willCancel) {
-                mensajes("Operación cancelada", "info", "Información");
-                navigate('/principal/admin');
+                mensajesConRecarga("Operación cancelada", "info", "Información");
+                navigate(`/estaciones/${external_id}`);
             }
         });
     };
@@ -68,35 +119,33 @@ function AgregarEstacion({ external_id }) {
         <div className="wrapper">
             <form className="user" onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
                 <div className="row container-modal">
+                    {/* Nombre */}
                     <div className="col-md-6 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Nombre</label>
-                        <input type="text" {...register('nombre', {
-                            required: 'Ingrese un nombre',
-                            pattern: {
-                                message: "Ingrese un nombre correcto"
-                            }
-                        })} className="form-control form-control-user" placeholder="Ingrese el nombre" />
+                        <input
+                            type="text"
+                            {...register('nombre', { required: 'Ingrese un nombre' })}
+                            className="form-control form-control-user"
+                            placeholder="Ingrese el nombre"
+                        />
                         {errors.nombre && <div className='alert alert-danger'>{errors.nombre.message}</div>}
                     </div>
-
+                    {/* ID dispositivo */}
                     <div className="col-md-6 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>ID externo del Dispositivo</label>
-                        <input type="text" {...register('id_dispositivo', {
-                            required: 'Ingrese el ID del dispositivo'
-                        })} className="form-control form-control-user" placeholder="Ingrese el ID del dispositivo" />
+                        <input
+                            type="text"
+                            {...register('id_dispositivo', { required: 'Ingrese el ID del dispositivo' })}
+                            className="form-control form-control-user"
+                            placeholder="Ingrese el ID del dispositivo"
+                        />
                         {errors.id_dispositivo && <div className='alert alert-danger'>{errors.id_dispositivo.message}</div>}
                     </div>
-
+                    {/* Descripción */}
                     <div className="col-md-12 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '20px' }}>Descripción</label>
                         <textarea
-                            {...register('descripcion', {
-                                required: 'Ingrese una descripción',
-                                pattern: {
-                                    value: /^(?!\s*$)[a-zA-Z\s]+(?<![<>])$/,
-                                    message: "Ingrese una descripción correcta"
-                                }
-                            })}
+                            {...register('descripcion', { required: 'Ingrese una descripción' })}
                             className="form-control form-control-user"
                             placeholder="Ingrese la descripción"
                             value={descripcion}
@@ -104,43 +153,46 @@ function AgregarEstacion({ external_id }) {
                         />
                         {errors.descripcion && <div className='alert alert-danger'>{errors.descripcion.message}</div>}
                         <div className="d-flex justify-content-between mt-1">
-                            <small className="text-muted">
-                                {descripcion.length}/{maxCaracteres} caracteres
-                            </small>
+                            <small className="text-muted">{descripcion.length}/{maxCaracteres} caracteres</small>
                             {descripcion.length === maxCaracteres && <small className="text-danger">Máximo alcanzado</small>}
                         </div>
                     </div>
-
+                    {/* Coordenadas */}
                     <div className="col-md-6 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Longitud</label>
-                        <input type="text" {...register('longitud', {
-                            required: 'Ingrese la longitud'
-                        })} className="form-control form-control-user" placeholder="Ingrese la longitud" />
+                        <input
+                            type="text"
+                            {...register('longitud', { required: 'Ingrese la longitud' })}
+                            className="form-control form-control-user"
+                            placeholder="Ingrese la longitud"
+                        />
                         {errors.longitud && <div className='alert alert-danger'>{errors.longitud.message}</div>}
                     </div>
-
                     <div className="col-md-6 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Latitud</label>
-                        <input type="text" {...register('latitud', {
-                            required: 'Ingrese la latitud'
-                        })} className="form-control form-control-user" placeholder="Ingrese la latitud" />
+                        <input
+                            type="text"
+                            {...register('latitud', { required: 'Ingrese la latitud' })}
+                            className="form-control form-control-user"
+                            placeholder="Ingrese la latitud"
+                        />
                         {errors.latitud && <div className='alert alert-danger'>{errors.latitud.message}</div>}
                     </div>
-
+                    {/* Altitud & Tipo */}
                     <div className="col-md-6 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Altitud</label>
-                        <input type="text" {...register('altitud', {
-                            required: 'Ingrese la altitud'
-                        })} className="form-control form-control-user" placeholder="Ingrese la altitud" />
+                        <input
+                            type="text"
+                            {...register('altitud', { required: 'Ingrese la altitud' })}
+                            className="form-control form-control-user"
+                            placeholder="Ingrese la altitud"
+                        />
                         {errors.altitud && <div className='alert alert-danger'>{errors.altitud.message}</div>}
                     </div>
-
                     <div className="col-md-6 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Tipo</label>
                         <select
-                            {...register('tipo', {
-                                required: 'Seleccione un tipo'
-                            })}
+                            {...register('tipo', { required: 'Seleccione un tipo' })}
                             className="form-control form-control-user"
                         >
                             <option value="">Seleccione un tipo</option>
@@ -150,13 +202,11 @@ function AgregarEstacion({ external_id }) {
                         </select>
                         {errors.tipo && <div className='alert alert-danger'>{errors.tipo.message}</div>}
                     </div>
-
+                    {/* Estado */}
                     <div className="col-md-6 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Estado</label>
                         <select
-                            {...register('estado', {
-                                required: 'Seleccione un estado'
-                            })}
+                            {...register('estado', { required: 'Seleccione un estado' })}
                             className="form-control form-control-user"
                         >
                             <option value="">Seleccione un estado</option>
@@ -166,19 +216,60 @@ function AgregarEstacion({ external_id }) {
                         </select>
                         {errors.estado && <div className='alert alert-danger'>{errors.estado.message}</div>}
                     </div>
-
+                    {/* Foto */}
                     <div className="col-md-6 form-group mb-3">
                         <label htmlFor="foto" className="form-label">Seleccionar foto</label>
-                        <input type="file"
-                            {...register("foto", {
-                                required: "Seleccione una foto"
-                            })}
+                        <input
+                            type="file"
+                            {...register("foto", modoEdicion ? {} : { required: "Seleccione una foto" })}
+                            onChange={handlePhotoChange}
                             className="form-control"
+                            accept="image/*"
                         />
+                        {uploadedPhoto && (
+                            <div className="d-flex align-items-center mt-3 justify-content-end">
+                                <button
+                                    type="button"
+                                    className="btn btn-info btn-sm me-2 btn-mini"
+                                    onClick={toggleModal}
+                                >
+                                    Previsualizar
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-danger btn-sm btn-mini"
+                                    onClick={handleRemovePhoto}
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        )}
                         {errors.foto && <span className='alert alert-danger'>{errors.foto.message}</span>}
                     </div>
                 </div>
 
+                {showModal && (
+                    <div className="modal show" tabIndex="-1" style={{ display: 'block' }}>
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title titulo-secundario">Previsualización</h5>
+                                    <button className="btn-close" onClick={toggleModal}></button>
+                                </div>
+                                <div className="modal-body text-center">
+                                    <img
+                                        src={URL.createObjectURL(uploadedPhoto)}
+                                        alt="Vista previa"
+                                        className="img-fluid"
+                                        style={{ maxWidth: '100%' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Botones */}
                 <div className="btn-Modal d-flex justify-content-end gap-3 mt-4">
                     <button className="btn btn-cancelar-modal" type="button" onClick={handleCancelClick}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-x-circle" viewBox="0 0 16 16">
@@ -193,14 +284,12 @@ function AgregarEstacion({ external_id }) {
                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
                             <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
                         </svg>
-                        <span className="ms-2 fw-bold">Registrar</span>
+                        <span className="ms-2 fw-bold">{modoEdicion ? 'Actualizar' : 'Registrar'}</span>
                     </button>
                 </div>
-
             </form>
         </div>
     );
-
 }
 
 export default AgregarEstacion;

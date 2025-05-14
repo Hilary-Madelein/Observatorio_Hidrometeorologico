@@ -100,3 +100,34 @@ export const GuardarImages = async (data, key, urls) => {
         throw error;
     }
 }
+
+export const ActualizarImagenes = async (data, key, urls) => {
+    const headers = {
+        "x-api-token": key,
+    };
+    const requestOptions = {
+        method: "PUT",
+        headers: headers,
+        body: data, 
+    };
+    try {
+        const response = await fetch(URL + urls, requestOptions);
+        const datos = await response.json();
+        return datos;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const peticionPut = async (key, URL,data) => {
+    const headers = {
+        "Content-Type": "application/json",
+        "x-api-token": key
+    };
+    const datos = await (await fetch(`${URL}/${URL}`, {
+        method: "PUT",
+        headers: headers,
+        body: JSON.stringify(data),
+    })).json();
+    return datos;
+}

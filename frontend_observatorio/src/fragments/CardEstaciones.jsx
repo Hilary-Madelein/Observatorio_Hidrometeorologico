@@ -8,6 +8,7 @@ import '../css/CardEstaciones_Style.css';
 import Spinner from 'react-bootstrap/Spinner';
 import { getToken } from '../utils/SessionUtil';
 import { ObtenerGet, ObtenerPost, URLBASE } from '../hooks/Conexion';
+import mensajes from '../utils/Mensajes';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFkZWxlaW4iLCJhIjoiY20wd2w4N3VqMDMyYzJqb2ZlNXF5ZnhiZCJ9.i3tWgoA_5CQmQmZyt2yjhg';
 
@@ -152,7 +153,7 @@ function MapaConEstaciones() {
                 setMarker(newMarker);
             });
         } else {
-            alert('Geolocalización no soportada por tu navegador');
+            mensajes('Geolocalización no soportada por tu navegador', 'info', 'Informacion');
         }
     };
 
