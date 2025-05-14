@@ -23,6 +23,11 @@ module.exports = (sequelize, DataTypes) => {
         status: {
             type: DataTypes.BOOLEAN,
             defaultValue: true
+        },
+        operations: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: false,
+            defaultValue: []
         }
     }, {
         freezeTableName: true,
@@ -30,10 +35,6 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     phenomenon_type.associate = function(models) {
-        phenomenon_type.hasMany(models.phenomenon_operation, {
-            foreignKey: 'id_phenomenon_type',
-            as: 'phenomenon_operation'
-        });
         phenomenon_type.hasMany(models.daily_measurement, {
             foreignKey: 'id_phenomenon_type',
             as: 'daily_measurements'

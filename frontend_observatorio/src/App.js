@@ -7,6 +7,7 @@ import Login from './fragments/Login';
 import ListaMicrocuencas from './fragments/ListaMicrocuencas';
 import ListaEstaciones from './fragments/ListaEstaciones';
 import CardEstaciones from './fragments/CardEstaciones';
+import ListaVariables from './fragments/ListaVariables';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path='/admin' element={<Login />} />
         <Route path='/principal/admin' element={<ListaMicrocuencas />} />
         <Route path='/estaciones/:external_id' element={<ListaEstaciones />} />
+        <Route path='/principal/variable' element={<ListaVariables />} />
       </Routes>
     </div>
   );

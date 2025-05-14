@@ -22,11 +22,11 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     type_operation.associate = function(models) {
-        type_operation.hasMany(models.phenomenon_operation, {
+        type_operation.hasMany(models.daily_measurement, {
             foreignKey: 'id_type_operation',
-            as: 'phenomenon_operation'
+            as: 'daily_measurements'
         });
-    };
+    };    
 
     // Inicializa los valores por defecto si no existen
     type_operation.initializeDefaults = async function() {

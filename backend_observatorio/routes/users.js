@@ -22,6 +22,9 @@ let medicionController = new MedicionController();
 const MedidaEstacionController = require('../controls/MedidaEstacionController');
 let medidaEstacionController = new MedidaEstacionController();
 
+let MeasurementController = require('../controls/MeasurementController');
+const measurementController = new MeasurementController();
+
 /* GET users listing. */
 router.get('/', function (req, res, next) {
   res.json({ "version": "1.0", "name": "hidrometeorologica-backend" });
@@ -96,6 +99,17 @@ const extensionesAceptadasFoto = (req, file, cb) => {
   }
 };
 
+const extensionesAceptadasIcono = (req, file, cb) => {
+  const allowedExtensions = ['.png'];
+  console.log(file);
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (allowedExtensions.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Solo se permiten archivos PNG.'), false);
+  }
+};
+
 // Configuración de Multer con control de tamaño y tipo de archivo
 const uploadFoto = (folderPath) => {
   const storage = createStorage(folderPath);
@@ -108,14 +122,29 @@ const uploadFoto = (folderPath) => {
   });
 };
 
+const uploadIcono= (folderPath) => {
+  const storage = createStorage(folderPath);
+  return multer({
+    storage: storage,
+    fileFilter: extensionesAceptadasIcono,
+    limits: {
+      fileSize: 2 * 1024 * 1024
+    }
+  });
+};
+
 
 const uploadFotoPersona = uploadFoto('../public/images/users');
 const uploadFotoMicrocuenca = uploadFoto('../public/images/microcuencas');
 const uploadFotoEstacion = uploadFoto('../public/images/estaciones');
-const uploadIconoEstacion = uploadFoto('../public/images/icons_estaciones');
+const uploadIconoEstacion = uploadIcono('../public/images/icons_estaciones');
 
 // Ruta para obtener los últimos 10 registros de los contenedores EMA y EHA
 router.get('/listar/ultimasMedidasTen', medidaController.getUltimasTenMedidas);
+
+/** RUTAS DE MEASUREMENT */
+router.get('/listar/ultima/medida', measurementController.getUltimasMediciones);
+router.get('/mediciones/por-tiempo', measurementController.getMedicionesPorTiempo);
 
 
 /** RUTAS DE MEDIDA */

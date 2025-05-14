@@ -26,9 +26,13 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     daily_measurement.associate = function(models) {
-        daily_measurement.belongsTo(models.phenomenon_operation, {
-            foreignKey: 'id_phenomenon_operation',
-            as: 'phenomenon_operation'
+        daily_measurement.belongsTo(models.phenomenon_type, {
+            foreignKey: 'id_phenomenon_type',
+            as: 'phenomenon_type'
+        });
+        daily_measurement.belongsTo(models.type_operation, {
+            foreignKey: 'id_type_operation',
+            as: 'type_operation'
         });
         daily_measurement.belongsTo(models.station, {
             foreignKey: 'id_station',

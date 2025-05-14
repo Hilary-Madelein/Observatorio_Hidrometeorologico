@@ -6,8 +6,23 @@ const router = express.Router();
 require('dotenv').config();
 
 const { Sequelize } = require('sequelize');
-const models = require('./../models'); // Modelos Sequelize
+const models = require('./../models');
 const sequelize = models.sequelize;
+
+const MeasurementController = require('../controls/MeasurementController');
+const measurementController = new MeasurementController();
+
+const { CosmosClient } = require('@azure/cosmos');
+const AbortController = require('abort-controller');
+
+if (typeof global.AbortController === 'undefined') {
+  global.AbortController = AbortController;
+}
+
+const endpoint = process.env.COSMOS_ENDPOINT;
+const key = process.env.COSMOS_KEY;
+const databaseId = process.env.COSMOS_DB || 'PUEAR';
+const client = new CosmosClient({ endpoint, key });
 
 const DESPLAZAMIENTO_HORARIO_MINUTOS = -300;
 
@@ -19,31 +34,46 @@ const mqttOptions = {
 };
 const mqttClient = mqtt.connect(ttnServer, mqttOptions);
 
-// Ajustar fecha a UTC-5
 function ajustarZonaHoraria(timestamp) {
   const date = new Date(timestamp);
   date.setMinutes(date.getMinutes() + DESPLAZAMIENTO_HORARIO_MINUTOS);
   return date.toISOString();
 }
 
-// Conexión a MQTT y recepción de mensajes
 mqttClient.on('connect', () => {
   console.log('Conectado a TTN MQTT');
-
   mqttClient.subscribe('v3/puar-unl-esp32@ttn/devices/eui-70b3d57ed0060a67/up');
   mqttClient.subscribe('v3/puar-unl-esp32@ttn/devices/eui-70b3d57ed00611db/up');
 });
 
-mqttClient.on('message', (topic, message) => {
+mqttClient.on('message', async (topic, message) => {
   try {
     const data = JSON.parse(message.toString());
     if (data.received_at) data.received_at = ajustarZonaHoraria(data.received_at);
 
-    console.log('Datos TTN recibidos:', {
+    const entrada = {
       fecha: data.received_at,
       dispositivo: data.end_device_ids?.device_id,
       payload: data.uplink_message?.decoded_payload
-    });
+    };
+
+    console.log('Datos TTN recibidos:', entrada);
+
+    const req = { body: entrada };
+    const res = {
+      status: (code) => ({
+        json: (response) => {
+          if (code !== 200) {
+            console.error(`[ERROR ${code}]`, response);
+          } else {
+            console.log('[Guardado]', response);
+          }
+        }
+      })
+    };
+
+    await measurementController.saveFromTTN(req, res);
+
   } catch (err) {
     console.error('Error procesando mensaje MQTT:', err.message);
   }
@@ -62,14 +92,21 @@ router.get('/privado/:external', async function (req, res) {
     await sequelize.authenticate();
     console.log('Conectado a PostgreSQL');
 
-    return res.status(200).send('Conexión exitosa a PostgreSQL y TTN activa');
+    // Verificar conexión temporal a Azure Cosmos para migración
+    const db = client.database(databaseId);
+    const { resources: containers } = await db.containers.readAll().fetchAll();
+    console.log(`Conectado a Cosmos DB: ${databaseId}, contenedores encontrados:`, containers.map(c => c.id));
+
+    return res.status(200).send(`Conexión exitosa a PostgreSQL y Cosmos DB (${databaseId})`);
   } catch (err) {
-    console.error('Error en conexión a PostgreSQL:', err.message);
-    return res.status(500).json({ message: 'Error conectando a PostgreSQL', error: err.message });
+    console.error('Error en conexión a PostgreSQL o Cosmos:', err.message);
+    return res.status(500).json({ message: 'Error conectando a bases de datos', error: err.message });
   }
 });
 
 module.exports = {
   router,
-  mqttClient
+  mqttClient,
+  client,     
+  databaseId
 };

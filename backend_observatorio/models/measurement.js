@@ -30,9 +30,9 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: 'id_quantity',
             as: 'quantity'
         });
-        Measurement.belongsTo(models.phenomenon_operation, {
-            foreignKey: 'id_phenomenon_operation',
-            as: 'phenomenon_operation'
+        Measurement.belongsTo(models.phenomenon_type, {
+            foreignKey: 'id_phenomenon_type',
+            as: 'phenomenon_type'
         });
     };
 

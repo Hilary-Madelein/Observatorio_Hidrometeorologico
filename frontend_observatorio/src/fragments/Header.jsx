@@ -20,6 +20,7 @@ const Header = () => {
 
       <nav className="navbar">
         <a href="/perfil">Perfil</a>
+        <a href="/principal/variable">Variables</a>
         <a onClick={handleClick} style={{ cursor: 'pointer' }}>Cerrar sesión</a>
       </nav>
     </header>

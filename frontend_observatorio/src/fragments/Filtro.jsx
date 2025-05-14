@@ -4,6 +4,8 @@ import '../css/Principal_Style.css';
 import { getToken, borrarSesion } from '../utils/SessionUtil';
 import { ObtenerGet } from '../hooks/Conexion';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import mensajes from '../utils/Mensajes';
 
 function Filtro({ onFiltrar }) {
     const [filtroSeleccionado, setFiltroSeleccionado] = useState("");
@@ -39,7 +41,8 @@ function Filtro({ onFiltrar }) {
                 errorMsg = "Debe seleccionar tanto el mes como el año.";
             }
         } else if (!filtroSeleccionado) {
-            errorMsg = "Debe seleccionar un tipo de filtro.";
+            mensajes('Debe seleccionar una escala temporal.', 'info', 'Selección Inválida');
+            return;
         }
 
         if (errorMsg) {
@@ -47,7 +50,6 @@ function Filtro({ onFiltrar }) {
             return;
         }
 
-        // Preparar los datos del filtro según el tipo seleccionado
         const datosFiltro = {
             tipo: filtroSeleccionado,
             estacion: estacionSeleccionada,
@@ -60,7 +62,7 @@ function Filtro({ onFiltrar }) {
         actualizarDescripcionFiltro(datosFiltro);
         onFiltrar(datosFiltro);
     };
-
+    
     const actualizarDescripcionFiltro = (datosFiltro) => {
         let descripcion = "";
 
@@ -73,7 +75,7 @@ function Filtro({ onFiltrar }) {
         }
 
         if (datosFiltro.estacion) {
-            const estacionNombre = data.find((e) => e.external_id === datosFiltro.estacion)?.nombre || "No seleccionada";
+            const estacionNombre = data.find((e) => e.external_id === datosFiltro.estacion)?.name || "No seleccionada";
             descripcion += ` | Estación: ${estacionNombre}`;
         }
 
@@ -86,9 +88,6 @@ function Filtro({ onFiltrar }) {
         return new Date(fecha).toLocaleDateString('es-ES', opciones);
     };
 
-
-    const anios = Array.from(new Array(100), (val, index) => new Date().getFullYear() - index);
-
     const obtenerFechaActual = () => {
         const hoy = new Date();
         const dia = String(hoy.getDate()).padStart(2, '0');
@@ -100,15 +99,18 @@ function Filtro({ onFiltrar }) {
     const mostrarCamposAdicionales = filtroSeleccionado === 'rangoFechas' || filtroSeleccionado === 'mesAnio';
 
     useEffect(() => {
-        ObtenerGet(getToken(), '/listar/estacion/operativas').then((info) => {
-            if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
-                borrarSesion();
-                navegation("/admin");
-            } else {
-                setData(info.info);
-            }
-        });
-    }, [navegation]);
+        if (data.length === 0) {
+            ObtenerGet(getToken(), '/listar/estacion/operativas').then((info) => {
+                if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
+                    borrarSesion();
+                    navegation("/admin");
+                } else {
+                    setData(info.info);
+                }
+            });
+        }
+    }, [navegation, data]);  // Añadido `data` en las dependencias para evitar reinicios innecesarios
+
 
     const calcularHoraRango = (filtroSeleccionado) => {
         const ahora = new Date();
@@ -153,7 +155,7 @@ function Filtro({ onFiltrar }) {
                     <div className="mb-2">
                         <span style={{ fontWeight: 'bold', color: '#0C2840' }}>Estación:</span>
                         <span className="ms-2 badge bg-secondary text-light">
-                            {data.find((e) => e.external_id === estacionSeleccionada)?.nombre || 'No seleccionada'}
+                            {data.find((e) => e.external_id === estacionSeleccionada)?.name || 'No seleccionada'}
                         </span>
                     </div>
                     {filtroSeleccionado === 'rangoFechas' && (
@@ -239,9 +241,12 @@ function Filtro({ onFiltrar }) {
                             Seleccione una estación
                         </option>
                         {data.map((estacion) => (
-                            <option key={estacion.id} value={estacion.external_id}>{estacion.nombre}</option>
+                            <option key={estacion.id} value={estacion.external_id}>
+                                {estacion.name}
+                            </option>
                         ))}
                     </select>
+
                 </div>
 
                 {/* Mostrar inputs adicionales según el filtro */}

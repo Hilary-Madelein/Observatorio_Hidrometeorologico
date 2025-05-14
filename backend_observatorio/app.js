@@ -6,8 +6,6 @@ var indexRouter = require('./routes/index').router;  // Importar solo el router
 var usersRouter = require('./routes/users');
 const cors = require('cors');
 var createError = require('http-errors');
-
-
 var app = express();
 
 app.listen(3006, () => {
