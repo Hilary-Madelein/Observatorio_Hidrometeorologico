@@ -7,7 +7,7 @@ import '../css/Principal_Style.css';
 import Header from './Header';
 import Footer from './Footer';
 import { ObtenerGet, URLBASE } from '../hooks/Conexion';
-import { Dropdown } from 'react-bootstrap';
+import { Dropdown, FormControl, InputGroup } from 'react-bootstrap';
 import swal from 'sweetalert';
 
 // Importa tu modal
@@ -16,6 +16,7 @@ import ModalAgregarMicrocuenca from './ModalAgregarMicrocuenca';
 const ListaMicrocuencas = () => {
     const navigate = useNavigate();
     const [data, setData] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Para agregar
     const [showAdd, setShowAdd] = useState(false);
@@ -41,11 +42,22 @@ const ListaMicrocuencas = () => {
             }
         });
     }, [navigate]);
-    
+
     const handleEditClick = (externalId) => {
         setSelectedId(externalId);
         setShowEdit(true);
     };
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const filteredData = data.filter((microcuenca) => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        return (
+            (microcuenca.name && microcuenca.name.toLowerCase().includes(lowerCaseSearchTerm))
+        );
+    });
 
     return (
         <div className="pagina-microcuencas">
@@ -56,13 +68,27 @@ const ListaMicrocuencas = () => {
                     <button className="btn-registrar" onClick={handleAddShow}>
                         Agregar Microcuenca
                     </button>
+
                 </div>
 
-                {data.length === 0 ? (
-                    <p className="no-data-message">No existen microcuencas registradas.</p>
+                <InputGroup className="mb-3">
+                    <InputGroup.Text>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+                        </svg>
+                    </InputGroup.Text>
+                    <FormControl
+                        placeholder="Buscar por: Nombre"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                </InputGroup>
+
+                {filteredData.length === 0 ? (
+                    <p className="no-data-message">No existen registros.</p>
                 ) : (
                     <div className="row gx-4 gy-4">
-                        {data.map(mc => (
+                        {filteredData.map(mc => (
                             <div className="col-md-4" key={mc.external_id}>
                                 <div className="card-microcuenca shadow-sm">
                                     <img

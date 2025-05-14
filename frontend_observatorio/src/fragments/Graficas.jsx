@@ -61,7 +61,7 @@ function Graficas({ filtro }) {
           }
           info = await ObtenerGet(getToken(), url);
         }
-        
+
         if (info.code !== 200) {
           mensajes(info.msg, 'error', '¡Algo salió mal!');
           if (info.msg === 'Acceso denegado. Token ha expirado') {
@@ -75,7 +75,7 @@ function Graficas({ filtro }) {
         } else {
           setDatosGrafica(info.info);
         }
-        
+
 
       } catch (error) {
         console.error(error);
@@ -112,11 +112,12 @@ function Graficas({ filtro }) {
 
     const esEstructuraCruda = datosGrafica[0]?.Temperatura !== undefined;
     const datasets = [];
+    const isBar = medida.toLowerCase() === 'lluvia';
 
     if (esEstructuraCruda) {
       const colorIndex = medidaIndex % chartColors.length;
       const borderColor = chartColors[colorIndex] || '#FF0000';
-      const backgroundColor = borderColor;
+      const backgroundColor = `${borderColor}88`;
 
       datasets.push({
         label: `${medida}`,
@@ -125,10 +126,10 @@ function Graficas({ filtro }) {
         backgroundColor,
         borderWidth: 2,
         fill: false,
-        pointRadius: medida === 'Lluvia' ? 0 : 6,
-        pointHoverRadius: medida === 'Lluvia' ? 0 : 12,
+        pointRadius: isBar ? 0 : 6,
+        pointHoverRadius: isBar ? 0 : 12,
         tension: 0.4,
-        type: medida === 'Lluvia' ? 'bar' : 'line',
+        type: isBar ? 'bar' : 'line',
       });
     } else if (datosGrafica[0]?.medidas?.[medida]) {
       const metricas = Object.keys(datosGrafica[0].medidas[medida]);
@@ -136,7 +137,7 @@ function Graficas({ filtro }) {
       metricas.forEach((metrica, metricaIndex) => {
         const colorIndex = (medidaIndex + metricaIndex) % chartColors.length;
         const borderColor = chartColors[colorIndex] || '#FF0000';
-        const backgroundColor = borderColor;
+        const backgroundColor = `${borderColor}88`;
 
         datasets.push({
           label: `${medida} - ${metrica}`,
@@ -145,10 +146,10 @@ function Graficas({ filtro }) {
           backgroundColor,
           borderWidth: 2,
           fill: false,
-          pointRadius: medida === 'Lluvia' ? 0 : 6,
-          pointHoverRadius: medida === 'Lluvia' ? 0 : 12,
+          pointRadius: isBar ? 0 : 6,
+          pointHoverRadius: isBar ? 0 : 12,
           tension: 0.4,
-          type: medida === 'Lluvia' ? 'bar' : 'line',
+          type: isBar ? 'bar' : 'line',
         });
       });
     }
@@ -169,6 +170,9 @@ function Graficas({ filtro }) {
     ? Object.keys(datosGrafica[0].medidas || {})
     : [];
 
+  console.log("medidasDisponibles", medidasDisponibles);
+
+
   return (
     <div className="custom-container-graficas">
       <div className="row">
@@ -181,7 +185,7 @@ function Graficas({ filtro }) {
               boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
               background: '#fff'
             }}>
-              {medida === 'LLUVIA' ? (
+              {medida.toLowerCase() === 'lluvia' ? (
                 <Bar
                   data={prepararDatosPorMedida(medida, index)}
                   options={{

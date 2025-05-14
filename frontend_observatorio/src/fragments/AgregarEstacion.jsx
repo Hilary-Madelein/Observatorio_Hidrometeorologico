@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
 import { GuardarImages, ActualizarImagenes, ObtenerGet } from '../hooks/Conexion';
 import swal from 'sweetalert';
 
-function AgregarEstacion({ external_id }) {
+function AgregarEstacion({ external_id_estacion }) {
     const { register, setValue, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
+    const { external_id } = useParams();
     const [descripcion, setDescripcion] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [uploadedPhoto, setUploadedPhoto] = useState(null);
@@ -16,10 +17,10 @@ function AgregarEstacion({ external_id }) {
     const maxCaracteres = 150;
 
     useEffect(() => {
-        if (!external_id) return;
+        if (!external_id_estacion) return;
         (async () => {
             try {
-                const response = await ObtenerGet(getToken(), `/get/estacion/${external_id}`);
+                const response = await ObtenerGet(getToken(), `/get/estacion/${external_id_estacion}`);
                 if (response.code === 200) {
                     const e = response.info;
                     setModoEdicion(true);
@@ -39,7 +40,7 @@ function AgregarEstacion({ external_id }) {
                 mensajes('Error al procesar la solicitud', 'error');
             }
         })();
-    }, [external_id, setValue]);
+    }, [external_id_estacion, setValue]);
 
     const handleDescripcionChange = event => {
         const { value } = event.target;
@@ -66,7 +67,7 @@ function AgregarEstacion({ external_id }) {
 
     const onSubmit = data => {
         const formData = new FormData();
-        if (modoEdicion) formData.append('external_id', external_id);
+        if (modoEdicion) formData.append('external_id', external_id_estacion);
         formData.append('nombre', data.nombre.toUpperCase());
         formData.append('descripcion', data.descripcion);
         formData.append('estado', data.estado);
@@ -221,26 +222,30 @@ function AgregarEstacion({ external_id }) {
                         <label htmlFor="foto" className="form-label">Seleccionar foto</label>
                         <input
                             type="file"
-                            {...register("foto", modoEdicion ? {} : { required: "Seleccione una foto" })}
+                            {...register("foto", {
+                                validate: fileList => {
+                                    if (!modoEdicion && (!fileList || fileList.length === 0)) {
+                                        return "Seleccione una foto";
+                                    }
+                                    return true;
+                                }
+                            })}
                             onChange={handlePhotoChange}
                             className="form-control"
                             accept="image/*"
                         />
                         {uploadedPhoto && (
                             <div className="d-flex align-items-center mt-3 justify-content-end">
-                                <button
-                                    type="button"
-                                    className="btn btn-info btn-sm me-2 btn-mini"
-                                    onClick={toggleModal}
-                                >
-                                    Previsualizar
+                                <button type="button" className="btn btn-info btn-sm me-2 btn-mini" onClick={toggleModal}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="bi bi-eye-fill" viewBox="0 0 16 16">
+                                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
+                                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
+                                    </svg>
                                 </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-danger btn-sm btn-mini"
-                                    onClick={handleRemovePhoto}
-                                >
-                                    Eliminar
+                                <button type="button" className="btn btn-danger btn-sm btn-mini" onClick={handleRemovePhoto}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="bi bi-trash-fill" viewBox="0 0 16 16">
+                                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                                    </svg>
                                 </button>
                             </div>
                         )}
