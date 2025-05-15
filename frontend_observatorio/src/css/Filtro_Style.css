@@ -12,12 +12,6 @@
     text-align: start;
 }
 
-@media (max-width: 768px) {
-    .filtro-container {
-        flex-direction: column;
-    }
-}
-
 .custom-button-filtro {
     background-color: #537EC5;
     border: none;
@@ -44,4 +38,22 @@
     width: 100%;
     padding: 0;
     margin: 0;
+}
+
+@media (max-width: 768px) {
+    .filtro-container {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 540px) {
+    .filtro-container {
+        flex-direction: column;
+    }
+
+    .text-left mt-4  {
+        font-size: 8px;
+    }
+
+
 }

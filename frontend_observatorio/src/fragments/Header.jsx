@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { borrarSesion } from '../utils/SessionUtil';
 import { useNavigate } from 'react-router-dom';
 import '../css/Header_Style.css';
@@ -5,11 +6,14 @@ import 'boxicons';
 
 const Header = () => {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleClick = () => {
     borrarSesion();
-    navigate('/login');
+    navigate('/admin');
   };
+
+  const toggleMenu = () => setMenuOpen(!menuOpen);
 
   return (
     <header className="header">
@@ -18,14 +22,29 @@ const Header = () => {
         <h1 className="titulo">Observatorio Hidrometeorológico</h1>
       </div>
 
+      {/* Checkbox oculto para controlar menú */}
+      <input
+        type="checkbox"
+        id="check"
+        checked={menuOpen}
+        onChange={toggleMenu}
+        style={{ display: 'none' }}
+      />
+      <label htmlFor="check" className="icons" aria-label="Toggle menu" tabIndex={0} onKeyPress={(e) => { if(e.key === 'Enter') toggleMenu(); }}>
+        {menuOpen ? (
+          <i id="close-icon" className="bx bx-x"></i>
+        ) : (
+          <i id="menu-icon" className="bx bx-menu"></i>
+        )}
+      </label>
+
       <nav className="navbar">
-        <a href="/principal/admin">Microcuencas</a>
-        <a href="/principal/variable">Variables</a>
-        <a href="/perfil">Perfil</a>
+        <a href="/principal/admin" onClick={() => setMenuOpen(false)}>Microcuencas</a>
+        <a href="/principal/variable" onClick={() => setMenuOpen(false)}>Variables</a>
+        <a href="/perfil" onClick={() => setMenuOpen(false)}>Perfil</a>
         <a onClick={handleClick} style={{ cursor: 'pointer' }}>Cerrar sesión</a>
       </nav>
     </header>
-
   );
 };
 

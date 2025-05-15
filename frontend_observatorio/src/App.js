@@ -9,8 +9,31 @@ import ListaEstaciones from './fragments/ListaEstaciones';
 import CardEstaciones from './fragments/CardEstaciones';
 import ListaVariables from './fragments/ListaVariables';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { getRoles, getToken } from './utils/SessionUtil';
+import mensajes from './utils/Mensajes';
+import 'boxicons/css/boxicons.min.css';
 
 function App() {
+
+  const MiddewareSesion = ({ children, requiredRoles }) => {
+    const autenticado = getToken();
+    const roles = getRoles() || [];
+
+    if (!autenticado) {
+      return <Navigate to='/admin' />;
+    }
+  
+    if (requiredRoles && requiredRoles.length > 0) {
+      const hasRequiredRole = roles.some(role => requiredRoles.includes(role.nombre));
+      if (!hasRequiredRole) {
+        mensajes("No tienes el rol necesario para acceder a esta página.", "error", "Acceso Denegado");
+        return <Navigate to='/admin' />;
+      }
+    }
+  
+    return children;
+  };
+
   return (
     <div className="App">
       <Routes>
@@ -19,9 +42,9 @@ function App() {
         
         {/** RUTAS ADMINISTRATIVAS */}
         <Route path='/admin' element={<Login />} />
-        <Route path='/principal/admin' element={<ListaMicrocuencas />} />
-        <Route path='/estaciones/:external_id' element={<ListaEstaciones />} />
-        <Route path='/principal/variable' element={<ListaVariables />} />
+        <Route path='/principal/admin' element={<MiddewareSesion ><ListaMicrocuencas /></MiddewareSesion>} />
+        <Route path='/estaciones/:external_id' element={<MiddewareSesion ><ListaEstaciones /></MiddewareSesion>} />
+        <Route path='/principal/variable' element={<MiddewareSesion ><ListaVariables /></MiddewareSesion>} />
       </Routes>
     </div>
   );

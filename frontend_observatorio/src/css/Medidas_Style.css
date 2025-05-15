@@ -48,13 +48,13 @@
 
 .titulo-variables {
     font-size: 1.3rem;
-    font-weight: bold;
+    font-weight: 600;
     color: #0C2840;
 }
 
 .unidad-medida {
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 500;
     color: #555;
 }
 
@@ -147,23 +147,26 @@
 
 @media (max-width: 540px) {
     .contenedor-cards {
-        flex-direction: column;
-        align-items: center;
+        display: flex;        
+        flex-wrap: wrap;        
         gap: 8px;
+        justify-content: center;
     }
 
     .custom-card {
-        width: 90%;
-        max-width: 100%;
+        flex: 0 1 calc(50% - 8px); 
+        max-width: calc(50% - 8px);
+        max-height: 90px;
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 12px;
+        padding: 5px;
+        box-sizing: border-box; 
     }
 
     .icono-variable {
-        width: 50px;
-        height: 50px;
+        width: 30px;
+        height: 30px;
         position: static;
         transform: none;
     }
@@ -173,6 +176,22 @@
     }
 
     .titulo-variables {
-        font-size: 1rem;
+        font-size: 0.8rem;
+    }
+
+    .estacion-valor {
+        font-size: 0.5rem;
+    }
+
+    .estacion-nombre {
+        font-size: 8px;
+    }
+
+    .unidad-medida {
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: #555;
     }
 }
+
+

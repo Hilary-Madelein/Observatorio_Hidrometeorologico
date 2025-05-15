@@ -10,14 +10,20 @@ export const getToken = () => {
     return localStorage.getItem('token');
 }
 
-//OBTENER ROL
-export const saveRol = (rol) => {
-    localStorage.setItem("rol", rol);
-}
+//------------------ROLES------------------
+export const saveRoles = (role) => {
+    const rolesJSON = JSON.stringify(role);
+    localStorage.setItem('role', rolesJSON);
+};
 
-export const getRol = () => {
-    return localStorage.getItem('rol');
-}
+export const getRoles = () => {
+    const rolesJSON = localStorage.getItem('role');
+    return rolesJSON ? JSON.parse(rolesJSON) : null;
+};
+
+export const borrarRoles = () => {
+    localStorage.removeItem('role');
+};
 
 export const estaSesion = () => {
     var token = localStorage.getItem('token');
@@ -39,7 +45,6 @@ export const getUser = () => {
             return JSON.parse(userJSON);
         } catch (e) {
             console.error('Error al analizar los datos del usuario:', e);
-            // Manejo del error, podría ser retornar null o un objeto vacío
             return null;
         }
     }
