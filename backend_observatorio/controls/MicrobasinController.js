@@ -22,6 +22,18 @@ class MicrobasinController {
         }
     }
 
+    async listInactive(req, res) {
+        try {
+            const results = await Microbasin.findAll({
+                where: { status: false },
+                attributes: ['external_id', 'status', 'picture', 'name', 'description'],
+            });
+            res.json({ msg: 'OK!', code: 200, info: results });
+        } catch (error) {
+            res.status(500).json({ msg: 'Error al listar microcuencas: ' + error.message, code: 500, info: error });
+        }
+    }
+
     async list(req, res) {
         try {
             const results = await Microbasin.findAll({
@@ -179,6 +191,34 @@ class MicrobasinController {
         } catch (error) {
             console.error("Error en el servidor:", error);
             return res.status(400).json({ msg: "Error en el servidor", error, code: 400 });
+        }
+    }
+
+    async changeStatus(req, res) {
+        try {
+            const external_id = req.params.external_id;
+
+            const microbasin = await Microbasin.findOne({
+                where: { external_id }
+            });
+    
+            if (!microbasin) {
+                return res.status(404).json({ msg: "Microcuenca no encontrada", code: 404 });
+            }
+
+    
+            microbasin.status = !microbasin.status;
+            await microbasin.save();
+
+            return res.status(200).json({
+                msg: `Estado actualizado correctamente. Nuevo estado: ${microbasin.status ? 'ACTIVO' : 'INACTIVO'}`,
+                code: 200,
+                info: { external_id, nuevo_estado: microbasin.status }
+            });
+    
+        } catch (error) {
+            console.error("Error al cambiar el estado:", error);
+            return res.status(500).json({ msg: "Error interno del servidor", code: 500 });
         }
     }
 }

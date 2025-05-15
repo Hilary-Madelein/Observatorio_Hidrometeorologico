@@ -56,7 +56,7 @@ function Filtro({ onFiltrar }) {
         actualizarDescripcionFiltro(datosFiltro);
         onFiltrar(datosFiltro);
     };
-    
+
     const actualizarDescripcionFiltro = (datosFiltro) => {
         let descripcion = "";
 
@@ -130,19 +130,14 @@ function Filtro({ onFiltrar }) {
         <div className="container-fluid">
             <div className="text-left mt-4">
                 <h4 style={{ fontWeight: '700', color: '#7D7C7C', fontSize: '16px', textAlign: 'initial', marginBottom: '25px' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16" style={{ margin: '5px' }}>
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
-                    </svg>
-
+                    <i class="bi bi-exclamation-circle-fill" style={{ margin: '5px' }}></i>
                     Configure el filtro para observar información.
                 </h4>
             </div>
 
             <div className="informacion-presentada rounded p-3 mb-4 text-start" style={{ background: '#fff' }}>
                 <h5 className="mb-3" style={{ fontWeight: 'bold', color: '#0C2840' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-info-circle-fill" viewBox="0 0 16 16" style={{ marginRight: '8px' }}>
-                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2" />
-                    </svg>
+                    <i class="bi bi-info-circle-fill" style={{ margin: '5px' }}></i>
                     Información presentada:
                 </h5>
                 <div className="text-start">
@@ -192,9 +187,7 @@ function Filtro({ onFiltrar }) {
                 {/* Filtro por tipo */}
                 <div className="filtro-item">
                     <label htmlFor="filtro" className="form-label" style={{ fontWeight: '700', color: '#0C2840', fontSize: '16px' }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-hourglass-bottom" viewBox="0 0 16 16" style={{ margin: '5px', color: '#0C2840' }}>
-                            <path d="M2 1.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1h-11a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1-.5-.5m2.5.5v1a3.5 3.5 0 0 0 1.989 3.158c.533.256 1.011.791 1.011 1.491v.702s.18.149.5.149.5-.15.5-.15v-.7c0-.701.478-1.236 1.011-1.492A3.5 3.5 0 0 0 11.5 3V2z" />
-                        </svg>
+                        <i class="bi bi-hourglass-split" style={{ margin: '5px' }}></i>
                         Escala temporal:
                     </label>
                     <select
@@ -219,10 +212,7 @@ function Filtro({ onFiltrar }) {
                 {/* Combo box de estaciones */}
                 <div className="filtro-item">
                     <label htmlFor="estacion" className="form-label" style={{ fontWeight: '700', color: '#0C2840', fontSize: '16px' }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pin-map-fill" viewBox="0 0 16 16" style={{ margin: '5px' }}>
-                            <path fill-rule="evenodd" d="M3.1 11.2a.5.5 0 0 1 .4-.2H6a.5.5 0 0 1 0 1H3.75L1.5 15h13l-2.25-3H10a.5.5 0 0 1 0-1h2.5a.5.5 0 0 1 .4.2l3 4a.5.5 0 0 1-.4.8H.5a.5.5 0 0 1-.4-.8z" />
-                            <path fill-rule="evenodd" d="M4 4a4 4 0 1 1 4.5 3.969V13.5a.5.5 0 0 1-1 0V7.97A4 4 0 0 1 4 3.999z" />
-                        </svg>
+                        <i class="bi bi-pin-map-fill" style={{ margin: '5px' }}></i>
                         Estación:
                     </label>
                     <select
@@ -248,10 +238,7 @@ function Filtro({ onFiltrar }) {
                     <>
                         <div className="filtro-item">
                             <label htmlFor="fecha-inicio" className="form-label" style={{ fontWeight: '700', color: '#0C2840', fontSize: '16px' }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-calendar-range" viewBox="0 0 16 16" style={{ margin: '5px' }}>
-                                    <path d="M9 7a1 1 0 0 1 1-1h5v2h-5a1 1 0 0 1-1-1M1 9h4a1 1 0 0 1 0 2H1z" />
-                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
-                                </svg>
+                                <i class="bi bi-calendar-range" style={{ margin: '5px' }}></i>
                                 Fecha inicio:
                             </label>
                             <input
@@ -266,10 +253,7 @@ function Filtro({ onFiltrar }) {
 
                         <div className="filtro-item">
                             <label htmlFor="fecha-fin" className="form-label" style={{ fontWeight: '700', color: '#0C2840', fontSize: '16px' }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-calendar-range" viewBox="0 0 16 16" style={{ margin: '5px' }}>
-                                    <path d="M9 7a1 1 0 0 1 1-1h5v2h-5a1 1 0 0 1-1-1M1 9h4a1 1 0 0 1 0 2H1z" />
-                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
-                                </svg>
+                                <i class="bi bi-calendar-range" style={{ margin: '5px' }}></i>
                                 Fecha fin:
                             </label>
                             <input

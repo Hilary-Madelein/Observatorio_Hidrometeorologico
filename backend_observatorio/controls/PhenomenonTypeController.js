@@ -14,13 +14,38 @@ class PhenomenonTypeController {
         try {
             const results = await PhenomenonType.findAll({
                 where: { status: true },
-                attributes: ['name', 'icon', 'unit_measure', 'operations']
+                attributes: ['name', 'icon', 'unit_measure', 'external_id', 'status', 'operations']
             });
 
             const fenomenos = results.map(f => ({
                 nombre: f.name,
                 icono: f.icon,
                 unidad: f.unit_measure,
+                external_id: f.external_id,
+                estado: f.status,
+                operaciones: f.operations || []
+            }));
+
+            res.json({ msg: 'OK!', code: 200, info: fenomenos });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ msg: 'Error al listar tipos de medida: ' + error.message, code: 500 });
+        }
+    }
+
+    async listFalse(req, res) {
+        try {
+            const results = await PhenomenonType.findAll({
+                where: { status: false },
+                attributes: ['name', 'icon', 'unit_measure', 'external_id', 'status', 'operations']
+            });
+
+            const fenomenos = results.map(f => ({
+                nombre: f.name,
+                icono: f.icon,
+                unidad: f.unit_measure,
+                external_id: f.external_id,
+                estado: f.status,
                 operaciones: f.operations || []
             }));
 
@@ -37,7 +62,7 @@ class PhenomenonTypeController {
         try {
             const result = await PhenomenonType.findOne({
                 where: { external_id: external },
-                attributes: ['id', 'name', 'icon', 'unit_measure', 'operations']
+                attributes: ['id', 'name', 'icon', 'unit_measure', 'operations', 'external_id', 'status'],
             });
 
             if (!result) {
@@ -149,6 +174,34 @@ class PhenomenonTypeController {
             return res.status(400).json({ msg: "Error en el servidor", error, code: 400 });
         }
     }
+
+    async changeStatus(req, res) {
+        try {
+            const external_id = req.params.external_id;
+    
+            const phenomenon = await PhenomenonType.findOne({
+                where: { external_id }
+            });
+    
+            if (!phenomenon) {
+                return res.status(404).json({ msg: "Tipo de variable no encontrada", code: 404 });
+            }
+    
+            phenomenon.status = !phenomenon.status;
+            await phenomenon.save();
+    
+            return res.status(200).json({
+                msg: `Estado actualizado correctamente. Nuevo estado: ${phenomenon.status ? 'ACTIVO' : 'INACTIVO'}`,
+                code: 200,
+                info: { external_id, nuevo_estado: phenomenon.status }
+            });
+    
+        } catch (error) {
+            console.error("Error al cambiar el estado:", error);
+            return res.status(500).json({ msg: "Error interno del servidor", code: 500 });
+        }
+    }
+    
 }
 
 module.exports = PhenomenonTypeController;

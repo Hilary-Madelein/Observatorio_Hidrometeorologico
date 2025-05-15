@@ -26,7 +26,6 @@ function AgregarEstacion({ external_id_estacion }) {
                     setModoEdicion(true);
                     setValue('nombre', e.name);
                     setValue('descripcion', e.description);
-                    setValue('estado', e.status);
                     setValue('longitud', e.length);
                     setValue('latitud', e.latitude);
                     setValue('altitud', e.altitude);
@@ -204,19 +203,22 @@ function AgregarEstacion({ external_id_estacion }) {
                         {errors.tipo && <div className='alert alert-danger'>{errors.tipo.message}</div>}
                     </div>
                     {/* Estado */}
-                    <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Estado</label>
-                        <select
-                            {...register('estado', { required: 'Seleccione un estado' })}
-                            className="form-control form-control-user"
-                        >
-                            <option value="">Seleccione un estado</option>
-                            <option value="OPERATIVA">OPERATIVA</option>
-                            <option value="MANTENIMIENTO">MANTENIMIENTO</option>
-                            <option value="NO OPERATIVA">NO OPERATIVA</option>
-                        </select>
-                        {errors.estado && <div className='alert alert-danger'>{errors.estado.message}</div>}
-                    </div>
+                    {!modoEdicion && (
+                        <div className="col-md-6 form-group mb-3">
+                            <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Estado</label>
+                            <select
+                                {...register('estado', { required: 'Seleccione un estado' })}
+                                className="form-control form-control-user"
+                            >
+                                <option value="">Seleccione un estado</option>
+                                <option value="OPERATIVA">OPERATIVA</option>
+                                <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+                                <option value="NO OPERATIVA">NO OPERATIVA</option>
+                            </select>
+                            {errors.estado && <div className='alert alert-danger'>{errors.estado.message}</div>}
+                        </div>
+                    )}
+
                     {/* Foto */}
                     <div className="col-md-6 form-group mb-3">
                         <label htmlFor="foto" className="form-label">Seleccionar foto</label>
@@ -237,15 +239,10 @@ function AgregarEstacion({ external_id_estacion }) {
                         {uploadedPhoto && (
                             <div className="d-flex align-items-center mt-3 justify-content-end">
                                 <button type="button" className="btn btn-info btn-sm me-2 btn-mini" onClick={toggleModal}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="bi bi-eye-fill" viewBox="0 0 16 16">
-                                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
-                                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
-                                    </svg>
+                                    <i class="bi bi-eye-fill"></i>
                                 </button>
                                 <button type="button" className="btn btn-danger btn-sm btn-mini" onClick={handleRemovePhoto}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="bi bi-trash-fill" viewBox="0 0 16 16">
-                                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-                                    </svg>
+                                    <i class="bi bi-trash-fill"></i>
                                 </button>
                             </div>
                         )}
@@ -277,18 +274,12 @@ function AgregarEstacion({ external_id_estacion }) {
                 {/* Botones */}
                 <div className="btn-Modal d-flex justify-content-end gap-3 mt-4">
                     <button className="btn btn-cancelar-modal" type="button" onClick={handleCancelClick}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-x-circle" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-                        </svg>
+                        <i class="bi bi-x-circle-fill"></i>
                         <span className="ms-2 fw-bold">Cancelar</span>
                     </button>
 
                     <button className="btn btn-registrar-modal" type="submit">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-check-circle" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                            <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
-                        </svg>
+                        <i class="bi bi-check-circle-fill"></i>
                         <span className="ms-2 fw-bold">{modoEdicion ? 'Actualizar' : 'Registrar'}</span>
                     </button>
                 </div>

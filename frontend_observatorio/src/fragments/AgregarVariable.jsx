@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
-import { GuardarImages } from '../hooks/Conexion';
+import { ActualizarImagenes, GuardarImages, ObtenerGet } from '../hooks/Conexion';
 import swal from 'sweetalert';
 
-function AgregarVariable() {
+function AgregarVariable({ external_id_variable }) {
     const { register, setValue, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
     const [uploadedPhoto, setUploadedPhoto] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [modoEdicion, setModoEdicion] = useState(false);
+
+    console.log(external_id_variable);
+
 
     const handleRemovePhoto = () => {
         setUploadedPhoto(null);
@@ -28,21 +32,45 @@ function AgregarVariable() {
         }
     };
 
+    useEffect(() => {
+        if (!external_id_variable) return;
+        (async () => {
+            try {
+                const response = await ObtenerGet(getToken(), `/obtener/tipo_medida/${external_id_variable}`);
+                if (response.code === 200) {
+                    const e = response.info;
+                    setModoEdicion(true);
+                    setValue('nombre', e.name);
+                    setValue('unidad_medida', e.unit_measure);
+                    setValue('operaciones', e.operations);
+                } else {
+                    mensajes(`Error al obtener variable: ${response.msg}`, 'error');
+                }
+            } catch {
+                mensajes('Error al procesar la solicitud', 'error');
+            }
+        })();
+    }, [external_id_variable, setValue]);
+
     const onSubmit = data => {
         const formData = new FormData();
         formData.append('nombre', data.nombre);
         formData.append('unidad_medida', data.unidad_medida);
         formData.append('foto', data.foto[0]);
+        formData.append('external_id', external_id_variable);
         const operacionesSeleccionadas = Array.from(data.operaciones);
         operacionesSeleccionadas.forEach(op => {
             formData.append('operaciones[]', op);
         });
 
-        GuardarImages(formData, getToken(), "/guardar/tipo_medida").then(info => {
+        const endpoint = modoEdicion ? '/modificar/tipo_medida' : '/guardar/tipo_medida';
+        const accion = modoEdicion ? ActualizarImagenes : GuardarImages;
+
+        accion(formData, getToken(), endpoint).then(info => {
             if (info.code !== 200) {
                 mensajes(info.msg, 'error', 'Error');
                 borrarSesion();
-                navigate('/principal/admin');
+                navigate('/principal/variable');
             } else {
                 mensajes(info.msg);
                 setTimeout(() => {
@@ -131,9 +159,11 @@ function AgregarVariable() {
                         <input
                             type="file"
                             {...register("foto", {
-                                required: {
-                                    value: true,
-                                    message: "Seleccione un icono"
+                                validate: fileList => {
+                                    if (!modoEdicion && (!fileList || fileList.length === 0)) {
+                                        return "Seleccione un icono";
+                                    }
+                                    return true;
                                 }
                             })}
                             onChange={handlePhotoChange}
@@ -142,24 +172,11 @@ function AgregarVariable() {
                         />
                         {uploadedPhoto && (
                             <div className="d-flex align-items-center mt-3 justify-content-end">
-                                <button
-                                    type="button"
-                                    className="btn btn-info btn-sm me-2 btn-mini"
-                                    onClick={toggleModal}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
-                                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
-                                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
-                                    </svg>
+                                <button type="button" className="btn btn-info btn-sm me-2 btn-mini" onClick={toggleModal}>
+                                    <i class="bi bi-eye-fill"></i>
                                 </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-danger btn-sm btn-mini"
-                                    onClick={handleRemovePhoto}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-                                    </svg>
+                                <button type="button" className="btn btn-danger btn-sm btn-mini" onClick={handleRemovePhoto}>
+                                    <i class="bi bi-trash-fill"></i>
                                 </button>
                             </div>
                         )}
@@ -196,17 +213,11 @@ function AgregarVariable() {
                 {/* Botones */}
                 <div className="btn-Modal d-flex justify-content-end gap-3 mt-4">
                     <button className="btn btn-cancelar-modal" type="button" onClick={handleCancelClick}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-x-circle" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-                        </svg>
+                        <i class="bi bi-x-circle-fill"></i>
                         <span className="ms-2 fw-bold">Cancelar</span>
                     </button>
                     <button className="btn btn-registrar-modal" type="submit">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-check-circle" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                            <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
-                        </svg>
+                        <i class="bi bi-check-circle-fill"></i>
                         <span className="ms-2 fw-bold">Registrar</span>
                     </button>
                 </div>

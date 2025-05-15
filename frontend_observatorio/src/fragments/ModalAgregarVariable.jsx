@@ -3,7 +3,9 @@ import { Modal, Button } from 'react-bootstrap';
 import '../css/ModalEstacion_Style.css';
 import AgregarVariable from './AgregarVariable';
 
-const ModalAgregarVariable = ({ show, handleClose }) => {
+const ModalAgregarVariable = ({ show, handleClose, external_id_variable }) => {
+  const esEdicion = Boolean(external_id_variable);
+
   return (
     <Modal
       show={show}
@@ -15,11 +17,13 @@ const ModalAgregarVariable = ({ show, handleClose }) => {
       dialogClassName="modal-estacion"
     >
       <Modal.Header className="modal-header">
-        <Modal.Title className="modal-title">Agregar variable</Modal.Title>
+        <Modal.Title className="modal-title">
+          {esEdicion ? 'Editar variable' : 'Agregar variable'}
+        </Modal.Title>
       </Modal.Header>
 
       <Modal.Body className="modal-body">
-        <AgregarVariable />
+        <AgregarVariable external_id_variable={external_id_variable} onClose={handleClose} />
       </Modal.Body>
 
       <Modal.Footer className="modal-footer">

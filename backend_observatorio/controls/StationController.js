@@ -33,6 +33,30 @@ class StationController {
         }
     }
 
+    async listInactive(req, res) {
+        try {
+            const results = await Station.findAll({
+                attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+                where: { status: 'NO_OPERATIVA' }
+            });
+            res.json({ msg: 'OK!', code: 200, info: results });
+        } catch (error) {
+            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
+        }
+    }
+
+    async listMantenimiento(req, res) {
+        try {
+            const results = await Station.findAll({
+                attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+                where: { status: 'MANTENIMIENTO' }
+            });
+            res.json({ msg: 'OK!', code: 200, info: results });
+        } catch (error) {
+            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
+        }
+    }
+
     async getByMicrobasinParam(req, res) {
         const external = req.params.external;
 
@@ -213,6 +237,37 @@ class StationController {
             return res.status(400).json({ msg: "Error en el servidor", error, code: 400 });
         }
     }
+
+    async changeStatus(req, res) {
+        try {
+            console.log("qqqqqq", req.body);
+            
+            const external_id = req.body.external_id;
+    
+            const estacion = await Station.findOne({
+                where: { external_id }
+            });
+    
+            if (!estacion) {
+                return res.status(404).json({ msg: "Estación no encontrada", code: 404 });
+            }
+    
+            estacion.status = req.body.estado;
+    
+            await estacion.save();
+    
+            return res.status(200).json({
+                msg: `Estado actualizado correctamente. Nuevo estado: ${estacion.status}`,
+                code: 200,
+                info: { external_id, nuevo_estado: estacion.status }
+            });
+    
+        } catch (error) {
+            console.error("Error al cambiar el estado:", error);
+            return res.status(500).json({ msg: "Error interno del servidor", code: 500 });
+        }
+    }
+    
 }
 
 module.exports = StationController;

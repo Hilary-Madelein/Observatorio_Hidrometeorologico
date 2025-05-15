@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { borrarSesion, getToken } from '../utils/SessionUtil';
-import mensajes from '../utils/Mensajes';
+import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
 import '../css/Microcuenca_Style.css';
 import '../css/Principal_Style.css';
 import Header from './Header';
@@ -17,6 +17,7 @@ const ListaMicrocuencas = () => {
     const navigate = useNavigate();
     const [data, setData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [mostrarActivos, setMostrarActivos] = useState(true);
 
     // Para agregar
     const [showAdd, setShowAdd] = useState(false);
@@ -31,8 +32,9 @@ const ListaMicrocuencas = () => {
         setSelectedId(null);
     };
 
-    useEffect(() => {
-        ObtenerGet(getToken(), '/listar/microcuenca').then(info => {
+    const cargarDatos = () => {
+        const ruta = mostrarActivos ? '/listar/microcuenca/operativas' : '/listar/microcuenca/desactivas';
+        ObtenerGet(getToken(), ruta).then(info => {
             if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
                 borrarSesion();
                 mensajes(info.msg, 'error');
@@ -41,7 +43,11 @@ const ListaMicrocuencas = () => {
                 setData(info.info);
             }
         });
-    }, [navigate]);
+    };
+
+    useEffect(() => {
+        cargarDatos();
+    }, [mostrarActivos]);
 
     const handleEditClick = (externalId) => {
         setSelectedId(externalId);
@@ -59,23 +65,56 @@ const ListaMicrocuencas = () => {
         );
     });
 
+    const handleToggleEstado = (externalId) => {
+        swal({
+            title: `¿Está seguro de ${mostrarActivos ? 'desactivar' : 'reactivar'} esta microcuenca?`,
+            text: `Esta acción ${mostrarActivos ? 'desactivará' : 'reactivará'} la microcuenca.`,
+            icon: 'warning',
+            buttons: ['Cancelar', mostrarActivos ? 'Desactivar' : 'Reactivar'],
+            dangerMode: true,
+        }).then(async (confirm) => {
+            if (!confirm) return;
+            try {
+                const res = await ObtenerGet(getToken(), `/desactivar/microcuenca/${externalId}`);
+                if (res.code === 200) {
+                    mensajesConRecarga(`${mostrarActivos ? 'Desactivada' : 'Reactivada'} con éxito`, 'success');
+                    cargarDatos();
+                } else {
+                    mensajes(res.msg, 'error');
+                }
+            } catch (error) {
+                mensajes('Error al cambiar estado', 'error');
+            }
+        });
+    };
+
+
     return (
         <div className="pagina-microcuencas">
             <Header />
             <div className="container-microcuenca shadow-lg rounded p-5">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h1 className="titulo-admin">Microcuencas Registradas</h1>
-                    <button className="btn-registrar" onClick={handleAddShow}>
-                        Agregar Microcuenca
-                    </button>
+                <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+                    <h1 className="titulo-admin">Microcuencas Registradas {mostrarActivos ? '(Activas)' : '(Inactivas)'}</h1>
 
+                    <div className="d-flex ms-auto flex-wrap align-items-center">
+                        <button
+                            className="btn btn-outline-secondary me-2"
+                            onClick={() => setMostrarActivos(!mostrarActivos)}
+                        >
+                            {mostrarActivos ? 'Ver Inactivas' : 'Ver Activas'}
+                        </button>
+
+                        {mostrarActivos && (
+                            <button className="btn-registrar" onClick={handleAddShow}>
+                                Agregar Microcuenca
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <InputGroup className="mb-3">
                     <InputGroup.Text>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
-                        </svg>
+                        <i className="bi bi-search"></i>
                     </InputGroup.Text>
                     <FormControl
                         placeholder="Buscar por: Nombre"
@@ -105,40 +144,30 @@ const ListaMicrocuencas = () => {
                                             <h5><strong>{mc.name}</strong></h5>
                                             <Dropdown onClick={e => e.stopPropagation()}>
                                                 <Dropdown.Toggle variant="light" size="sm">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-sliders" viewBox="0 0 16 16">
-                                                        <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1z" />
-                                                    </svg>
+                                                    <i class="bi bi-sliders"></i>
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu>
+                                                    {mostrarActivos && (
+                                                        <Dropdown.Item
+                                                            onClick={() => handleEditClick(mc.external_id)}
+                                                        >
+                                                            <i className="bi bi-pencil-square"></i>
+                                                            Editar
+                                                        </Dropdown.Item>
+                                                    )}
                                                     <Dropdown.Item
-                                                        onClick={() => handleEditClick(mc.external_id)}
+                                                        onClick={() => handleToggleEstado(mc.external_id)}
                                                     >
-                                                        Editar
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item
-                                                        onClick={() => {
-                                                            swal({
-                                                                title: "¿Está seguro?",
-                                                                text: "No podrás revertir esto.",
-                                                                icon: "warning",
-                                                                buttons: ["Cancelar", "Eliminar"],
-                                                                dangerMode: true,
-                                                            }).then(async ok => {
-                                                                if (!ok) return;
-                                                                const res = await ObtenerGet(
-                                                                    getToken(),
-                                                                    `/microcuenca/eliminar/${mc.external_id}`
-                                                                );
-                                                                if (res.code === 200) {
-                                                                    mensajes("Eliminado", "success");
-                                                                    setData(data.filter(x => x.external_id !== mc.external_id));
-                                                                } else {
-                                                                    mensajes(res.msg, 'error');
-                                                                }
-                                                            });
-                                                        }}
-                                                    >
-                                                        Eliminar
+                                                        {mostrarActivos ? (
+                                                            <>
+                                                                <i className="bi bi-arrow-down-square"></i> Desactivar
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <i className="bi bi-arrow-up-square"></i> Reactivar
+                                                            </>
+                                                        )}
+
                                                     </Dropdown.Item>
                                                 </Dropdown.Menu>
                                             </Dropdown>

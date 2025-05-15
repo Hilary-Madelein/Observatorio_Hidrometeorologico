@@ -24,20 +24,20 @@ function Medidas() {
                     ObtenerGet(getToken(), '/listar/ultima/medida'),
                     ObtenerGet(getToken(), '/listar/tipo_medida')
                 ]);
-    
+
                 if (medidasRes.code !== 200 || fenomenosRes.code !== 200) {
                     console.warn("Error al obtener datos:", medidasRes.msg, fenomenosRes.msg);
                     setVariables([]);
                     return;
                 }
-    
+
                 const medidas = medidasRes.info;
                 const tiposFenomenos = fenomenosRes.info;
-    
+
                 const medidasProcesadas = procesarMedidas(medidas, tiposFenomenos);
                 setVariables(medidasProcesadas);
                 console.log("Medidas procesadas:", medidasProcesadas);
-    
+
             } catch (error) {
                 console.error("Error al obtener datos:", error);
                 setVariables([]);
@@ -45,26 +45,26 @@ function Medidas() {
                 setLoading(false);
             }
         };
-    
+
         fetchData();
-    }, []);    
+    }, []);
 
     const procesarMedidas = (medidas, fenomenos) => {
         const agrupadas = {};
-    
+
         const formatName = (name) => {
             if (!name) return name;
             return name
-                .replace(/_/g, ' ')       
-                .toLowerCase()          
-                .replace(/^\w/, (c) => c.toUpperCase()); 
+                .replace(/_/g, ' ')
+                .toLowerCase()
+                .replace(/^\w/, (c) => c.toUpperCase());
         };
-    
+
         medidas.forEach((item, index) => {
             const { tipo_medida, valor, unidad, estacion } = item;
-    
+
             const fenomeno = fenomenos.find(f => f.nombre?.toLowerCase() === tipo_medida.toLowerCase());
-    
+
             if (!agrupadas[tipo_medida]) {
                 agrupadas[tipo_medida] = {
                     nombre: formatName(tipo_medida),
@@ -73,18 +73,18 @@ function Medidas() {
                     estaciones: []
                 };
             }
-    
+
             agrupadas[tipo_medida].estaciones.push({
                 nombre: estacion,
                 valor: parseFloat(valor),
                 color: chartColors[index % chartColors.length]
             });
         });
-    
+
         return Object.values(agrupadas);
     };
-    
-    
+
+
 
     if (loading) {
         return (
@@ -125,9 +125,7 @@ function Medidas() {
                 </div>
             ) : (
                 <div className="no-data-message">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16" style={{ marginRight: '5px' }}>
-                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2" />
-                    </svg>
+                    <i class="bi bi-exclamation-triangle-fill"></i>
                     Sucedió un problema al cargar los datos
                 </div>
             )}

@@ -8,6 +8,7 @@ import ListaMicrocuencas from './fragments/ListaMicrocuencas';
 import ListaEstaciones from './fragments/ListaEstaciones';
 import CardEstaciones from './fragments/CardEstaciones';
 import ListaVariables from './fragments/ListaVariables';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function App() {
   return (

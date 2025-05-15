@@ -5,8 +5,6 @@ const multer = require('multer');
 const path = require('path');
 const uuid = require('uuid');
 const { body, validationResult,isDate } = require('express-validator');
-const MedidaController = require('../controls/MedidaController');
-let medidaController = new MedidaController();
 const EntityController = require('../controls/EntityController');
 let entityController = new EntityController();
 const AccountController = require('../controls/AccountController');
@@ -236,7 +234,9 @@ router.put('/modificar/microcuenca', (req, res, next) => {
 });
 router.get('/listar/microcuenca', microbasinController.list);
 router.get('/listar/microcuenca/operativas', microbasinController.listActive);
+router.get('/listar/microcuenca/desactivas', microbasinController.listInactive);
 router.get('/obtener/microcuenca/:external',  microbasinController.get);
+router.get('/desactivar/microcuenca/:external_id', microbasinController.changeStatus); 
 router.get('/microcuenca/estaciones', microbasinController.getWithStations);
 
 
@@ -281,8 +281,11 @@ router.put('/modificar/estacion', (req, res, next) => {
 });
 router.get('/listar/estacion', stationController.list);
 router.get('/listar/estacion/operativas', stationController.listActive);
+router.get('/listar/estacion/no_operativas', stationController.listInactive);
+router.get('/listar/estacion/mantenimiento', stationController.listMantenimiento);
 router.get('/obtener/estacion/:external',  stationController.getByMicrobasinParam);
 router.get('/get/estacion/:external_id', stationController.getByExternal);
+router.post('/estacion/cambiar_estado', stationController.changeStatus);
 router.post('/estaciones/operativas/microcuenca', stationController.getByMicrobasinBody)
 
 /**
@@ -325,6 +328,8 @@ router.put('/modificar/tipo_medida', (req, res, next) => {
   });
 });
 router.get('/listar/tipo_medida', phenomenonTypeController.list);
+router.get('/listar/tipo_medida/desactivos', phenomenonTypeController.listFalse);
 router.get('/obtener/tipo_medida/:external', phenomenonTypeController.get);
+router.get('/tipo_fenomeno/cambiar_estado/:external_id', phenomenonTypeController.changeStatus);
 
 module.exports = router;

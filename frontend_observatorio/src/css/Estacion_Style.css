@@ -32,4 +32,27 @@
     font-size: 1rem;
     color: #0C2840;
   }
+
+  /* Responsividad */
+@media (max-width: 1200px) {
+  .card-estacion-horizontal {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .img-estacion-horizontal {
+    width: 100px;
+    height: 150px;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .card-estacion-horizontal .card-body {
+    padding: 1rem;
+  }
+
+  .btn-acceder {
+    font-size: 12px;
+  }
+}
+
   
