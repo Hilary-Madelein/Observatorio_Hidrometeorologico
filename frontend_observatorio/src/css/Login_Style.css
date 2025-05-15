@@ -126,3 +126,10 @@ body, html {
       padding: 30px;
   }
 }
+
+@media (max-width: 540px) {
+
+  .login-left{
+    display: none;
+  }
+}

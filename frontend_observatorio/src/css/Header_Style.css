@@ -91,7 +91,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .icons {
@@ -105,6 +105,7 @@
     cursor: pointer;
     user-select: none;
     z-index: 101;
+    width: 30px;
   }
 
   #check:checked ~ .icons #menu-icon {
