@@ -129,27 +129,27 @@ function Filtro({ onFiltrar }) {
     return (
         <div className="container-fluid">
             <div className="text-left mt-4">
-                <h4 style={{ fontWeight: '700', color: '#7D7C7C', fontSize: '16px', textAlign: 'initial', marginBottom: '25px' }}>
+                <h4 className="mb-3 configuracion-text">
                     <i class="bi bi-exclamation-circle-fill" style={{ margin: '5px' }}></i>
                     Configure el filtro para observar información.
                 </h4>
             </div>
 
-            <div className="informacion-presentada rounded p-3 mb-4 text-start" style={{ background: '#fff' }}>
-                <h5 className="mb-3" style={{ fontWeight: 'bold', color: '#0C2840' }}>
+            <div className="informacion-presentada rounded p-3 mb-4 text-start">
+                <h5 className="mb-3 info-presentada-text">
                     <i class="bi bi-info-circle-fill" style={{ margin: '5px' }}></i>
                     Información presentada:
                 </h5>
                 <div className="text-start">
                     <div className="mb-2">
-                        <span style={{ fontWeight: 'bold', color: '#0C2840' }}>Estación:</span>
+                        <span className='info-params'>Estación:</span>
                         <span className="ms-2 badge bg-secondary text-light">
                             {data.find((e) => e.external_id === estacionSeleccionada)?.name || 'No seleccionada'}
-                        </span>
+                        </span>  
                     </div>
                     {filtroSeleccionado === 'rangoFechas' && (
                         <div className="mb-2">
-                            <span style={{ fontWeight: 'bold', color: '#0C2840' }}>Periodo de tiempo:</span>
+                            <span className='info-params'>Periodo de tiempo:</span>
                             <span className="ms-2 badge bg-secondary text-light">{formatearFecha(fechaInicio)}</span>
                             <span className="ms-1 me-1 text-muted">hasta</span>
                             <span className="badge bg-secondary text-light">{formatearFecha(fechaFin)}</span>
@@ -157,13 +157,13 @@ function Filtro({ onFiltrar }) {
                     )}
                     {filtroSeleccionado === 'mensual' && (
                         <div className="mb-2">
-                            <span style={{ fontWeight: 'bold', color: '#0C2840' }}>Filtro:</span>
+                            <span>Filtro:</span>
                             <span className="ms-2 badge bg-secondary text-light">Datos mensuales generales</span>
                         </div>
                     )}
                     {['15min', '30min', 'hora'].includes(filtroSeleccionado) && (
                         <div className="mb-2">
-                            <span style={{ fontWeight: 'bold', color: '#0C2840' }}>Periodo de tiempo:</span>
+                            <span>Periodo de tiempo:</span>
                             <span className="ms-2 badge bg-secondary text-light">
                                 {calcularHoraRango(filtroSeleccionado)}
                             </span>
@@ -171,7 +171,7 @@ function Filtro({ onFiltrar }) {
                     )}
                     {filtroSeleccionado === 'diaria' && (
                         <div className="mb-2">
-                            <span style={{ fontWeight: 'bold', color: '#0C2840' }}>Fecha:</span>
+                            <span>Fecha:</span>
                             <span className="ms-2 badge bg-secondary text-light">
                                 {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
                             </span>
@@ -186,7 +186,7 @@ function Filtro({ onFiltrar }) {
 
                 {/* Filtro por tipo */}
                 <div className="filtro-item">
-                    <label htmlFor="filtro" className="form-label" style={{ fontWeight: '700', color: '#0C2840', fontSize: '16px' }}>
+                    <label htmlFor="filtro" className="form-label filtro-label">
                         <i class="bi bi-hourglass-split" style={{ margin: '5px' }}></i>
                         Escala temporal:
                     </label>
@@ -196,7 +196,7 @@ function Filtro({ onFiltrar }) {
                         value={filtroSeleccionado}
                         onChange={(e) => actualizarFiltro({ tipo: e.target.value })}
                     >
-                        <option value="" disabled style={{ fontWeight: 'bold', color: '#a9a9a9' }}>
+                        <option value="" disabled>
                             Seleccione una escala de tiempo
                         </option>
                         <option value="15min">15 minutos</option>
@@ -211,7 +211,7 @@ function Filtro({ onFiltrar }) {
 
                 {/* Combo box de estaciones */}
                 <div className="filtro-item">
-                    <label htmlFor="estacion" className="form-label" style={{ fontWeight: '700', color: '#0C2840', fontSize: '16px' }}>
+                    <label htmlFor="estacion" className="form-label filtro-label">
                         <i class="bi bi-pin-map-fill" style={{ margin: '5px' }}></i>
                         Estación:
                     </label>
@@ -221,7 +221,7 @@ function Filtro({ onFiltrar }) {
                         value={estacionSeleccionada}
                         onChange={(e) => actualizarFiltro({ estacion: e.target.value })}
                     >
-                        <option value="" disabled style={{ fontWeight: 'bold', color: '#a9a9a9' }}>
+                        <option value="" disabled>
                             Seleccione una estación
                         </option>
                         {data.map((estacion) => (
@@ -237,7 +237,7 @@ function Filtro({ onFiltrar }) {
                 {filtroSeleccionado === 'rangoFechas' && (
                     <>
                         <div className="filtro-item">
-                            <label htmlFor="fecha-inicio" className="form-label" style={{ fontWeight: '700', color: '#0C2840', fontSize: '16px' }}>
+                            <label htmlFor="fecha-inicio" className="form-label filtro-label">
                                 <i class="bi bi-calendar-range" style={{ margin: '5px' }}></i>
                                 Fecha inicio:
                             </label>
@@ -252,7 +252,7 @@ function Filtro({ onFiltrar }) {
                         </div>
 
                         <div className="filtro-item">
-                            <label htmlFor="fecha-fin" className="form-label" style={{ fontWeight: '700', color: '#0C2840', fontSize: '16px' }}>
+                            <label htmlFor="fecha-fin" className="form-label filtro-label">
                                 <i class="bi bi-calendar-range" style={{ margin: '5px' }}></i>
                                 Fecha fin:
                             </label>
@@ -270,7 +270,7 @@ function Filtro({ onFiltrar }) {
                 )}
 
                 {/* Botón de Filtrar */}
-                <div className="filtro-item" style={{ marginTop: '40px' }}>
+                <div className="filtro-item-btn">
                     <button
                         type="button"
                         className="btn btn-primary custom-button-filtro"
