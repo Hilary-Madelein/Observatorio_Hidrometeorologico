@@ -2,11 +2,14 @@
 
 const { v4: uuidv4 } = require('uuid');
 const models = require('../models');
-
+const { Op } = require('sequelize');
 const Station = models.station;
 const Quantity = models.quantity;
 const Measurement = models.measurement;
 const PhenomenonType = models.phenomenon_type;
+const DailyMeasurement = models.daily_measurement;
+const TypeOperation = models.type_operation;
+
 
 function calcularFechas(escalaDeTiempo, mes, anio, fechaInicio, fechaFin, ultimaFecha) {
     let inicio, fin;
@@ -219,8 +222,6 @@ class MeasurementController {
 
             const info = Object.values(seriesMap);
 
-            console.log(info);
-
             return res.status(200).json({
                 msg: 'Series de estadísticas por ventana de tiempo',
                 code: 200,
@@ -231,6 +232,102 @@ class MeasurementController {
             return res.status(500).json({ msg: 'Error al obtener mediciones', code: 500 });
         }
     }
+
+    /**
+   * Migra registros de Measurement a daily_measurement
+   */
+    async migrateToDaily(req, res) {
+        try {
+            const last = await DailyMeasurement.findOne({ where: { status: true }, order: [['local_date', 'DESC']], attributes: ['local_date'] });
+            const desde = last ? new Date(last.local_date) : new Date(0);
+            const agg = await models.sequelize.query(
+                `SELECT date_trunc('day', m.local_date)::date AS day,
+                m.id_station, m.id_phenomenon_type,
+                AVG(q.quantity) AS promedio,
+                MAX(q.quantity) AS maximo,
+                MIN(q.quantity) AS minimo,
+                SUM(q.quantity) AS suma
+         FROM measurement m
+         JOIN quantity q ON m.id_quantity=q.id
+         WHERE m.local_date > :desde AND m.status=true AND q.status=true
+         GROUP BY day, m.id_station, m.id_phenomenon_type
+         ORDER BY day;`,
+                { replacements: { desde: desde.toISOString() }, type: models.sequelize.QueryTypes.SELECT }
+            );
+            const opsList = await TypeOperation.findAll({ attributes: ['id', 'operation'], where: { status: true } });
+            const opMap = opsList.reduce((m, op) => { m[op.operation] = op.id; return m; }, {});
+            const inserts = [];
+            for (const r of agg) {
+                ['PROMEDIO', 'MAX', 'MIN', 'SUMA'].forEach(opKey => {
+                    const valor = r[opKey.toLowerCase()];
+                    if (valor != null && opMap[opKey]) {
+                        inserts.push({
+                            local_date: r.day,
+                            id_station: r.id_station,
+                            id_phenomenon_type: r.id_phenomenon_type,
+                            id_type_operation: opMap[opKey],
+                            quantity: parseFloat(Number(valor).toFixed(2)),
+                            external_id: uuidv4(), status: true
+                        });
+                    }
+                });
+            }
+            if (inserts.length) await DailyMeasurement.bulkCreate(inserts);
+            return res.status(200).json({ msg: 'Migración diaria completada', code: 200, migrated: inserts.length });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ msg: 'Error en migración diaria: ' + error.message, code: 500 });
+        }
+    }
+
+    /**
+     * Elimina entradas de Measurement older than 7 days
+     */
+    async cleanOldMeasurements(req, res) {
+        try {
+            const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60000);
+            const deletedMeasurements = await Measurement.destroy({
+                where: { local_date: { [Op.lt]: cutoff } }
+            });
+            const deletedQuantities = await Quantity.destroy({
+                where: {
+                    id: {
+                        [Op.notIn]: models.sequelize.literal(
+                            '(SELECT DISTINCT id_quantity FROM measurement)'
+                        )
+                    }
+                }
+            });
+            return res.status(200).json({
+                msg: 'Mediciones y cantidades antiguas eliminadas',
+                code: 200,
+                deletedMeasurements,
+                deletedQuantities
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ msg: 'Error al eliminar mediciones/cantidades: ' + error.message, code: 500 });
+        }
+    }
+
+    /**
+ * Trunca por completo la tabla Quantity, reinicia los IDs y borra en cascada
+ */
+    async clearAllQuantity(req, res) {
+        try {
+            await Measurement.truncate({ cascade: true, restartIdentity: true });
+
+            await Quantity.truncate({ cascade: true, restartIdentity: true });
+
+            return res.status(200).json({ msg: 'Quantity truncada con éxito', code: 200 });
+        } catch (error) {
+            console.error(error);
+            return res
+                .status(500)
+                .json({ msg: 'Error al truncar Quantity: ' + error.message, code: 500 });
+        }
+    }
+
 
 }
 

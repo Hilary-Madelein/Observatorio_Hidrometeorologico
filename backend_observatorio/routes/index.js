@@ -21,13 +21,13 @@ if (typeof global.AbortController === 'undefined') {
 
 const endpoint = process.env.COSMOS_ENDPOINT;
 const key = process.env.COSMOS_KEY;
-const databaseId = process.env.COSMOS_DB || 'PUEAR';
+const databaseId = process.env.COSMOS_DB;
 const client = new CosmosClient({ endpoint, key });
 
 const DESPLAZAMIENTO_HORARIO_MINUTOS = -300;
 
 // MQTT (TTN) Configuración
-const ttnServer = 'mqtt://nam1.cloud.thethings.network:1883';
+const ttnServer = process.env.TTN_SERVER;
 const mqttOptions = {
   username: 'puar-unl-esp32@ttn',
   password: 'NNSXS.FGSQU3PH2K2E32I5U5QDUFKURE4OB42PWDP6N7A.GBTQGXU4TRE3ELIOBWTBLGXDOFQPFIN5UH6CVDHU27Q2E4XMHO3Q'

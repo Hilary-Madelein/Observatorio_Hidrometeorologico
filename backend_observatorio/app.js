@@ -2,11 +2,15 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var indexRouter = require('./routes/index').router;  // Importar solo el router
+var indexRouter = require('./routes/index').router;
 var usersRouter = require('./routes/users');
 const cors = require('cors');
 var createError = require('http-errors');
 var app = express();
+
+const cron = require('node-cron');
+const MeasurementController = require('./controls/MeasurementController');
+const measurementCtrl = new MeasurementController();
 
 app.listen(3006, () => {
   console.log("Servidor iniciado en el puerto 3006");
@@ -29,6 +33,29 @@ app.use(cors({ origin: '*' }));
 
 app.use('/', indexRouter);  
 app.use('/api', usersRouter);
+
+cron.schedule('17 9 * * *', async () => {
+  const fakeReq = {};
+  const fakeRes = {
+    status: (code) => ({
+      json: (body) => console.log(`[Cron] Task =>`, code, body)
+    })
+  };
+
+  try {
+    // 1) Migrar Measurement → daily_measurement
+    await measurementCtrl.migrateToDaily(fakeReq, fakeRes);
+    console.log('[Cron] Migración diaria completada.');
+
+    // 2) Truncar toda la tabla Measurement
+    await measurementCtrl.cleanOldMeasurements(fakeReq, fakeRes);
+    await measurementCtrl.clearAllQuantity(fakeReq, fakeRes);
+    console.log('[Cron] Tabla Measurement truncada correctamente.');
+  } catch (err) {
+    console.error('[Cron] Error en tareas programadas:', err);
+  }
+});
+
 
 app.get('/', (req, res) => {
   res.status(200).send('Hello, World!');
