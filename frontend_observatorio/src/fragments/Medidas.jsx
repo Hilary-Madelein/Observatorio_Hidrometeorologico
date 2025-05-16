@@ -1,48 +1,63 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Spinner } from 'react-bootstrap';
 import { ObtenerGet, URLBASE } from '../hooks/Conexion';
 import '../css/Medidas_Style.css';
 import '../css/Filtro_Style.css';
 import '../css/Principal_Style.css';
 import { getToken } from '../utils/SessionUtil';
+import io from 'socket.io-client';
 
 const chartColors = ['#362FD9', '#1AACAC', '#DB005B', '#19A7CE', '#DF2E38', '#8DCBE6'];
 
 function Medidas() {
     const [variables, setVariables] = useState([]);
     const [loading, setLoading] = useState(false);
+    const socketRef = useRef(null);
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [medidasRes, fenomenosRes] = await Promise.all([
+                ObtenerGet(getToken(), '/listar/ultima/medida'),
+                ObtenerGet(getToken(), '/listar/tipo_medida')
+            ]);
+
+            if (medidasRes.code !== 200 || fenomenosRes.code !== 200) {
+                console.warn("Error al obtener datos:", medidasRes.msg, fenomenosRes.msg);
+                setVariables([]);
+                return;
+            }
+
+            const medidas = medidasRes.info;
+            const tiposFenomenos = fenomenosRes.info;
+
+            const medidasProcesadas = procesarMedidas(medidas, tiposFenomenos);
+            setVariables(medidasProcesadas);
+            console.log("Medidas procesadas:", medidasProcesadas);
+
+        } catch (error) {
+            console.error("Error al obtener datos:", error);
+            setVariables([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const [medidasRes, fenomenosRes] = await Promise.all([
-                    ObtenerGet(getToken(), '/listar/ultima/medida'),
-                    ObtenerGet(getToken(), '/listar/tipo_medida')
-                ]);
-
-                if (medidasRes.code !== 200 || fenomenosRes.code !== 200) {
-                    console.warn("Error al obtener datos:", medidasRes.msg, fenomenosRes.msg);
-                    setVariables([]);
-                    return;
-                }
-
-                const medidas = medidasRes.info;
-                const tiposFenomenos = fenomenosRes.info;
-
-                const medidasProcesadas = procesarMedidas(medidas, tiposFenomenos);
-                setVariables(medidasProcesadas);
-                console.log("Medidas procesadas:", medidasProcesadas);
-
-            } catch (error) {
-                console.error("Error al obtener datos:", error);
-                setVariables([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchData();
+
+        socketRef.current = io(URLBASE);
+        socketRef.current.on('connect', () => console.log('Socket conectado:', socketRef.current.id));
+
+        socketRef.current.on('new-measurements', (newMeasurements) => {
+            console.log('Llegaron mediciones nuevas:', newMeasurements);
+            fetchData();
+
+        });
+
+        return () => {
+            socketRef.current.disconnect();
+        };
     }, []);
 
     const procesarMedidas = (medidas, fenomenos) => {

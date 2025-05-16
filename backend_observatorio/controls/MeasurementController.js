@@ -3,6 +3,7 @@
 const { v4: uuidv4 } = require('uuid');
 const models = require('../models');
 const { Op } = require('sequelize');
+const { getIO } = require('../routes/socket');
 const Station = models.station;
 const Quantity = models.quantity;
 const Measurement = models.measurement;
@@ -108,6 +109,12 @@ class MeasurementController {
                     unidad: phenomenon.unit_measure || '',
                     estacion: dispositivo
                 });
+            }
+
+            try {
+                getIO().emit('new-measurements', savedMeasurements);
+            } catch (err) {
+                console.warn('Socket no disponible:', err.message);
             }
 
             return res.status(200).json({ msg: 'Mediciones guardadas con éxito', code: 200, info: savedMeasurements });

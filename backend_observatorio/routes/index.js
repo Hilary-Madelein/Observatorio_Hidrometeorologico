@@ -29,8 +29,8 @@ const DESPLAZAMIENTO_HORARIO_MINUTOS = -300;
 // MQTT (TTN) Configuración
 const ttnServer = process.env.TTN_SERVER;
 const mqttOptions = {
-  username: 'puar-unl-esp32@ttn',
-  password: 'NNSXS.FGSQU3PH2K2E32I5U5QDUFKURE4OB42PWDP6N7A.GBTQGXU4TRE3ELIOBWTBLGXDOFQPFIN5UH6CVDHU27Q2E4XMHO3Q'
+  username: process.env.TTN_USERNAME,
+  password: process.env.TTN_PASSWORD,
 };
 const mqttClient = mqtt.connect(ttnServer, mqttOptions);
 
@@ -42,8 +42,8 @@ function ajustarZonaHoraria(timestamp) {
 
 mqttClient.on('connect', () => {
   console.log('Conectado a TTN MQTT');
-  mqttClient.subscribe('v3/puar-unl-esp32@ttn/devices/eui-70b3d57ed0060a67/up');
-  mqttClient.subscribe('v3/puar-unl-esp32@ttn/devices/eui-70b3d57ed00611db/up');
+  mqttClient.subscribe(process.env.TTN_EMA);
+  mqttClient.subscribe(process.env.TTN_EHA);
 });
 
 mqttClient.on('message', async (topic, message) => {

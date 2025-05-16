@@ -5,16 +5,24 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index').router;
 var usersRouter = require('./routes/users');
 const cors = require('cors');
+const http    = require('http');
+const { Server } = require('socket.io');
 var createError = require('http-errors');
 var app = express();
-
+const server = http.createServer(app);
 const cron = require('node-cron');
 const MeasurementController = require('./controls/MeasurementController');
 const measurementCtrl = new MeasurementController();
 
-app.listen(3006, () => {
-  console.log("Servidor iniciado en el puerto 3006");
+const socket  = require('./routes/socket');
+
+const io = socket.init(server);
+io.on('connection', socket => {
+  console.log('Cliente conectado:', socket.id);
+  socket.on('disconnect', () => console.log('Cliente desconectado:', socket.id));
 });
+
+server.listen(3006, () => console.log('API corriendo en 3006'));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -28,13 +36,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.set('io', io);
 app.use(cors({ origin: '*' }));
 
 
 app.use('/', indexRouter);  
 app.use('/api', usersRouter);
 
-cron.schedule('17 9 * * *', async () => {
+cron.schedule('0 0 * * 0', async () => {
   const fakeReq = {};
   const fakeRes = {
     status: (code) => ({
@@ -43,11 +52,9 @@ cron.schedule('17 9 * * *', async () => {
   };
 
   try {
-    // 1) Migrar Measurement → daily_measurement
     await measurementCtrl.migrateToDaily(fakeReq, fakeRes);
     console.log('[Cron] Migración diaria completada.');
 
-    // 2) Truncar toda la tabla Measurement
     await measurementCtrl.cleanOldMeasurements(fakeReq, fakeRes);
     await measurementCtrl.clearAllQuantity(fakeReq, fakeRes);
     console.log('[Cron] Tabla Measurement truncada correctamente.');
@@ -59,6 +66,11 @@ cron.schedule('17 9 * * *', async () => {
 
 app.get('/', (req, res) => {
   res.status(200).send('Hello, World!');
+});
+
+io.on('connection', (socket) => {
+  console.log('Cliente conectado:', socket.id);
+  socket.on('disconnect', () => console.log('Cliente desconectado:', socket.id));
 });
 
 // catch 404 and forward to error handler
