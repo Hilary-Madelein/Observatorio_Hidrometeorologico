@@ -4,6 +4,7 @@ import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
 import '../css/Microcuenca_Style.css';
 import '../css/Principal_Style.css';
+import ModalDetallesMicrocuenca from './ModalDetallesMicrocuenca';
 import Header from './Header';
 import Footer from './Footer';
 import { ObtenerGet, URLBASE } from '../hooks/Conexion';
@@ -31,6 +32,10 @@ const ListaMicrocuencas = () => {
         setShowEdit(false);
         setSelectedId(null);
     };
+
+    // Para detalles
+    const [showDetails, setShowDetails] = useState(false);
+    const [detailMicroId, setDetailMicroId] = useState(null);
 
     const cargarDatos = () => {
         const ruta = mostrarActivos ? '/listar/microcuenca/operativas' : '/listar/microcuenca/desactivas';
@@ -124,7 +129,10 @@ const ListaMicrocuencas = () => {
                 </InputGroup>
 
                 {filteredData.length === 0 ? (
-                    <p className="no-data-message">No existen registros.</p>
+
+                    <p className="no-data-message">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        No existen registros.</p>
                 ) : (
                     <div className="row gx-4 gy-4">
                         {filteredData.map(mc => (
@@ -172,12 +180,22 @@ const ListaMicrocuencas = () => {
                                                 </Dropdown.Menu>
                                             </Dropdown>
                                         </div>
-                                        <button
-                                            className="btn-acceder mt-2"
-                                            onClick={() => navigate(`/estaciones/${mc.external_id}`)}
-                                        >
-                                            Acceder a estaciones
-                                        </button>
+                                        <div className="d-flex gap-2 mt-2">
+                                            <button
+                                                className="btn-acceder "
+                                                onClick={() => {
+                                                    setDetailMicroId(mc.external_id);
+                                                    setShowDetails(true);
+                                                }}
+                                            >
+                                                Ver detalles
+                                            </button>
+                                            <button
+                                                className="btn-acceder btn-sm"
+                                                onClick={() => navigate(`/estaciones/${mc.external_id}`)}
+                                            >
+                                                Acceder a estaciones                  </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -198,6 +216,13 @@ const ListaMicrocuencas = () => {
                 show={showEdit}
                 handleClose={handleEditClose}
                 external_id={selectedId}
+            />
+
+            {/* Modal de detalles */}
+            <ModalDetallesMicrocuenca
+                show={showDetails}
+                handleClose={() => setShowDetails(false)}
+                external_id_micro={detailMicroId}
             />
 
             <Footer />

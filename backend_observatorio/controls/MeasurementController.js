@@ -224,12 +224,8 @@ class MeasurementController {
                     replacements: { fechaInicio, fechaFin, estacion: estacion || null },
                     type: models.sequelize.QueryTypes.SELECT
                 });
-
-                console.log('RAW rows antes de filtrar anomalías:', rows.length);
-
+                
                 rows = rows.filter(r => r.valor != null && r.valor <= 1000);
-
-                console.log('RAW rows después de filtrar anomalías:', rows.length);
 
                 const info = rows.map(r => ({
                     hora: r.periodo.toISOString(),
@@ -238,9 +234,6 @@ class MeasurementController {
                     valor: parseFloat(r.valor),
                     icon: r.variable_icon
                 }));
-
-                console.log('Datos crudos:', info);
-                
 
                 return res.json({ msg: `Datos crudos ${rango}`, code: 200, info });
             }

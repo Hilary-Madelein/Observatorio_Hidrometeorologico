@@ -11,6 +11,7 @@ import { ObtenerGet, URLBASE } from '../hooks/Conexion';
 import { Dropdown, FormControl, InputGroup, Modal } from 'react-bootstrap';
 import ModalAgregarEstacion from './ModalAgregarEstacion';
 import CambiarEstadoEstacion from './CambiarEstadoEstacion';
+import ModalDetallesEstacion from './ModalDetallesEstacion';
 
 const ListaEstaciones = () => {
   const navigate = useNavigate();
@@ -33,6 +34,10 @@ const ListaEstaciones = () => {
   const handleStatusClose = () => setShowStatus(false);
   const handleStatusShow = () => setShowStatus(true);
 
+  // --- DETALLES ESTACION ---
+  const [showDetails, setShowDetails] = useState(false);
+  const [detailId, setDetailId] = useState(null);
+
   const handleEditClose = () => {
     setShowEdit(false);
     setSelectedId(null);
@@ -45,6 +50,11 @@ const ListaEstaciones = () => {
 
   const handleStatusClick = stationId => {
     setSelectedId(stationId);
+  };
+
+  const handleDetailClick = (id) => {
+    setDetailId(id);
+    setShowDetails(true);
   };
 
   const cargarDatos = () => {
@@ -131,7 +141,7 @@ const ListaEstaciones = () => {
 
         {(!Array.isArray(data) || filteredData.length === 0) ? (
           <p className="no-data-message">
-            <i class="bi bi-exclamation-triangle-fill"></i>
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
             No existen registros.
           </p>
         ) : (
@@ -175,7 +185,7 @@ const ListaEstaciones = () => {
 
                     <button
                       className="btn-acceder"
-                      onClick={() => navigate(`/estacion/${est.external_id}`)}
+                      onClick={() => handleDetailClick(est.external_id)}
                     >
                       Ver detalles
                     </button>
@@ -223,6 +233,13 @@ const ListaEstaciones = () => {
 
         <Modal.Footer className="modal-footer" />
       </Modal>
+
+      {/* Modal DETALLES */}
+      <ModalDetallesEstacion
+        show={showDetails}
+        handleClose={() => setShowDetails(false)}
+        external_id_estacion={detailId}
+      />
 
       <Footer />
     </div>

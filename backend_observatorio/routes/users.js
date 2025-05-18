@@ -239,7 +239,6 @@ router.get('/obtener/microcuenca/:external',  microbasinController.get);
 router.get('/desactivar/microcuenca/:external_id', microbasinController.changeStatus); 
 router.get('/microcuenca/estaciones', microbasinController.getWithStations);
 
-
 /**
  * RUTAS DE ESTACIONES
  */
