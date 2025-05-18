@@ -86,7 +86,7 @@ function MapaConEstaciones() {
             let hasValidCoordinates = false;            
 
             response.info.forEach((estacion) => {
-                const coordenadas = [estacion.length, estacion.latitude];
+                const coordenadas = [estacion.longitude, estacion.latitude];
 
                 if (coordenadas && coordenadas.length === 2 && !isNaN(coordenadas[0]) && !isNaN(coordenadas[1])) {
                     const popupContent = `
@@ -214,7 +214,7 @@ function MapaConEstaciones() {
                                                 <p className="card-text">{item.description}</p>
                                                 <button
                                                     className="btn-principal"
-                                                    onClick={() => localizarEstacion(item.latitude, item.length)}
+                                                    onClick={() => localizarEstacion(item.latitude, item.longitude)}
                                                 >
                                                     Localizar Estación
                                                 </button>

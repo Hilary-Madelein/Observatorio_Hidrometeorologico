@@ -13,7 +13,7 @@ class StationController {
     async list(req, res) {
         try {
             const results = await Station.findAll({
-                attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device'],
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device'],
             });
             res.json({ msg: 'OK!', code: 200, info: results });
         } catch (error) {
@@ -24,7 +24,7 @@ class StationController {
     async listActive(req, res) {
         try {
             const results = await Station.findAll({
-                attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
                 where: { status: 'OPERATIVA' }
             });
             res.json({ msg: 'OK!', code: 200, info: results });
@@ -36,7 +36,7 @@ class StationController {
     async listInactive(req, res) {
         try {
             const results = await Station.findAll({
-                attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
                 where: { status: 'NO_OPERATIVA' }
             });
             res.json({ msg: 'OK!', code: 200, info: results });
@@ -48,7 +48,7 @@ class StationController {
     async listMantenimiento(req, res) {
         try {
             const results = await Station.findAll({
-                attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
                 where: { status: 'MANTENIMIENTO' }
             });
             res.json({ msg: 'OK!', code: 200, info: results });
@@ -70,7 +70,7 @@ class StationController {
 
         const results = await Station.findAll({
             where: { id_microbasin: microbasin.id },
-            attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+            attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
         });
 
         return res.status(200).json({
@@ -101,7 +101,7 @@ class StationController {
                     id_microbasin: microbasin.id,
                     status: "OPERATIVA"
                 },
-                attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
             });
 
             return res.status(200).json({
@@ -122,7 +122,7 @@ class StationController {
         try {
             const station = await Station.findOne({
                 where: { external_id: external },
-                attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description', 'id_microbasin']
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description', 'id_microbasin']
             });
 
             if (!station) {
@@ -159,7 +159,7 @@ class StationController {
 
             const data = {
                 name: req.body.nombre,
-                length: req.body.longitud,
+                longitude: req.body.longitud,
                 latitude: req.body.latitud,
                 altitude: req.body.altitud,
                 status: req.body.estado,
@@ -215,7 +215,7 @@ class StationController {
 
             station.name = req.body.nombre;
             station.status = req.body.estado;
-            station.length = req.body.longitud;
+            station.longitude = req.body.longitud;
             station.altitude = req.body.altitud;
             station.latitude = req.body.latitud;
             station.type = req.body.tipo;
@@ -240,7 +240,6 @@ class StationController {
 
     async changeStatus(req, res) {
         try {
-            console.log("qqqqqq", req.body);
             
             const external_id = req.body.external_id;
     

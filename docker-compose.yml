@@ -15,11 +15,11 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./observatorio_api
       dockerfile: Dockerfile
     restart: always
     env_file:
-      - ./backend/.env
+      - ./observatorio_api/.env
     environment:
 
     depends_on:
@@ -31,7 +31,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./observatorio_web
       dockerfile: Dockerfile
     restart: always
     ports:

@@ -266,8 +266,6 @@ class MeasurementController {
                 type: models.sequelize.QueryTypes.SELECT
             });
 
-            console.log('AGG rows antes de filtrar anomalías:', agg.length);
-
             agg = agg.filter(r => {
                 if (r.promedio != null && r.promedio > 1000) return false;
                 if (r.maximo != null && r.maximo > 1000) return false;
@@ -276,7 +274,6 @@ class MeasurementController {
                 return true;
             });
 
-            console.log('AGG rows después de filtrar anomalías:', agg.length);
 
             const seriesMap = {};
             agg.forEach(r => {

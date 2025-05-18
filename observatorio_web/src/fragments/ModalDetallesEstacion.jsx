@@ -71,7 +71,7 @@ const ModalDetallesEstacion = ({ show, handleClose, external_id_estacion }) => {
               <p><strong>Estado:</strong> {station.status}</p>
               <p><strong>ID Dispositivo:</strong> {station.id_device}</p>
               <p>
-                <strong>Coordenadas:</strong> {station.latitude}, {station.length}  
+                <strong>Coordenadas:</strong> {station.latitude}, {station.longitude}  
                 <br/><strong>Altitud:</strong> {station.altitude}
               </p>
             </div>

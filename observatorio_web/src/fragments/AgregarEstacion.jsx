@@ -26,7 +26,7 @@ function AgregarEstacion({ external_id_estacion }) {
                     setModoEdicion(true);
                     setValue('nombre', e.name);
                     setValue('descripcion', e.description);
-                    setValue('longitud', e.length);
+                    setValue('longitud', e.longitude);
                     setValue('latitud', e.latitude);
                     setValue('altitud', e.altitude);
                     setValue('tipo', e.type);

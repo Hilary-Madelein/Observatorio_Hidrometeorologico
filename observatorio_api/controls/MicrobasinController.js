@@ -74,7 +74,7 @@ class MicrobasinController {
                 include: [{
                     model: Station,
                     as: 'station',
-                    attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description']
+                    attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description']
                 }]
             });
 
@@ -97,7 +97,7 @@ class MicrobasinController {
                 include: [{
                     model: Station,
                     as: 'station',
-                    attributes: ['name', 'external_id', 'picture', 'length', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description']
+                    attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description']
                 }]
             });
 

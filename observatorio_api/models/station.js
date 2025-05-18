@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(20),
             defaultValue: "NO_DATA"
         },
-        length: {
+        longitude: {
             type: DataTypes.DOUBLE,
             allowNull: false
         },
