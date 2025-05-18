@@ -83,7 +83,7 @@ function MapaConEstaciones() {
             markersRef.current = [];
 
             const bounds = new mapboxgl.LngLatBounds();
-            let hasValidCoordinates = false;
+            let hasValidCoordinates = false;            
 
             response.info.forEach((estacion) => {
                 const coordenadas = [estacion.length, estacion.latitude];
@@ -93,7 +93,7 @@ function MapaConEstaciones() {
                         <div style="text-align: center; font-family: Arial, sans-serif;">
                             <h5 style="color: #333; font-weight: bold;">${estacion.name}</h5>
                             <p style="color: #777; font-size: 12px;">
-                                Microcuenca: ${selectedMicrocuenca?.name || 'No disponible'}
+                                Microcuenca: ${selectedMicrocuenca?.nombre || 'No disponible'}
                             </p>
                             <img 
                                 src="${URLBASE}/images/estaciones/${estacion.picture}" 
@@ -197,7 +197,7 @@ function MapaConEstaciones() {
                     ) : selectedMicrocuenca ? (
                         selectedMicrocuenca.estaciones.length === 0 ? (
                             <p className="no-data-message">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                                 No existen estaciones registradas.</p>
                         ) : (
                             <div className="row mt-4">
@@ -226,7 +226,7 @@ function MapaConEstaciones() {
                         )
                     ) : data.length === 0 ? (
                         <p className="no-data-message">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             No existen microcuencas registradas.</p>
                     ) : (
                         <div className="row mt-4">

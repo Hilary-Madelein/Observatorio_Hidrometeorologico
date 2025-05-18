@@ -110,7 +110,7 @@ function Medidas() {
 
     return (
         <div>
-            <h3 className="titulo-principal">Última medición</h3>
+            <h3 className="titulo-principal">Medidas en tiempo real</h3>
             {variables && variables.length > 0 ? (
                 <div className="contenedor-cards">
                     {variables.map((variable, index) => (

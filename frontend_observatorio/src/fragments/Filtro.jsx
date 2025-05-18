@@ -127,26 +127,23 @@ function Filtro({ onFiltrar }) {
 
 
     return (
-        <div className="container-fluid">
-            <div className="text-left mt-4">
-                <h4 className="mb-3 configuracion-text">
-                    <i class="bi bi-exclamation-circle-fill" style={{ margin: '5px' }}></i>
-                    Configure el filtro para observar información.
-                </h4>
-            </div>
 
-            <div className="informacion-presentada rounded p-3 mb-4 text-start">
-                <h5 className="mb-3 info-presentada-text">
-                    <i class="bi bi-info-circle-fill" style={{ margin: '5px' }}></i>
-                    Información presentada:
-                </h5>
-                <div className="text-start">
-                    <div className="mb-2">
-                        <span className='info-params'>Estación:</span>
-                        <span className="ms-2 badge bg-secondary text-light">
-                            {data.find((e) => e.external_id === estacionSeleccionada)?.name || 'No seleccionada'}
-                        </span>  
-                    </div>
+        <div>
+            <h3 className="titulo-principal">Mediciones históricas</h3>
+
+            <div className='container-fluid'>
+                
+                <div className="informacion-presentada col-lg-12 mb-4">
+                    <h5 className="mb-3 info-presentada-text">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Información presentada:
+                    </h5>
+
+                    <span className='info-params'>Estación:</span>
+                    <span className="ms-2 badge bg-secondary text-light">
+                        {data.find((e) => e.external_id === estacionSeleccionada)?.name || 'No seleccionada'}
+                    </span>
+
                     {filtroSeleccionado === 'rangoFechas' && (
                         <div className="mb-2">
                             <span className='info-params'>Periodo de tiempo:</span>
@@ -157,13 +154,13 @@ function Filtro({ onFiltrar }) {
                     )}
                     {filtroSeleccionado === 'mensual' && (
                         <div className="mb-2">
-                            <span>Filtro:</span>
+                            <span className="info-params">Periodo de tiempo:</span>
                             <span className="ms-2 badge bg-secondary text-light">Datos mensuales generales</span>
                         </div>
                     )}
                     {['15min', '30min', 'hora'].includes(filtroSeleccionado) && (
                         <div className="mb-2">
-                            <span>Periodo de tiempo:</span>
+                            <span className="info-params">Periodo de tiempo:</span>
                             <span className="ms-2 badge bg-secondary text-light">
                                 {calcularHoraRango(filtroSeleccionado)}
                             </span>
@@ -171,115 +168,118 @@ function Filtro({ onFiltrar }) {
                     )}
                     {filtroSeleccionado === 'diaria' && (
                         <div className="mb-2">
-                            <span>Fecha:</span>
+                            <span className="info-params" >Fecha:</span>
                             <span className="ms-2 badge bg-secondary text-light">
                                 {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
                             </span>
                         </div>
                     )}
-                </div>
-            </div>
 
-
-            <div className={`filtro-container ${mostrarCamposAdicionales ? 'columna' : ''}`}>
-                {/* Mostrar la descripción del filtro */}
-
-                {/* Filtro por tipo */}
-                <div className="filtro-item">
-                    <label htmlFor="filtro" className="form-label filtro-label">
-                        <i class="bi bi-hourglass-split" style={{ margin: '5px' }}></i>
-                        Escala temporal:
-                    </label>
-                    <select
-                        id="filtro"
-                        className="form-select"
-                        value={filtroSeleccionado}
-                        onChange={(e) => actualizarFiltro({ tipo: e.target.value })}
-                    >
-                        <option value="" disabled>
-                            Seleccione una escala de tiempo
-                        </option>
-                        <option value="15min">15 minutos</option>
-                        <option value="30min">30 minutos</option>
-                        <option value="hora">Hora</option>
-                        <option value="diaria">Diaria</option>
-                        <option value="mensual">Mensual</option>
-                        <option value="rangoFechas">Rango de Fechas</option>
-                    </select>
                 </div>
 
 
-                {/* Combo box de estaciones */}
-                <div className="filtro-item">
-                    <label htmlFor="estacion" className="form-label filtro-label">
-                        <i class="bi bi-pin-map-fill" style={{ margin: '5px' }}></i>
-                        Estación:
-                    </label>
-                    <select
-                        id="estacion"
-                        className="form-select"
-                        value={estacionSeleccionada}
-                        onChange={(e) => actualizarFiltro({ estacion: e.target.value })}
-                    >
-                        <option value="" disabled>
-                            Seleccione una estación
-                        </option>
-                        {data.map((estacion) => (
-                            <option key={estacion.id} value={estacion.external_id}>
-                                {estacion.name}
+                <div className={`filtro-container col-lg-12 mb-4 ${mostrarCamposAdicionales ? 'columna' : ''}`}>
+                    {/* Mostrar la descripción del filtro */}
+
+                    {/* Filtro por tipo */}
+                    <div className="filtro-item">
+                        <label htmlFor="filtro" className="form-label filtro-label">
+                            <i class="bi bi-hourglass-split me-2"></i>
+                            Escala temporal:
+                        </label>
+                        <select
+                            id="filtro"
+                            className="form-select"
+                            value={filtroSeleccionado}
+                            onChange={(e) => actualizarFiltro({ tipo: e.target.value })}
+                        >
+                            <option value="" disabled>
+                                Seleccione una escala de tiempo
                             </option>
-                        ))}
-                    </select>
+                            <option value="15min">15 minutos</option>
+                            <option value="30min">30 minutos</option>
+                            <option value="hora">Hora</option>
+                            <option value="diaria">Diaria</option>
+                            <option value="mensual">Mensual</option>
+                            <option value="rangoFechas">Rango de Fechas</option>
+                        </select>
+                    </div>
 
+
+                    {/* Combo box de estaciones */}
+                    <div className="filtro-item">
+                        <label htmlFor="estacion" className="form-label filtro-label">
+                            <i class="bi bi-pin-map-fill me-2"></i>
+                            Estación:
+                        </label>
+                        <select
+                            id="estacion"
+                            className="form-select"
+                            value={estacionSeleccionada}
+                            onChange={(e) => actualizarFiltro({ estacion: e.target.value })}
+                        >
+                            <option value="" disabled>
+                                Seleccione una estación
+                            </option>
+                            {data.map((estacion) => (
+                                <option key={estacion.id} value={estacion.external_id}>
+                                    {estacion.name}
+                                </option>
+                            ))}
+                        </select>
+
+                    </div>
+
+                    {/* Mostrar inputs adicionales según el filtro */}
+                    {filtroSeleccionado === 'rangoFechas' && (
+                        <>
+                            <div className="filtro-item">
+                                <label htmlFor="fecha-inicio" className="form-label filtro-label">
+                                    <i class="bi bi-calendar-range me-2"></i>
+                                    Fecha inicio:
+                                </label>
+                                <input
+                                    type="date"
+                                    className="form-control"
+                                    id="fecha-inicio"
+                                    value={fechaInicio}
+                                    onChange={(e) => actualizarFiltro({ fechaInicio: e.target.value })}
+                                    max={obtenerFechaActual()}
+                                />
+                            </div>
+
+                            <div className="filtro-item">
+                                <label htmlFor="fecha-fin" className="form-label filtro-label">
+                                    <i class="bi bi-calendar-range me-2"></i>
+                                    Fecha fin:
+                                </label>
+                                <input
+                                    type="date"
+                                    className="form-control"
+                                    id="fecha-fin"
+                                    value={fechaFin}
+                                    onChange={(e) => actualizarFiltro({ fechaFin: e.target.value })}
+                                    max={obtenerFechaActual()}
+                                />
+                            </div>
+
+                        </>
+                    )}
+
+                    {/* Botón de Filtrar */}
+                    <div className="filtro-item-btn">
+                        <button
+                            type="button"
+                            className="btn btn-primary custom-button-filtro"
+                            onClick={manejarFiltrado}
+                        >
+                            Consultar datos
+                        </button>
+                    </div>
                 </div>
 
-                {/* Mostrar inputs adicionales según el filtro */}
-                {filtroSeleccionado === 'rangoFechas' && (
-                    <>
-                        <div className="filtro-item">
-                            <label htmlFor="fecha-inicio" className="form-label filtro-label">
-                                <i class="bi bi-calendar-range" style={{ margin: '5px' }}></i>
-                                Fecha inicio:
-                            </label>
-                            <input
-                                type="date"
-                                className="form-control"
-                                id="fecha-inicio"
-                                value={fechaInicio}
-                                onChange={(e) => actualizarFiltro({ fechaInicio: e.target.value })}
-                                max={obtenerFechaActual()}
-                            />
-                        </div>
-
-                        <div className="filtro-item">
-                            <label htmlFor="fecha-fin" className="form-label filtro-label">
-                                <i class="bi bi-calendar-range" style={{ margin: '5px' }}></i>
-                                Fecha fin:
-                            </label>
-                            <input
-                                type="date"
-                                className="form-control"
-                                id="fecha-fin"
-                                value={fechaFin}
-                                onChange={(e) => actualizarFiltro({ fechaFin: e.target.value })}
-                                max={obtenerFechaActual()}
-                            />
-                        </div>
-
-                    </>
-                )}
-
-                {/* Botón de Filtrar */}
-                <div className="filtro-item-btn">
-                    <button
-                        type="button"
-                        className="btn btn-primary custom-button-filtro"
-                        onClick={manejarFiltrado}
-                    >
-                        Filtrar datos
-                    </button>
-                </div>
             </div>
+
         </div>
     );
 }

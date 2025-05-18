@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: row;
     width: 100%;
-    height: 550px;
+    height: 500px;
     overflow: hidden;
 }
 
@@ -51,7 +51,7 @@
     font-size: 20px;
     display: flex;
     width: 35px;
-    height: 55px;
+    height: 50px;
     top: -5px;
     left: -10px;
     cursor: pointer;
@@ -85,7 +85,7 @@
 
 .card-img-top {
     width: 100%;
-    height: 300px;
+    height: 270px;
     object-fit: cover;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
@@ -176,59 +176,9 @@
     .btn-back {
         position: absolute;
         font-size: 20px;
-        height: 80px;
-        top: -5px;
-        left: -10px;
-        border-radius: 0;
-    }
-    
-}
-
-@media (max-width: 768px) {
-    .mapa-con-estaciones-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .row.mt-4 .col-md-3, .row.mt-4 .col-sm-6 {
-        flex: 0 0 100%; 
-        max-width: 100%;
-    }
-
-    .card-img-top {
-        height: 200px; 
-    }
-    .card-title {
-        font-size: 1rem;
-    }
-    .card-text {
-        font-size: 0.9rem;
-    }
-    .btn-principal {
-        font-size: 0.9rem;
-        padding: 10px 15px;
-    }
-
-    .modern-card {
-        padding: 8px;
-        max-width: 100%;
-        width: 100%;
-    }
-
-    .card-title {
-        font-size: 0.95rem;
-    }
-
-    .btn-back {
-        position: absolute;
-        font-size: 20px;
-        height: 70px;
-        width: 5px;
-        top: -5px;
-        left: -10px;
+        height: 50px;
+        top: 0px;
+        left: -12px;
         border-radius: 0;
     }
 
@@ -236,37 +186,12 @@
         left: 0%;
         gap: 8px;
         text-align: center;
-    }
-
-    .map-info {
-        font-size: 12px;
-    }
-
-    .map-select {
-        padding: 5px;
-        font-size: 12px;
-    }
-    
-    .location-button {
-        font-size: 12px;
-    }
-
-    .map-container {
-        width: 100%;
-        height: 50%;
-    }
-
-    .estaciones-section {
-        max-width: auto; 
-        display: flex;
         flex-direction: column;
-        align-items: center;
-        height: auto;
     }
     
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1000px) {
     .mapa-con-estaciones-container {
         display: flex;
         flex-direction: column;
@@ -277,7 +202,7 @@
 
     .map-container {
         width: 100%;
-        height: 50%;
+        height: 40%;
     }
 
     .estaciones-section {
@@ -291,7 +216,8 @@
 
     .modern-card {
         max-width: 100%;
-        width: 100%;
+        width: 600px;
+        max-width: 100%;
     }
 
     .btn-principal {
@@ -310,10 +236,10 @@
     .btn-back {
         position: absolute;
         font-size: 20px;
-        height: 70px;
-        width: 5px;
-        top: -5px;
-        left: -10px;
+        height: 45px;
+        width: 40px;
+        top: 0px;
+        left: -12px;
         border-radius: 0;
     }
 
@@ -321,6 +247,7 @@
         left: 0%;
         gap: 8px;
         text-align: center;
+        flex-direction: row;
     }
 
     .map-info {
@@ -337,8 +264,7 @@
     }
 }
 
-
-@media (max-width: 576px) {
+@media (max-width: 600px) {
     .mapa-con-estaciones-container {
         flex-direction: column;
         max-width: auto;
@@ -359,7 +285,7 @@
 
     .modern-card {
         max-width: 100%;
-        width: 100%;
+        width: 300px;
     }
 
     .card-title {
@@ -368,13 +294,6 @@
 
     .btn-principal {
         font-size: 0.8rem;
-        padding: 6px;
-    }
-
-    .btn-back {
-        width: 30px;
-        height: 30px;
-        font-size: 16px;
         padding: 6px;
     }
 
@@ -394,10 +313,10 @@
     .btn-back {
         position: absolute;
         font-size: 15px;
-        height: 50px;
-        width: 20px;
+        height: 40px;
+        width: 35px;
         top: 0px;
-        left: -3px;
+        left: -10px;
         border-radius: 0;
     }
 

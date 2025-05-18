@@ -160,7 +160,7 @@ const ListaVariables = () => {
 
                 {currentRows.length === 0 ? (
                     <p className="no-data-message">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         No existen registros.</p>
                 ) : (
                     <div className="table-responsive">
