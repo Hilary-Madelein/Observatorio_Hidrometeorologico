@@ -57,14 +57,14 @@ const ListaEstaciones = () => {
     setShowDetails(true);
   };
 
-
   useEffect(() => {
-    const cargarDatos = () => {
+    const fetchEstaciones = async () => {
       let ruta = '/listar/estacion/operativas';
-      if (estadoFiltro === 'mantenimiento') ruta = '/listar/estacion/mantenimiento';
+      if (estadoFiltro === 'mantenimiento')      ruta = '/listar/estacion/mantenimiento';
       else if (estadoFiltro === 'no_operativas') ruta = '/listar/estacion/no_operativas';
   
-      ObtenerGet(getToken(), ruta).then(info => {
+      try {
+        const info = await ObtenerGet(getToken(), ruta);
         if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
           borrarSesion();
           mensajes(info.msg, 'error');
@@ -72,12 +72,13 @@ const ListaEstaciones = () => {
         } else {
           setData(info.info);
         }
-      });
+      } catch (e) {
+        mensajes('Error cargando estaciones', 'error');
+      }
     };
-
-    cargarDatos();
-  }, [estadoFiltro]);
-
+  
+    fetchEstaciones();
+  }, [estadoFiltro, navigate]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);

@@ -1,5 +1,5 @@
 // ListaVariables.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FormControl, InputGroup, Table, Pagination } from 'react-bootstrap';
 import swal from 'sweetalert';
@@ -38,22 +38,27 @@ const ListaVariables = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 5;
 
+    const cargarDatos = useCallback(() => {
+        const ruta = mostrarActivos
+          ? '/listar/tipo_medida'
+          : '/listar/tipo_medida/desactivos';
+    
+        ObtenerGet(getToken(), ruta)
+          .then(info => {
+            if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
+              borrarSesion();
+              mensajes(info.msg);
+              navegation("/admin");
+            } else {
+              setVariables(info.info);
+            }
+          })
+          .catch(() => mensajes('Error cargando tipos de medida', 'error'));
+      }, [mostrarActivos, navegation]);
+
     useEffect(() => {
-        const cargarDatos = () => {
-            const ruta = mostrarActivos ? '/listar/tipo_medida' : '/listar/tipo_medida/desactivos';
-            ObtenerGet(getToken(), ruta).then(info => {
-                if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
-                    borrarSesion();
-                    mensajes(info.msg);
-                    navegation("/admin");
-                } else {
-                    setVariables(info.info);
-                }
-            });
-        };
-        
         cargarDatos();
-    }, [mostrarActivos]);
+    }, [mostrarActivos, cargarDatos]);
 
     const handleToggleEstado = externalId => {
         swal({

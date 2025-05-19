@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
@@ -37,22 +37,27 @@ const ListaMicrocuencas = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [detailMicroId, setDetailMicroId] = useState(null);
 
+    const cargarDatos = useCallback(() => {
+        const ruta = mostrarActivos
+          ? '/listar/microcuenca/operativas'
+          : '/listar/microcuenca/desactivas';
+    
+        ObtenerGet(getToken(), ruta)
+          .then(info => {
+            if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
+              borrarSesion();
+              mensajes(info.msg, 'error');
+              navigate('/admin');
+            } else {
+              setData(info.info);
+            }
+          })
+          .catch(() => mensajes('Error cargando microcuencas', 'error'));
+      }, [mostrarActivos, navigate]);
+
     useEffect(() => {
-        const cargarDatos = () => {
-            const ruta = mostrarActivos ? '/listar/microcuenca/operativas' : '/listar/microcuenca/desactivas';
-            ObtenerGet(getToken(), ruta).then(info => {
-                if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
-                    borrarSesion();
-                    mensajes(info.msg, 'error');
-                    navigate('/admin');
-                } else {
-                    setData(info.info);
-                }
-            });
-        };
-        
         cargarDatos();
-    }, [mostrarActivos]);
+    }, [mostrarActivos, cargarDatos]);
 
     const handleEditClick = (externalId) => {
         setSelectedId(externalId);
