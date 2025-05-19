@@ -38,20 +38,20 @@ const ListaVariables = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 5;
 
-    const cargarDatos = () => {
-        const ruta = mostrarActivos ? '/listar/tipo_medida' : '/listar/tipo_medida/desactivos';
-        ObtenerGet(getToken(), ruta).then(info => {
-            if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
-                borrarSesion();
-                mensajes(info.msg);
-                navegation("/admin");
-            } else {
-                setVariables(info.info);
-            }
-        });
-    };
-
     useEffect(() => {
+        const cargarDatos = () => {
+            const ruta = mostrarActivos ? '/listar/tipo_medida' : '/listar/tipo_medida/desactivos';
+            ObtenerGet(getToken(), ruta).then(info => {
+                if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
+                    borrarSesion();
+                    mensajes(info.msg);
+                    navegation("/admin");
+                } else {
+                    setVariables(info.info);
+                }
+            });
+        };
+        
         cargarDatos();
     }, [mostrarActivos]);
 

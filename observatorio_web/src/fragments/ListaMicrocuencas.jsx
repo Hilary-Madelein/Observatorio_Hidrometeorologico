@@ -37,20 +37,20 @@ const ListaMicrocuencas = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [detailMicroId, setDetailMicroId] = useState(null);
 
-    const cargarDatos = () => {
-        const ruta = mostrarActivos ? '/listar/microcuenca/operativas' : '/listar/microcuenca/desactivas';
-        ObtenerGet(getToken(), ruta).then(info => {
-            if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
-                borrarSesion();
-                mensajes(info.msg, 'error');
-                navigate('/admin');
-            } else {
-                setData(info.info);
-            }
-        });
-    };
-
     useEffect(() => {
+        const cargarDatos = () => {
+            const ruta = mostrarActivos ? '/listar/microcuenca/operativas' : '/listar/microcuenca/desactivas';
+            ObtenerGet(getToken(), ruta).then(info => {
+                if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
+                    borrarSesion();
+                    mensajes(info.msg, 'error');
+                    navigate('/admin');
+                } else {
+                    setData(info.info);
+                }
+            });
+        };
+        
         cargarDatos();
     }, [mostrarActivos]);
 

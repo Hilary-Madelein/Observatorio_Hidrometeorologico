@@ -57,23 +57,24 @@ const ListaEstaciones = () => {
     setShowDetails(true);
   };
 
-  const cargarDatos = () => {
-    let ruta = '/listar/estacion/operativas';
-    if (estadoFiltro === 'mantenimiento') ruta = '/listar/estacion/mantenimiento';
-    else if (estadoFiltro === 'no_operativas') ruta = '/listar/estacion/no_operativas';
-
-    ObtenerGet(getToken(), ruta).then(info => {
-      if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
-        borrarSesion();
-        mensajes(info.msg, 'error');
-        navigate('/admin');
-      } else {
-        setData(info.info);
-      }
-    });
-  };
 
   useEffect(() => {
+    const cargarDatos = () => {
+      let ruta = '/listar/estacion/operativas';
+      if (estadoFiltro === 'mantenimiento') ruta = '/listar/estacion/mantenimiento';
+      else if (estadoFiltro === 'no_operativas') ruta = '/listar/estacion/no_operativas';
+  
+      ObtenerGet(getToken(), ruta).then(info => {
+        if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
+          borrarSesion();
+          mensajes(info.msg, 'error');
+          navigate('/admin');
+        } else {
+          setData(info.info);
+        }
+      });
+    };
+
     cargarDatos();
   }, [estadoFiltro]);
 
