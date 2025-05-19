@@ -42,7 +42,7 @@ const Header = () => {
         <a href="/principal/admin" onClick={() => setMenuOpen(false)}>Microcuencas</a>
         <a href="/principal/variable" onClick={() => setMenuOpen(false)}>Variables</a>
         <a href="/perfil" onClick={() => setMenuOpen(false)}>Perfil</a>
-        <a onClick={handleClick} style={{ cursor: 'pointer' }}>Cerrar sesión</a>
+        <a href="/admin" onClick={handleClick} style={{ cursor: 'pointer' }}>Cerrar sesión</a>
       </nav>
     </header>
   );
