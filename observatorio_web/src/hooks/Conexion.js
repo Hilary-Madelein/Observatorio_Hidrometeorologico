@@ -96,7 +96,6 @@ export const GuardarImages = async (data, key, urls) => {
 
         return datos;
     } catch (error) {
-        console.log("Error:", error);
         throw error;
     }
 }

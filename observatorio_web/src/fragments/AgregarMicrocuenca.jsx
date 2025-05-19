@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
-import { GuardarImages, ObtenerGet, EditarImages, ActualizarImagenes, ObtenerPost } from '../hooks/Conexion';
+import { GuardarImages, ObtenerGet, ActualizarImagenes} from '../hooks/Conexion';
 import swal from 'sweetalert';
 
 function AgregarMicrocuenca({ external_id, onClose }) {
@@ -38,28 +38,27 @@ function AgregarMicrocuenca({ external_id, onClose }) {
         }
     };
 
-    const fetchCasoPrueba = async () => {
-        if (external_id) {
-            try {
-                const response = await ObtenerGet(getToken(), `/obtener/microcuenca/${external_id}`);
-                if (response.code === 200) {
-                    const microcuenca = response.info;
-                    setModoEdicion(true);
-                    setValue('nombre', microcuenca.name);
-                    setValue('descripcion', microcuenca.description);
-                    setDescripcion(microcuenca.description);
-                } else {
-                    mensajes(`Error al obtener microcuenca: ${response.msg}`, 'error');
-                }
-            } catch (error) {
-                mensajes('Error al procesar la solicitud', 'error');
-            }
-        }
-    };
-
     useEffect(() => {
-        fetchCasoPrueba();
-    }, [external_id]);
+        const fetchMicrocuenca = async () => {
+          if (!external_id) return;
+          try {
+            const response = await ObtenerGet(getToken(), `/obtener/microcuenca/${external_id}`);
+            if (response.code === 200) {
+              setModoEdicion(true);
+              setValue('nombre', response.info.name);
+              setValue('descripcion', response.info.description);
+              setDescripcion(response.info.description);
+            } else {
+              mensajes(`Error al obtener microcuenca: ${response.msg}`, 'error');
+            }
+          } catch (error) {
+            mensajes('Error al procesar la solicitud', 'error');
+          }
+        };
+      
+        fetchMicrocuenca();
+      }, [external_id, setValue]);
+      
 
     const onSubmit = data => {
         const formData = new FormData();

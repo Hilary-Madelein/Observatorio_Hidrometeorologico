@@ -29,7 +29,7 @@ const obtenerDatosEstaciones = async () => {
 function MapaConEstaciones() {
     const mapContainerRef = useRef(null);
     const [map, setMap] = useState(null);
-    const [initialView, setInitialView] = useState({ center: [-79.2, -4.0], zoom: 12 });
+    const [initialView] = useState({ center: [-79.2, -4.0], zoom: 12 });
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedMicrocuenca, setSelectedMicrocuenca] = useState(null);
@@ -39,28 +39,29 @@ function MapaConEstaciones() {
     const [marker, setMarker] = useState(null);
 
     useEffect(() => {
-        if (mapContainerRef.current) {
-            const mapInstance = new mapboxgl.Map({
-                container: mapContainerRef.current,
-                style: mapStyle,
-                center: initialView.center,
-                zoom: initialView.zoom,
-            });
-
-            mapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
-            setMap(mapInstance);
-
-            mapInstance.on('move', () => {
-                setLocation({
-                    lat: mapInstance.getCenter().lat.toFixed(5),
-                    lng: mapInstance.getCenter().lng.toFixed(5),
-                    zoom: mapInstance.getZoom().toFixed(2),
-                });
-            });
-
-            return () => mapInstance.remove();
-        }
-    }, [mapContainerRef, mapStyle]);
+        if (!mapContainerRef.current) return;
+      
+        const mapInstance = new mapboxgl.Map({
+          container: mapContainerRef.current,
+          style: mapStyle,
+          center: initialView.center,
+          zoom:  initialView.zoom,
+        });
+      
+        mapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        setMap(mapInstance);
+      
+        mapInstance.on('move', () => {
+          setLocation({
+            lat:  mapInstance.getCenter().lat.toFixed(5),
+            lng:  mapInstance.getCenter().lng.toFixed(5),
+            zoom: mapInstance.getZoom().toFixed(2),
+          });
+        });
+      
+        return () => mapInstance.remove();
+      }, [mapContainerRef, mapStyle, initialView.center, initialView.zoom]);
+      
 
     useEffect(() => {
         const cargarDatos = async () => {

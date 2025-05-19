@@ -27,7 +27,7 @@ export const borrarRoles = () => {
 
 export const estaSesion = () => {
     var token = localStorage.getItem('token');
-    return (token && (token != 'undefined' || token != null || token != 'null'));
+    return (token && (token !== 'undefined' || token !== null || token !== 'null'));
 }
 
 //USUARIO

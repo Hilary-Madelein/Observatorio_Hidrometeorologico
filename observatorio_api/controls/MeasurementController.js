@@ -153,11 +153,11 @@ class MeasurementController {
                 SELECT p.name AS tipo_medida,
                        q.quantity AS valor,
                        p.unit_measure AS unidad,
-                       st.name AS estacion  -- Cambié 's.id_device' por 'st.name' para traer el nombre de la estación
+                       st.name AS estacion 
                 FROM measurement m
                 JOIN quantity q ON m.id_quantity = q.id
                 JOIN phenomenon_type p ON m.id_phenomenon_type = p.id
-                JOIN station st ON m.id_station = st.id   -- Asegúrate de que la tabla 'station' tiene un campo 'name' para el nombre de la estación
+                JOIN station st ON m.id_station = st.id
                 WHERE m.status = true
                 AND q.status = true
                 ORDER BY m.local_date DESC
@@ -191,7 +191,6 @@ class MeasurementController {
     async getMedicionesPorTiempo(req, res) {
         const { rango, estacion } = req.query;
         const ahora = new Date();
-        console.log('getMedicionesPorTiempo rango:', rango);
 
         if (!rango || !['15min', '30min', 'hora', 'diaria'].includes(rango)) {
             return res.status(400).json({ msg: 'Rango inválido', code: 400 });
@@ -199,7 +198,6 @@ class MeasurementController {
 
         try {
             const { fechaInicio, fechaFin } = calcularFechas(rango, null, null, null, null, ahora);
-            console.log('Intervalo local:', fechaInicio, '=>', fechaFin);
 
             if (['15min', '30min', 'hora'].includes(rango)) {
                 const sql = `
@@ -207,6 +205,7 @@ class MeasurementController {
                 m.local_date    AS periodo,
                 p.name          AS tipo_medida,
                 p.icon          AS variable_icon,
+                p.unit_measure  AS unidad,
                 st.name         AS estacion_nombre,
                 q.quantity      AS valor
               FROM measurement m
@@ -232,18 +231,21 @@ class MeasurementController {
                     estacion: r.estacion_nombre,
                     tipo_medida: r.tipo_medida,
                     valor: parseFloat(r.valor),
-                    icon: r.variable_icon
+                    icon: r.variable_icon,
+                    unidad: r.unidad
                 }));
+
+                console.log('Mediciones crudas:', info);     
 
                 return res.json({ msg: `Datos crudos ${rango}`, code: 200, info });
             }
 
-            console.log('Agrupando por hora para diaria');
             const sqlAgg = `
             SELECT
               date_trunc('hour', m.local_date) AS periodo,
               p.name                            AS tipo_medida,
               p.icon                            AS variable_icon,
+              p.unit_measure                    AS unidad,
               st.name                           AS estacion_nombre,
               AVG(q.quantity) FILTER (WHERE 'PROMEDIO' = ANY(p.operations)) AS promedio,
               MAX(q.quantity)   FILTER (WHERE 'MAX'      = ANY(p.operations)) AS maximo,
@@ -257,7 +259,7 @@ class MeasurementController {
               AND m.status = true
               AND q.status = true
               AND (:estacion IS NULL OR st.external_id = :estacion)
-            GROUP BY periodo, p.name, p.icon, st.name
+            GROUP BY periodo, p.name, p.icon, p.unit_measure, st.name
             ORDER BY periodo, p.name;
           `;
 
@@ -291,6 +293,7 @@ class MeasurementController {
                 if (r.minimo != null) ops.MIN = parseFloat(r.minimo);
                 if (r.suma != null) ops.SUMA = parseFloat(r.suma);
                 ops.icon = r.variable_icon;
+                ops.unidad = r.unidad;
                 seriesMap[key].medidas[r.tipo_medida] = ops;
             });
 

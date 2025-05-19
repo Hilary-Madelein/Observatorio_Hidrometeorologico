@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
-import { GuardarImages, ActualizarImagenes, ObtenerGet, peticionPut, PostGuardar } from '../hooks/Conexion';
+import { PostGuardar } from '../hooks/Conexion';
 import swal from 'sweetalert';
 
 function CambiarEstadoEstacion({ external_id_estacion }) {
-    const { register, setValue, handleSubmit, formState: { errors } } = useForm();
+    const { register, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
     const { external_id } = useParams();
 

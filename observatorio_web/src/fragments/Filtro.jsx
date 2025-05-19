@@ -4,27 +4,22 @@ import '../css/Principal_Style.css';
 import { getToken, borrarSesion } from '../utils/SessionUtil';
 import { ObtenerGet } from '../hooks/Conexion';
 import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2';
 import mensajes from '../utils/Mensajes';
 
 function Filtro({ onFiltrar }) {
     const [filtroSeleccionado, setFiltroSeleccionado] = useState("");
-    const [mesSeleccionado, setMesSeleccionado] = useState("");
-    const [anioSeleccionado, setAnioSeleccionado] = useState("");
     const [fechaInicio, setFechaInicio] = useState('');
     const [fechaFin, setFechaFin] = useState('');
     const [estacionSeleccionada, setEstacionSeleccionada] = useState('');
     const [data, setData] = useState([]);
     const navegation = useNavigate();
-    const [descripcionFiltro, setDescripcionFiltro] = useState("");
+    const [, setDescripcionFiltro] = useState("");
 
     const actualizarFiltro = (nuevoFiltro) => {
         if (nuevoFiltro.tipo !== undefined) setFiltroSeleccionado(nuevoFiltro.tipo);
         if (nuevoFiltro.estacion !== undefined) setEstacionSeleccionada(nuevoFiltro.estacion);
         if (nuevoFiltro.fechaInicio !== undefined) setFechaInicio(nuevoFiltro.fechaInicio);
         if (nuevoFiltro.fechaFin !== undefined) setFechaFin(nuevoFiltro.fechaFin);
-        if (nuevoFiltro.mes !== undefined) setMesSeleccionado(nuevoFiltro.mes);
-        if (nuevoFiltro.anio !== undefined) setAnioSeleccionado(nuevoFiltro.anio);
     };
 
     const manejarFiltrado = () => {

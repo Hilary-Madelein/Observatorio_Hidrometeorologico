@@ -13,9 +13,6 @@ function AgregarVariable({ external_id_variable }) {
     const [showModal, setShowModal] = useState(false);
     const [modoEdicion, setModoEdicion] = useState(false);
 
-    console.log(external_id_variable);
-
-
     const handleRemovePhoto = () => {
         setUploadedPhoto(null);
         setValue("foto", null);

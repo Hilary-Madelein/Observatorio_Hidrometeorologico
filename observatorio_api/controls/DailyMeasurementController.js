@@ -21,6 +21,7 @@ class DailyMeasurementController {
             TO_CHAR(dm.local_date, 'YYYY-MM') AS periodo,
             p.name           AS tipo_medida,
             p.icon           AS variable_icon,
+            p.unit_measure   AS unidad,
             st.name          AS estacion_nombre,
             AVG(dm.quantity) FILTER (WHERE 'PROMEDIO' = ANY(p.operations)) AS promedio,
             MAX(dm.quantity) FILTER (WHERE 'MAX'     = ANY(p.operations)) AS maximo,
@@ -32,7 +33,7 @@ class DailyMeasurementController {
           WHERE dm.status = true
             AND p.status  = true
             AND (st.external_id = :estacion OR :estacion IS NULL)
-          GROUP BY periodo, p.name, p.icon, st.name
+          GROUP BY periodo, p.name, p.icon, p.unit_measure, st.name
           ORDER BY periodo, p.name;
           `,
           {
@@ -55,6 +56,7 @@ class DailyMeasurementController {
             dm.local_date     AS periodo,
             p.name            AS tipo_medida,
             p.icon            AS variable_icon,
+            p.unit_measure    AS unidad,
             st.name           AS estacion_nombre,
             AVG(dm.quantity) FILTER (WHERE 'PROMEDIO' = ANY(p.operations)) AS promedio,
             MAX(dm.quantity) FILTER (WHERE 'MAX'     = ANY(p.operations)) AS maximo,
@@ -67,7 +69,7 @@ class DailyMeasurementController {
             AND dm.status = true
             AND p.status  = true
             AND (st.external_id = :estacion OR :estacion IS NULL)
-          GROUP BY periodo, p.name, p.icon, st.name
+          GROUP BY periodo, p.name, p.icon, p.unit_measure, st.name
           ORDER BY periodo, p.name;
           `,
           {
@@ -108,6 +110,7 @@ class DailyMeasurementController {
         if (r.suma    != null) ops.SUMA     = parseFloat(r.suma);
 
         ops.icon = r.variable_icon;
+        ops.unidad = r.unidad;
 
         seriesMap[key].medidas[r.tipo_medida] = ops;
       });

@@ -6,7 +6,6 @@ import './css/Global.css';
 import Login from './fragments/Login';
 import ListaMicrocuencas from './fragments/ListaMicrocuencas';
 import ListaEstaciones from './fragments/ListaEstaciones';
-import CardEstaciones from './fragments/CardEstaciones';
 import ListaVariables from './fragments/ListaVariables';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { getRoles, getToken } from './utils/SessionUtil';

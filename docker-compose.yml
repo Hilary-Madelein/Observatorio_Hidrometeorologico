@@ -5,44 +5,59 @@ services:
     image: postgres:14-alpine
     restart: always
     environment:
-      POSTGRES_DB: observatorio
-      POSTGRES_USER: observatorio
-      POSTGRES_PASSWORD: secret_password_here
+      POSTGRES_DB: db_observatorio
+      POSTGRES_USER: software_observatorio
+      POSTGRES_PASSWORD: software_observatorio
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
+      - ./db-init/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - backend
+      - app-network
 
   backend:
     build:
       context: ./observatorio_api
       dockerfile: Dockerfile
     restart: always
-    env_file:
-      - ./observatorio_api/.env
     environment:
-
+      NODE_ENV: production
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: db_observatorio
+      DB_USER: software_observatorio
+      DB_PASSWORD: software_observatorio
+      COSMOS_ENDPOINT: https://datos-cosmos.documents.azure.com:443/ 
+      COSMOS_KEY: qiQcJSvCarkoxOemEpqvzZeA3xk2AoJIaHOSzuR0IcfsZxvAllc4BDoPsid5p1EpSeeFupt9JAPTACDbUyxgAw==
+      COSMOS_DB: PUEAR
+      TTN_SERVER: mqtt://nam1.cloud.thethings.network:1883
+      TTN_USERNAME: puar-unl-esp32@ttn
+      TTN_PASSWORD: NNSXS.FGSQU3PH2K2E32I5U5QDUFKURE4OB42PWDP6N7A.GBTQGXU4TRE3ELIOBWTBLGXDOFQPFIN5UH6CVDHU27Q2E4XMHO3Q
+      TTN_EMA: v3/puar-unl-esp32@ttn/devices/eui-70b3d57ed0060a67/up
+      TTN_EHA: v3/puar-unl-esp32@ttn/devices/eui-70b3d57ed00611db/up
+      KEY_SQ: OBSERVATORIO-IOT-MQTT
+      KEY: OBSERVATORIO-IOT
     depends_on:
       - db
     ports:
       - "3006:3006"
     networks:
-      - backend
+      - app-network
 
   frontend:
     build:
       context: ./observatorio_web
       dockerfile: Dockerfile
     restart: always
-    ports:
-      - "80:80"
-    networks:
+    depends_on:
       - backend
-      - frontend_net
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
 
 volumes:
-  db-data:
+  db_data:
 
 networks:
-  backend:
-  frontend_net:
+  app-network:
+    driver: bridge

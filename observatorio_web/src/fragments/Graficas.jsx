@@ -116,7 +116,6 @@ export default function Graficas({ filtro }) {
     ? Array.from(new Set(datosGrafica.map((d) => d.tipo_medida)))
     : Object.keys(datosGrafica[0]?.medidas || {});
 
-
   const prepararDatosPorMedida = (medida, idx) => {
     const isBar = medida.toLowerCase() === 'lluvia';
 
@@ -202,7 +201,9 @@ export default function Graficas({ filtro }) {
             ? datosGrafica.find((d) => d.tipo_medida === medida)?.icon
             : datosGrafica[0].medidas[medida]?.icon;
           const iconUrl = iconFilename ? `${URLBASE}/images/icons_estaciones/${iconFilename}` : '';
-
+          const unidad = isRaw
+            ? datosGrafica.find(d => d.tipo_medida === medida)?.unidad
+            : datosGrafica[0].medidas[medida]?.unidad;
           const ChartCmp = medida.toLowerCase() === 'lluvia' ? Bar : Line;
 
           const opciones = {
@@ -219,7 +220,12 @@ export default function Graficas({ filtro }) {
             },
             scales: {
               x: { grid: { color: '#e5e5e5' }, ticks: { maxRotation: 45 } },
-              y: { grid: { color: '#e5e5e5' }, ticks: { callback: (v) => v.toFixed(2) } },
+              y: {
+                grid: { color: '#e5e5e5' }, ticks: { callback: (v) => v.toFixed(2) }, title: {
+                  display: Boolean(unidad),
+                  text: unidad || ''
+                }
+              },
             },
           };
 

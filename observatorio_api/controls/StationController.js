@@ -60,9 +60,6 @@ class StationController {
     async getByMicrobasinParam(req, res) {
         const external = req.params.external;
 
-        console.log("Microcuenca externa:", external);
-        
-
         const microbasin = await Microbasin.findOne({ where: { external_id: external } });
         if (!microbasin) {
             return res.status(400).json({ msg: "La microcuenca especificada no existe", code: 400 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Spinner } from 'react-bootstrap';
+import { Modal, Spinner } from 'react-bootstrap';
 import { ObtenerGet, URLBASE } from '../hooks/Conexion';
 import { getToken, borrarSesion } from '../utils/SessionUtil';
 import mensajes from '../utils/Mensajes';

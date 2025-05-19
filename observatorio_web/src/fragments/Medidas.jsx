@@ -14,51 +14,47 @@ function Medidas() {
     const [loading, setLoading] = useState(false);
     const socketRef = useRef(null);
 
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const [medidasRes, fenomenosRes] = await Promise.all([
-                ObtenerGet(getToken(), '/listar/ultima/medida'),
-                ObtenerGet(getToken(), '/listar/tipo_medida')
-            ]);
-
-            if (medidasRes.code !== 200 || fenomenosRes.code !== 200) {
-                console.warn("Error al obtener datos:", medidasRes.msg, fenomenosRes.msg);
-                setVariables([]);
-                return;
-            }
-
-            const medidas = medidasRes.info;
-            const tiposFenomenos = fenomenosRes.info;
-
-            const medidasProcesadas = procesarMedidas(medidas, tiposFenomenos);
-            setVariables(medidasProcesadas);
-            console.log("Medidas procesadas:", medidasProcesadas);
-
-        } catch (error) {
-            console.error("Error al obtener datos:", error);
-            setVariables([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const [medidasRes, fenomenosRes] = await Promise.all([
+                    ObtenerGet(getToken(), '/listar/ultima/medida'),
+                    ObtenerGet(getToken(), '/listar/tipo_medida')
+                ]);
+
+                if (medidasRes.code !== 200 || fenomenosRes.code !== 200) {
+                    console.warn("Error al obtener datos:", medidasRes.msg, fenomenosRes.msg);
+                    setVariables([]);
+                    return;
+                }
+
+                const medidas = medidasRes.info;
+                const tiposFenomenos = fenomenosRes.info;
+
+                const medidasProcesadas = procesarMedidas(medidas, tiposFenomenos);
+                setVariables(medidasProcesadas);
+
+            } catch (error) {
+                console.error("Error al obtener datos:", error);
+                setVariables([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchData();
 
+        // configuración del socket
         socketRef.current = io(URLBASE);
         socketRef.current.on('connect', () => console.log('Socket conectado:', socketRef.current.id));
-
-        socketRef.current.on('new-measurements', (newMeasurements) => {
-            console.log('Llegaron mediciones nuevas:', newMeasurements);
-            fetchData();
-
-        });
+        socketRef.current.on('new-measurements', fetchData);
 
         return () => {
             socketRef.current.disconnect();
         };
     }, []);
+
 
     const procesarMedidas = (medidas, fenomenos) => {
         const agrupadas = {};
