@@ -3,7 +3,7 @@
     "username": "software_observatorio",
     "password": "software_observatorio",
     "database": "db_observatorio",
-    "host": "db",
+    "host": "127.0.0.1",
     "dialect": "postgres",
     "timezone": "+00:00",
     "dialectOptions": {
