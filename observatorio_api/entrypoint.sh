@@ -1,9 +1,28 @@
-until nc -z db 5432; do
-  echo "Esperando a Postgres..."
-  sleep 1
-done
+#!/bin/sh
+set -e
 
-echo "Inicializando tablas en Postgres y Cosmos…"
-curl -s http://localhost:3006/privado/${KEY_SQ}
+FLAG="/usr/src/app/.initialized"
 
-exec "$@"
+if [ ! -f "$FLAG" ]; then
+  echo "⏳ Primera ejecución: esperando a Postgres..."
+  until nc -z db 5432; do sleep 1; done
+  echo "✅ Postgres listo, arrancando API en segundo plano…"
+  npm start &
+  APP_PID=$!
+
+  echo "⏳ Esperando a que la API HTTP esté disponible en el puerto 3006…"
+  until nc -z localhost 3006; do sleep 1; done
+
+  echo "✅ API lista, ejecutando migración inicial vía HTTP…"
+  curl -s "http://localhost:3006/privado/${KEY_SQ}" \
+    || echo "⚠️ curl falló (quizá ya aplicada)"
+
+  # marcamos que ya corrimos la inicialización
+  touch "$FLAG"
+
+  # matamos la instancia de prueba para relanzarla limpia
+  kill $APP_PID
+fi
+
+echo "▶️ Ejecutando arranque normal de la API"
+exec npm start

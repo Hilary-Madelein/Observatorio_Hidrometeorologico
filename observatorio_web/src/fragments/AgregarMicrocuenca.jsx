@@ -88,6 +88,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                     setTimeout(() => window.location.reload(), 1200);
                 }
             });
+            
     };
 
 
@@ -157,7 +158,6 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                             })}
                             onChange={handlePhotoChange}
                             className="form-control"
-                            accept="image/*"
                         />
                         {uploadedPhoto && (
                             <div className="d-flex align-items-center mt-3 justify-content-end">

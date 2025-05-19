@@ -142,7 +142,7 @@ class MicrobasinController {
 
         } catch (error) {
             if (req.file?.path) {
-                fs.unlinkSync(path.join(__dirname, '../public/images/users', req.file.filename));
+                fs.unlinkSync(path.join(__dirname, '../public/images/microcuencas', req.file.filename));
             }
 
             if (transaction && !transaction.finished) {

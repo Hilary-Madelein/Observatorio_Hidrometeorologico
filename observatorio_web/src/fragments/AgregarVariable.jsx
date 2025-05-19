@@ -51,7 +51,7 @@ function AgregarVariable({ external_id_variable }) {
 
     const onSubmit = data => {
         const formData = new FormData();
-        formData.append('nombre', data.nombre);
+        formData.append('nombre', data.nombre.toUpperCase());
         formData.append('unidad_medida', data.unidad_medida);
         formData.append('foto', data.foto[0]);
         formData.append('external_id', external_id_variable);
