@@ -145,7 +145,14 @@ function AgregarEstacion({ external_id_estacion }) {
                     <div className="col-md-12 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '20px' }}>Descripción</label>
                         <textarea
-                            {...register('descripcion', { required: 'Ingrese una descripción' })}
+                            {...register('descripcion', {
+                                required: 'Ingrese una descripción',
+                                pattern: {
+                                    value: /^(?!\s*$)[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+(?<![<>])$/,
+                                    message: "Ingrese una descripción correcta"
+                                }
+
+                            })}
                             className="form-control form-control-user"
                             placeholder="Ingrese la descripción"
                             value={descripcion}

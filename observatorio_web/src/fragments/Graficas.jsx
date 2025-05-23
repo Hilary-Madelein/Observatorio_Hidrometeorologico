@@ -170,7 +170,7 @@ export default function Graficas({ filtro }) {
       );
       const primera = datosGrafica.find((d) => d.medidas?.[medida]);
       const metricas = primera
-        ? Object.keys(primera.medidas[medida]).filter((k) => k !== 'icon')
+        ? Object.keys(primera.medidas[medida]).filter((k) => k !== 'icon' && k !== 'unidad')
         : [];
       const datasets = metricas.map((metrica, mi) => {
         const color = chartColors[(idx + mi) % chartColors.length];
