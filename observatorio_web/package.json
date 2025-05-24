@@ -11,6 +11,7 @@
     "bootstrap-icons": "^1.13.1",
     "boxicons": "^2.1.4",
     "chart.js": "^4.4.9",
+    "cypress": "^14.4.0",
     "mapbox-gl": "^3.12.0",
     "react": "^19.1.0",
     "react-bootstrap": "^2.10.9",
@@ -28,7 +29,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "eslintConfig": {
     "extends": [
