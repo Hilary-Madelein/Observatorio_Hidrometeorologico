@@ -84,11 +84,7 @@ describe('Gestionar Estaciones – Integración frontend↔backend', () => {
         const base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8HwQACfsD/QEopjwAAAAASUVORK5CYII=';
         cy.writeFile('cypress/fixtures/estacion.jpg', base64Image, 'base64');
 
-        cy.get('input[type="file"]')
-            .selectFile('cypress/fixtures/estacion.jpg', { force: true })
-            .trigger('change', { force: true });
-
-
+        cy.get('input[type="file"]').selectFile('cypress/fixtures/estacion.jpg', { force: true }).trigger('change', { force: true });
 
         cy.intercept('POST', '**/guardar/estacion', {
             statusCode: 200,
@@ -107,6 +103,26 @@ describe('Gestionar Estaciones – Integración frontend↔backend', () => {
         cy.get('.alert-danger').should('have.length.at.least', 1);
         cy.contains('Ingrese un nombre').should('exist');
         cy.contains('Seleccione una foto').should('exist');
+    });
+
+    it('valida error al registrar estación con coordenadas inválidas', () => {
+        cy.contains('Agregar Estación').click();
+
+        cy.get('input[placeholder="Ingrese el nombre"]').type('Estación Inválida');
+        cy.get('input[placeholder="Ingrese el ID del dispositivo"]').type('disp-999');
+        cy.get('textarea[placeholder="Ingrese la descripción"]').type('Sin coordenadas');
+        cy.get('input[placeholder="Ingrese la longitud"]').type('abc');
+        cy.get('input[placeholder="Ingrese la latitud"]').type('xyz');
+        cy.get('input[placeholder="Ingrese la altitud"]').type('---');
+        cy.get('select').eq(0).select('HIDROLOGICA');
+        cy.get('select').eq(1).select('NO OPERATIVA');
+
+        const base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8HwQACfsD/QEopjwAAAAASUVORK5CYII=';
+        cy.writeFile('cypress/fixtures/invalid.jpg', base64Image, 'base64');
+        cy.get('input[type="file"]').selectFile('cypress/fixtures/invalid.jpg', { force: true });
+
+        cy.get('.btn-registrar-modal').click();
+        cy.get('.alert-danger').should('exist');
     });
 
     it('edita una estación correctamente', () => {
@@ -165,5 +181,19 @@ describe('Gestionar Estaciones – Integración frontend↔backend', () => {
         cy.wait('@cambiarEstado');
 
         cy.contains('Estado actualizado correctamente').should('be.visible');
+    });
+
+    it('muestra mensaje de error si el backend falla al cargar estaciones', () => {
+        cy.intercept('GET', '**/listar/estacion/operativas', {
+            statusCode: 500,
+            body: { code: 500, msg: 'Error en el servidor' }
+        }).as('failEstaciones');
+
+        cy.contains('Microcuencas').click();
+        cy.wait('@getMicrocuencas');
+        cy.contains('Acceder a estaciones').click();
+        cy.wait('@failEstaciones');
+
+        cy.contains('Error cargando estaciones').should('exist');
     });
 });
