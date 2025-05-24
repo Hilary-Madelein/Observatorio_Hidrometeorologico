@@ -1,5 +1,3 @@
-/// <reference types="cypress" />
-
 describe('Gestionar Estaciones – Integración frontend↔backend', () => {
     beforeEach(() => {
         cy.intercept('POST', '**/sesion', {
@@ -36,7 +34,7 @@ describe('Gestionar Estaciones – Integración frontend↔backend', () => {
             }
         }).as('getMicrocuencas');
 
-        cy.intercept('GET', '**/listar/estacion/operativas', {
+        cy.intercept('GET', '**/listar/estacion/OPERATIVA/mc1', {
             statusCode: 200,
             body: {
                 code: 200,
