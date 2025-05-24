@@ -206,7 +206,6 @@ describe('MeasurementController (unit)', () => {
 
     it('con inserts llama bulkCreate y devuelve count', async () => {
       models.daily_measurement.findOne = jest.fn().mockResolvedValue(null);
-      // Definir datos de agregación con keys que use el código
       const agg = [{
         day: '2025-05-21',
         id_station: 1,

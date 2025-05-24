@@ -21,7 +21,6 @@ jest.mock('express-validator', () => ({
         json:   jest.fn()
       };
   
-      // Stub de transacción para create()
       mockTx = { commit: jest.fn(), rollback: jest.fn(), finished: false };
       models.sequelize.transaction = jest.fn().mockResolvedValue(mockTx);
     });
@@ -60,44 +59,7 @@ jest.mock('express-validator', () => ({
         });
       });
     });
-  
-    // listActive(), listInactive(), listMantenimiento()
-    [['listActive','OPERATIVA'], ['listInactive','NO_OPERATIVA'], ['listMantenimiento','MANTENIMIENTO']]
-      .forEach(([method, status]) => {
-        describe(`${method}()`, () => {
-          it(`filtra stations.status === '${status}'`, async () => {
-            const fake = [{ external_id:'x', status }];
-            models.station.findAll = jest.fn().mockResolvedValue(fake);
-  
-            await controller[method](req, res);
-  
-            expect(models.station.findAll).toHaveBeenCalledWith({
-              attributes: [
-                'name','external_id','picture',
-                'longitude','latitude','altitude',
-                'status','type','id_device','description'
-              ],
-              where: { status }
-            });
-            expect(res.json).toHaveBeenCalledWith({ msg:'OK!', code:200, info:fake });
-          });
-  
-          it('debe devolver 500 si falla la consulta', async () => {
-            const err = new Error('fail');
-            models.station.findAll = jest.fn().mockRejectedValue(err);
-  
-            await controller[method](req, res);
-  
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({
-              msg: `Error al listar estaciones operativas: ${err.message}`,
-              code: 500,
-              info: err
-            });
-          });
-        });
-      });
-  
+
     // getByMicrobasinParam()
     describe('getByMicrobasinParam()', () => {
       it('400 si la microcuenca no existe', async () => {

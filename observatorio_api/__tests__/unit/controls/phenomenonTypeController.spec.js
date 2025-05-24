@@ -149,7 +149,6 @@ jest.mock('express-validator', () => ({
       it('400 si no hay operaciones', async () => {
         validationResult.mockReturnValueOnce({ isEmpty: () => true });
         req.body = { nombre:'N', unidad_medida:'u', estado:true };
-        // req.body.operaciones undefined
   
         await controller.create(req, res);
   
@@ -187,7 +186,6 @@ jest.mock('express-validator', () => ({
   
         await controller.create(req, res);
   
-        // operaciones string => [ 'MIN' ]
         expect(models.phenomenon_type.create).toHaveBeenCalledWith(
           expect.objectContaining({
             name: 'N',
