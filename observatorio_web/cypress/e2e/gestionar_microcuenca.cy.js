@@ -50,14 +50,27 @@ describe('Gestionar Microcuencas – Integración frontend↔backend', () => {
     cy.contains('Microcuenca Uno').should('be.visible');
   });
 
+  it('muestra mensaje si no hay coincidencias en la búsqueda', () => {
+    cy.get('input[placeholder="Buscar por: Nombre"]').type('Inexistente');
+    cy.contains('No existen registros').should('be.visible');
+  });
+
+  it('valida error al intentar agregar microcuenca sin completar campos', () => {
+    cy.contains('Agregar Microcuenca').click();
+    cy.get('.btn-registrar-modal').click();
+    cy.get('.alert-danger').should('have.length.at.least', 1);
+    cy.contains('Ingrese el nombre').should('be.visible');
+    cy.contains('Seleccione una foto').should('be.visible');
+  });
+
   it('agrega una nueva microcuenca correctamente', () => {
     cy.contains('Agregar Microcuenca').click();
     cy.get('input[placeholder="Ingrese el nombre"]').type('Microcuenca Tres');
     cy.get('textarea[placeholder="Ingrese la descripción"]').type('Descripcion tres');
 
-    cy.writeFile('cypress/fixtures/microcuenca.jpg', 'fake image content');
-    cy.get('input[type="file"]').selectFile('cypress/fixtures/microcuenca.jpg', { force: true });
-
+    const base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8HwQACfsD/QEopjwAAAAASUVORK5CYII=';
+    cy.writeFile('cypress/fixtures/microcuenca.jpg', base64Image, 'base64');
+    cy.get('input[type="file"]').selectFile('cypress/fixtures/microcuenca.jpg', { force: true }).trigger('change', { force: true });
 
     cy.intercept('POST', '**/guardar/microcuenca', {
       statusCode: 200,
@@ -92,26 +105,25 @@ describe('Gestionar Microcuencas – Integración frontend↔backend', () => {
         }
       }
     }).as('getMicrocuenca');
-  
+
     cy.get('.card-microcuenca').first().within(() => {
       cy.get('.bi-sliders').click();
       cy.contains('Editar').click();
     });
     cy.wait('@getMicrocuenca');
-  
+
     cy.get('input[placeholder="Ingrese el nombre"]').clear().type('Microcuenca Uno Editada');
-  
+
     cy.intercept('POST', '**/modificar/microcuenca', {
       statusCode: 200,
       body: { code: 200, msg: 'Microcuenca actualizada con éxito' }
     }).as('editarMicrocuenca');
-  
+
     cy.get('.btn-registrar-modal').click();
     cy.wait('@editarMicrocuenca');
-  
+
     cy.contains('Microcuenca actualizada con éxito').should('be.visible');
   });
-  
 
   it('cambia estado de microcuenca a inactivo', () => {
     cy.intercept('GET', '**/desactivar/microcuenca/mc1', {
@@ -128,6 +140,18 @@ describe('Gestionar Microcuencas – Integración frontend↔backend', () => {
     cy.wait('@toggleEstado');
 
     cy.contains('Desactivada con éxito').should('be.visible');
+  });
+
+  it('muestra error si falla el backend al listar microcuencas', () => {
+    cy.intercept('GET', '**/listar/microcuenca/operativas', {
+      statusCode: 500,
+      body: { code: 500, msg: 'Error interno del servidor' }
+    }).as('getMicrocuencasFail');
+
+    cy.visit('/principal/admin');
+    cy.contains('Microcuencas').click();
+    cy.wait('@getMicrocuencasFail');
+    cy.contains('Error interno del servidor').should('be.visible');
   });
 
 });
