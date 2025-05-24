@@ -145,14 +145,15 @@ function AgregarEstacion({ external_id_estacion }) {
                     <div className="col-md-12 form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '20px' }}>Descripción</label>
                         <textarea
-                            {...register('descripcion', {
+                            {
+                            ...register('descripcion', {
                                 required: 'Ingrese una descripción',
                                 pattern: {
-                                    value: /^(?!\s*$)[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+(?<![<>])$/,
-                                    message: "Ingrese una descripción correcta"
+                                    value: /^(?!\s*$)[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s\-\/%.,()]+(?<![<>])$/,
+                                    message: 'Ingrese una descripción correcta'
                                 }
-
-                            })}
+                            })
+                            }
                             className="form-control form-control-user"
                             placeholder="Ingrese la descripción"
                             value={descripcion}
@@ -169,7 +170,13 @@ function AgregarEstacion({ external_id_estacion }) {
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Longitud</label>
                         <input
                             type="text"
-                            {...register('longitud', { required: 'Ingrese la longitud' })}
+                            {...register('longitud', {
+                                required: 'Ingrese la longitud', pattern: {
+                                    value: /^-?\d+(\.\d+)?$/,
+                                    message: 'Ingrese una coordenada válida (número decimal)'
+                                }
+                            })
+                            }
                             className="form-control form-control-user"
                             placeholder="Ingrese la longitud"
                         />
@@ -179,7 +186,12 @@ function AgregarEstacion({ external_id_estacion }) {
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Latitud</label>
                         <input
                             type="text"
-                            {...register('latitud', { required: 'Ingrese la latitud' })}
+                            {...register('latitud', {
+                                required: 'Ingrese la latitud', pattern: {
+                                    value: /^-?\d+(\.\d+)?$/,
+                                    message: 'Ingrese una coordenada válida (número decimal)'
+                                }
+                            })}
                             className="form-control form-control-user"
                             placeholder="Ingrese la latitud"
                         />
@@ -190,7 +202,12 @@ function AgregarEstacion({ external_id_estacion }) {
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Altitud</label>
                         <input
                             type="text"
-                            {...register('altitud', { required: 'Ingrese la altitud' })}
+                            {...register('altitud', {
+                                required: 'Ingrese la altitud', pattern: {
+                                    value: /^-?\d+(\.\d+)?$/,
+                                    message: 'Ingrese una coordenada válida (número decimal)'
+                                }
+                            })}
                             className="form-control form-control-user"
                             placeholder="Ingrese la altitud"
                         />
