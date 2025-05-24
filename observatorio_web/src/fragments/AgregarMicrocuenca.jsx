@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
-import { GuardarImages, ObtenerGet, ActualizarImagenes} from '../hooks/Conexion';
+import { GuardarImages, ObtenerGet, ActualizarImagenes } from '../hooks/Conexion';
 import swal from 'sweetalert';
 
 function AgregarMicrocuenca({ external_id, onClose }) {
@@ -40,25 +40,25 @@ function AgregarMicrocuenca({ external_id, onClose }) {
 
     useEffect(() => {
         const fetchMicrocuenca = async () => {
-          if (!external_id) return;
-          try {
-            const response = await ObtenerGet(getToken(), `/obtener/microcuenca/${external_id}`);
-            if (response.code === 200) {
-              setModoEdicion(true);
-              setValue('nombre', response.info.name);
-              setValue('descripcion', response.info.description);
-              setDescripcion(response.info.description);
-            } else {
-              mensajes(`Error al obtener microcuenca: ${response.msg}`, 'error');
+            if (!external_id) return;
+            try {
+                const response = await ObtenerGet(getToken(), `/obtener/microcuenca/${external_id}`);
+                if (response.code === 200) {
+                    setModoEdicion(true);
+                    setValue('nombre', response.info.name);
+                    setValue('descripcion', response.info.description);
+                    setDescripcion(response.info.description);
+                } else {
+                    mensajes(`Error al obtener microcuenca: ${response.msg}`, 'error');
+                }
+            } catch (error) {
+                mensajes('Error al procesar la solicitud', 'error');
             }
-          } catch (error) {
-            mensajes('Error al procesar la solicitud', 'error');
-          }
         };
-      
+
         fetchMicrocuenca();
-      }, [external_id, setValue]);
-      
+    }, [external_id, setValue]);
+
 
     const onSubmit = data => {
         const formData = new FormData();
@@ -87,7 +87,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                     mensajesConRecarga(info.msg);
                 }
             });
-            
+
     };
 
 
@@ -127,13 +127,16 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                     <div className="form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '20px' }}>Descripción</label>
                         <textarea
-                            {...register('descripcion', {
+                            {
+                            ...register('descripcion', {
                                 required: 'Ingrese una descripción',
                                 pattern: {
-                                    value: /^(?!\s*$)[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+(?<![<>])$/,
-                                    message: "Ingrese una descripción correcta"
-                                }                                
-                            })}
+                                    value: /^(?!\s*$)[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s\-\/%.,()]+(?<![<>])$/,
+                                    message: 'Ingrese una descripción correcta'
+                                }
+                            })
+                            }
+
                             className="form-control form-control-user"
                             placeholder="Ingrese la descripción"
                             value={descripcion}
