@@ -41,19 +41,26 @@ const ListaMicrocuencas = () => {
         const ruta = mostrarActivos
           ? '/listar/microcuenca/operativas'
           : '/listar/microcuenca/desactivas';
-    
-        ObtenerGet(getToken(), ruta)
-          .then(info => {
+      
+        (async () => {
+          try {
+            const info = await ObtenerGet(getToken(), ruta);
             if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
               borrarSesion();
               mensajes(info.msg, 'error');
               navigate('/admin');
-            } else {
+            } else if (Array.isArray(info.info)) {
               setData(info.info);
+            } else {
+              mensajes('No se encontraron datos de microcuencas', 'info');
+              setData([]);
             }
-          })
-          .catch(() => mensajes('Error cargando microcuencas', 'error'));
-      }, [mostrarActivos, navigate]);
+          } catch (error) {
+            console.error('Error cargando microcuencas:', error);
+            mensajes('Error cargando microcuencas', 'error');
+          }
+        })();
+      }, [mostrarActivos, navigate]);      
 
     useEffect(() => {
         cargarDatos();
