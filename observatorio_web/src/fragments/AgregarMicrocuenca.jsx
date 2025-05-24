@@ -131,7 +131,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                             ...register('descripcion', {
                                 required: 'Ingrese una descripción',
                                 pattern: {
-                                    value: /^(?!\s*$)[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s\-\/%.,()]+(?<![<>])$/,
+                                    value: new RegExp("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\\s/%.,()\\-]+$"),
                                     message: 'Ingrese una descripción correcta'
                                 }
                             })

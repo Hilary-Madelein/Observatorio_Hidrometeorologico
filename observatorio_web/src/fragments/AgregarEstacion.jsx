@@ -149,7 +149,7 @@ function AgregarEstacion({ external_id_estacion }) {
                             ...register('descripcion', {
                                 required: 'Ingrese una descripción',
                                 pattern: {
-                                    value: /^(?!\s*$)[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s\-\/%.,()]+(?<![<>])$/,
+                                    value: new RegExp("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\\s/%.,()\\-]+$"),
                                     message: 'Ingrese una descripción correcta'
                                 }
                             })
