@@ -21,39 +21,28 @@ class StationController {
         }
     }
 
-    async listActive(req, res) {
-        try {
-            const results = await Station.findAll({
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
-                where: { status: 'OPERATIVA' }
-            });
-            res.json({ msg: 'OK!', code: 200, info: results });
-        } catch (error) {
-            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
-        }
-    }
+    async listByMicrobasinAndStatus(req, res) {
+        const { external_id, estado } = req.params;
 
-    async listInactive(req, res) {
         try {
-            const results = await Station.findAll({
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
-                where: { status: 'NO_OPERATIVA' }
-            });
-            res.json({ msg: 'OK!', code: 200, info: results });
-        } catch (error) {
-            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
-        }
-    }
+            const microbasin = await Microbasin.findOne({ where: { external_id } });
 
-    async listMantenimiento(req, res) {
-        try {
-            const results = await Station.findAll({
+            if (!microbasin) {
+                return res.status(404).json({ msg: 'Microcuenca no encontrada', code: 404 });
+            }
+
+            const estaciones = await Station.findAll({
+                where: {
+                    id_microbasin: microbasin.id,
+                    status: estado.toUpperCase()
+                },
                 attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
-                where: { status: 'MANTENIMIENTO' }
             });
-            res.json({ msg: 'OK!', code: 200, info: results });
+
+            return res.status(200).json({ msg: 'OK!', code: 200, info: estaciones });
         } catch (error) {
-            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
+            console.error('Error filtrando estaciones:', error);
+            return res.status(500).json({ msg: 'Error interno del servidor', code: 500 });
         }
     }
 
@@ -237,33 +226,33 @@ class StationController {
 
     async changeStatus(req, res) {
         try {
-            
+
             const external_id = req.body.external_id;
-    
+
             const estacion = await Station.findOne({
                 where: { external_id }
             });
-    
+
             if (!estacion) {
                 return res.status(404).json({ msg: "Estación no encontrada", code: 404 });
             }
-    
+
             estacion.status = req.body.estado;
-    
+
             await estacion.save();
-    
+
             return res.status(200).json({
                 msg: `Estado actualizado correctamente. Nuevo estado: ${estacion.status}`,
                 code: 200,
                 info: { external_id, nuevo_estado: estacion.status }
             });
-    
+
         } catch (error) {
             console.error("Error al cambiar el estado:", error);
             return res.status(500).json({ msg: "Error interno del servidor", code: 500 });
         }
     }
-    
+
 }
 
 module.exports = StationController;

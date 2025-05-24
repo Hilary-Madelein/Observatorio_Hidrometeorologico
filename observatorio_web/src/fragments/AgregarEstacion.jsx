@@ -253,7 +253,7 @@ function AgregarEstacion({ external_id_estacion }) {
                                 </button>
                             </div>
                         )}
-                        {errors.foto && <span className='alert alert-danger'>{errors.foto.message}</span>}
+                        {errors.foto && <div className='alert alert-danger'>{errors.foto.message}</div>}
                     </div>
                 </div>
 

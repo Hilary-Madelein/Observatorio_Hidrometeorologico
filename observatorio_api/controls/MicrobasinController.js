@@ -39,7 +39,7 @@ class MicrobasinController {
             const results = await Microbasin.findAll({
                 attributes: ['external_id', 'status', 'picture', 'name', 'description'],
             });
-            
+
             res.json({ msg: 'OK!', code: 200, info: results });
         } catch (error) {
             res.status(500).json({ msg: 'Error al listar microcuencas: ' + error.message, code: 500, info: error });
@@ -112,6 +112,7 @@ class MicrobasinController {
             return res.status(500).json({ msg: 'ERROR AL OBTENER LOS DATOS', code: 500, error: error.message });
         }
     }
+
 
     async create(req, res) {
         const transaction = await models.sequelize.transaction();
@@ -201,12 +202,12 @@ class MicrobasinController {
             const microbasin = await Microbasin.findOne({
                 where: { external_id }
             });
-    
+
             if (!microbasin) {
                 return res.status(404).json({ msg: "Microcuenca no encontrada", code: 404 });
             }
 
-    
+
             microbasin.status = !microbasin.status;
             await microbasin.save();
 
@@ -215,7 +216,7 @@ class MicrobasinController {
                 code: 200,
                 info: { external_id, nuevo_estado: microbasin.status }
             });
-    
+
         } catch (error) {
             console.error("Error al cambiar el estado:", error);
             return res.status(500).json({ msg: "Error interno del servidor", code: 500 });

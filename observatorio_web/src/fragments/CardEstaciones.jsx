@@ -74,54 +74,69 @@ function MapaConEstaciones() {
     }, []);
 
     const obtenerEstacionesMicrocuenca = async (externalId) => {
-        setLoading(true);
-        const response = await ObtenerPost(getToken(), 'estaciones/operativas/microcuenca', { external: externalId });
+        try {
+            setLoading(true);
+    
+            const response = await ObtenerPost(getToken(), 'estaciones/operativas/microcuenca', { external: externalId });
+    
+            if (response.code === 200) {
+                setSelectedMicrocuenca({ nombre: response.microcuenca_nombre, estaciones: response.info });
 
-        if (response.code === 200) {
-            setSelectedMicrocuenca({ nombre: response.microcuenca_nombre, estaciones: response.info });
-
-            markersRef.current.forEach(marker => marker.remove());
-            markersRef.current = [];
-
-            const bounds = new mapboxgl.LngLatBounds();
-            let hasValidCoordinates = false;            
-
-            response.info.forEach((estacion) => {
-                const coordenadas = [estacion.longitude, estacion.latitude];
-
-                if (coordenadas && coordenadas.length === 2 && !isNaN(coordenadas[0]) && !isNaN(coordenadas[1])) {
-                    const popupContent = `
-                        <div style="text-align: center; font-family: Arial, sans-serif;">
-                            <h5 style="color: #333; font-weight: bold;">${estacion.name}</h5>
-                            <p style="color: #777; font-size: 12px;">
-                                Microcuenca: ${selectedMicrocuenca?.nombre || 'No disponible'}
-                            </p>
-                            <img 
-                                src="${URLBASE}/images/estaciones/${estacion.picture}" 
-                                alt="${estacion.name}"
-                                style="width: 100%; border-radius: 8px; border: 1px solid #ddd;"
-                            />
-                        </div>
-                    `;
-                    const marker = new mapboxgl.Marker()
-                        .setLngLat(coordenadas)
-                        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent))
-                        .addTo(map);
-
-                    markersRef.current.push(marker);
-                    bounds.extend(coordenadas);
-                    hasValidCoordinates = true;
+                markersRef.current.forEach(marker => marker.remove());
+                markersRef.current = [];
+    
+                const bounds = new mapboxgl.LngLatBounds();
+                let hasValidCoordinates = false;
+    
+                response.info.forEach((estacion) => {
+                    const coordenadas = [estacion.longitude, estacion.latitude];
+    
+                    if (
+                        coordenadas &&
+                        coordenadas.length === 2 &&
+                        !isNaN(coordenadas[0]) &&
+                        !isNaN(coordenadas[1])
+                    ) {
+                        const popupContent = `
+                            <div style="text-align: center; font-family: Arial, sans-serif;">
+                                <h5 style="color: #333; font-weight: bold;">${estacion.name}</h5>
+                                <p style="color: #777; font-size: 12px;">
+                                    Microcuenca: ${response.microcuenca_nombre || 'No disponible'}
+                                </p>
+                                <img 
+                                    src="${URLBASE}/images/estaciones/${estacion.picture}" 
+                                    alt="${estacion.name}"
+                                    style="width: 100%; border-radius: 8px; border: 1px solid #ddd;"
+                                />
+                            </div>
+                        `;
+    
+                        const marker = new mapboxgl.Marker()
+                            .setLngLat(coordenadas)
+                            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent))
+                            .addTo(map);
+    
+                        markersRef.current.push(marker);
+                        bounds.extend(coordenadas);
+                        hasValidCoordinates = true;
+                    }
+                });
+    
+                if (hasValidCoordinates) {
+                    map.fitBounds(bounds, { padding: 50 });
                 }
-            });
-
-            if (hasValidCoordinates) {
-                map.fitBounds(bounds, { padding: 50 });
+            } else {
+                mensajes("No se pudieron cargar las estaciones de esta microcuenca.", "error");
+                console.error("Error al obtener estaciones:", response.msg);
             }
-        } else {
-            console.error("Error al obtener estaciones:", response.msg);
+        } catch (error) {
+            console.error("Error inesperado al visualizar el mapa:", error);
+            mensajes("Lo sentimos, el mapa no se puede visualizar, intente más tarde.", "error");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
+       
 
     const volverVistaInicial = () => {
         setSelectedMicrocuenca(null);

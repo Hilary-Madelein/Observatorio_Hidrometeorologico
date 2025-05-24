@@ -279,9 +279,7 @@ router.put('/modificar/estacion', (req, res, next) => {
   });
 });
 router.get('/listar/estacion', stationController.list);
-router.get('/listar/estacion/operativas', stationController.listActive);
-router.get('/listar/estacion/no_operativas', stationController.listInactive);
-router.get('/listar/estacion/mantenimiento', stationController.listMantenimiento);
+router.get('/listar/estacion/:estado/:external_id', stationController.listByMicrobasinAndStatus);
 router.get('/obtener/estacion/:external',  stationController.getByMicrobasinParam);
 router.get('/get/estacion/:external_id', stationController.getByExternal);
 router.post('/estacion/cambiar_estado', stationController.changeStatus);

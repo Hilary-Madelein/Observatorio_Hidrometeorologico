@@ -18,7 +18,7 @@ const ListaEstaciones = () => {
   const { external_id } = useParams();
   const [data, setData] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [estadoFiltro, setEstadoFiltro] = useState('operativas');
+  const [estadoFiltro, setEstadoFiltro] = useState('OPERATIVA');
 
   // --- ADD ---
   const [showAdd, setShowAdd] = useState(false);
@@ -59,9 +59,9 @@ const ListaEstaciones = () => {
 
   useEffect(() => {
     const fetchEstaciones = async () => {
-      let ruta = '/listar/estacion/operativas';
-      if (estadoFiltro === 'mantenimiento')      ruta = '/listar/estacion/mantenimiento';
-      else if (estadoFiltro === 'no_operativas') ruta = '/listar/estacion/no_operativas';
+      if (!external_id) return;
+  
+      let ruta = `/listar/estacion/${estadoFiltro}/${external_id}`;
   
       try {
         const info = await ObtenerGet(getToken(), ruta);
@@ -78,7 +78,7 @@ const ListaEstaciones = () => {
     };
   
     fetchEstaciones();
-  }, [estadoFiltro, navigate]);
+  }, [estadoFiltro, navigate, external_id]);  
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -106,20 +106,20 @@ const ListaEstaciones = () => {
 
           <div className="d-flex ms-auto flex-wrap align-items-center gap-2">
             <button
-              className={`btn btn-outline-secondary ${estadoFiltro === 'operativas' ? 'active' : ''}`}
-              onClick={() => setEstadoFiltro('operativas')}
+              className={`btn btn-outline-secondary ${estadoFiltro === 'OPERATIVA' ? 'active' : ''}`}
+              onClick={() => setEstadoFiltro('OPERATIVA')}
             >
               Operativas
             </button>
             <button
-              className={`btn btn-outline-secondary ${estadoFiltro === 'mantenimiento' ? 'active' : ''}`}
-              onClick={() => setEstadoFiltro('mantenimiento')}
+              className={`btn btn-outline-secondary ${estadoFiltro === 'MANTENIMIENTO' ? 'active' : ''}`}
+              onClick={() => setEstadoFiltro('MANTENIMIENTO')}
             >
               Mantenimiento
             </button>
             <button
-              className={`btn btn-outline-secondary ${estadoFiltro === 'no_operativas' ? 'active' : ''}`}
-              onClick={() => setEstadoFiltro('no_operativas')}
+              className={`btn btn-outline-secondary ${estadoFiltro === 'NO_OPERATIVA' ? 'active' : ''}`}
+              onClick={() => setEstadoFiltro('NO_OPERATIVA')}
             >
               No operativas
             </button>
