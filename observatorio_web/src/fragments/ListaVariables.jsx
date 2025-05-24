@@ -22,7 +22,7 @@ const ListaVariables = () => {
 
     const [showEdit, setShowEdit] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
-    
+
     const handleEditClose = () => {
         setShowEdit(false);
         setSelectedId(null);
@@ -40,21 +40,30 @@ const ListaVariables = () => {
 
     const cargarDatos = useCallback(() => {
         const ruta = mostrarActivos
-          ? '/listar/tipo_medida'
-          : '/listar/tipo_medida/desactivos';
-    
-        ObtenerGet(getToken(), ruta)
-          .then(info => {
-            if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
-              borrarSesion();
-              mensajes(info.msg);
-              navegation("/admin");
-            } else {
-              setVariables(info.info);
+            ? '/listar/tipo_medida'
+            : '/listar/tipo_medida/desactivos';
+
+        (async () => {
+            try {
+                const info = await ObtenerGet(getToken(), ruta);
+
+                if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
+                    borrarSesion();
+                    mensajes(info.msg);
+                    navegation('/admin');
+                } else if (Array.isArray(info.info)) {
+                    setVariables(info.info);
+                } else {
+                    mensajes('No se encontraron tipos de medida válidos', 'info');
+                    setVariables([]);
+                }
+            } catch (error) {
+                console.error('Error cargando tipos de medida:', error);
+                mensajes('Error cargando tipos de medida', 'error');
             }
-          })
-          .catch(() => mensajes('Error cargando tipos de medida', 'error'));
-      }, [mostrarActivos, navegation]);
+        })();
+    }, [mostrarActivos, navegation]);
+
 
     useEffect(() => {
         cargarDatos();
