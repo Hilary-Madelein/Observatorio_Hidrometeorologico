@@ -1,5 +1,5 @@
-const URL = 'http://localhost:3006/api';
-export const URLBASE = "http://localhost:3006"; 
+const URL = 'http://localhost:9006/api';
+export const URLBASE = "http://localhost:9006"; 
 
 export const InicioSesion = async (data) => {
     const headers = {

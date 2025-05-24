@@ -84,8 +84,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                     borrarSesion();
                     navigate('/principal/admin');
                 } else {
-                    mensajes(info.msg);
-                    setTimeout(() => window.location.reload(), 1200);
+                    mensajesConRecarga(info.msg);
                 }
             });
             
@@ -151,9 +150,12 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                     <div className="form-group mb-3">
                         <label htmlFor="foto" className="form-label">Seleccionar foto</label>
                         <input type="file"
-                            {...register("foto", modoEdicion ? {} : {
-                                required: {
-                                    message: "Seleccione una foto"
+                            {...register("foto", {
+                                validate: fileList => {
+                                    if (!modoEdicion && (!fileList || fileList.length === 0)) {
+                                        return "Seleccione una foto";
+                                    }
+                                    return true;
                                 }
                             })}
                             onChange={handlePhotoChange}
@@ -169,7 +171,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                                 </button>
                             </div>
                         )}
-                        {errors.foto && <span className='mensajeerror'>{errors.foto.message}</span>}
+                        {errors.foto && <div className='alert alert-danger'>{errors.foto.message}</div>}
                     </div>
 
                     {/* Modal Previsualización */}
