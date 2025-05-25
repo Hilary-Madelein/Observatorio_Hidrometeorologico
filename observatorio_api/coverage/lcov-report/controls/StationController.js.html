@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">91.5% </span>
+                <span class="strong">82.52% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>97/106</span>
+                <span class='fraction'>85/103</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">84.37% </span>
+                <span class="strong">79.41% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>27/32</span>
+                <span class='fraction'>27/34</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">88.88% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>11/11</span>
+                <span class='fraction'>8/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">92.38% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>97/105</span>
+                <span class='fraction'>85/102</span>
             </div>
         
             
@@ -321,18 +321,7 @@
 <a name='L256'></a><a href='#L256'>256</a>
 <a name='L257'></a><a href='#L257'>257</a>
 <a name='L258'></a><a href='#L258'>258</a>
-<a name='L259'></a><a href='#L259'>259</a>
-<a name='L260'></a><a href='#L260'>260</a>
-<a name='L261'></a><a href='#L261'>261</a>
-<a name='L262'></a><a href='#L262'>262</a>
-<a name='L263'></a><a href='#L263'>263</a>
-<a name='L264'></a><a href='#L264'>264</a>
-<a name='L265'></a><a href='#L265'>265</a>
-<a name='L266'></a><a href='#L266'>266</a>
-<a name='L267'></a><a href='#L267'>267</a>
-<a name='L268'></a><a href='#L268'>268</a>
-<a name='L269'></a><a href='#L269'>269</a>
-<a name='L270'></a><a href='#L270'>270</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L259'></a><a href='#L259'>259</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -356,38 +345,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -624,39 +602,28 @@ class StationController {
         }
     }
 &nbsp;
-    async listActive(req, res) {
-        try {
-            const results = await Station.findAll({
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
-                where: { status: 'OPERATIVA' }
-            });
-            res.json({ msg: 'OK!', code: 200, info: results });
-        } catch (error) {
-            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
-        }
-    }
+<span class="fstat-no" title="function not covered" >    as</span>ync listByMicrobasinAndStatus(req, res) {
+        const { external_id, estado } = <span class="cstat-no" title="statement not covered" >req.params;</span>
 &nbsp;
-    async listInactive(req, res) {
-        try {
-            const results = await Station.findAll({
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
-                where: { status: 'NO_OPERATIVA' }
-            });
-            res.json({ msg: 'OK!', code: 200, info: results });
-        } catch (error) {
-            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
-        }
-    }
+<span class="cstat-no" title="statement not covered" >        try {</span>
+            const microbasin = <span class="cstat-no" title="statement not covered" >await Microbasin.findOne({ where: { external_id } });</span>
 &nbsp;
-    async listMantenimiento(req, res) {
-        try {
-            const results = await Station.findAll({
+<span class="cstat-no" title="statement not covered" >            if (!microbasin) {</span>
+<span class="cstat-no" title="statement not covered" >                return res.status(404).json({ msg: 'Microcuenca no encontrada', code: 404 });</span>
+            }
+&nbsp;
+            const estaciones = <span class="cstat-no" title="statement not covered" >await Station.findAll({</span>
+                where: {
+                    id_microbasin: microbasin.id,
+                    status: estado.toUpperCase()
+                },
                 attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
-                where: { status: 'MANTENIMIENTO' }
             });
-            res.json({ msg: 'OK!', code: 200, info: results });
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            return res.status(200).json({ msg: 'OK!', code: 200, info: estaciones });</span>
         } catch (error) {
-            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
+<span class="cstat-no" title="statement not covered" >            console.error('Error filtrando estaciones:', error);</span>
+<span class="cstat-no" title="statement not covered" >            return res.status(500).json({ msg: 'Error interno del servidor', code: 500 });</span>
         }
     }
 &nbsp;
@@ -840,33 +807,33 @@ class StationController {
 &nbsp;
     async changeStatus(req, res) {
         try {
-            
+&nbsp;
             const external_id = req.body.external_id;
-    
+&nbsp;
             const estacion = await Station.findOne({
                 where: { external_id }
             });
-    
+&nbsp;
             if (!estacion) {
                 return res.status(404).json({ msg: "Estación no encontrada", code: 404 });
             }
-    
+&nbsp;
             estacion.status = req.body.estado;
-    
+&nbsp;
             await estacion.save();
-    
+&nbsp;
             return res.status(200).json({
                 msg: `Estado actualizado correctamente. Nuevo estado: ${estacion.status}`,
                 code: 200,
                 info: { external_id, nuevo_estado: estacion.status }
             });
-    
+&nbsp;
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >            console.error("Error al cambiar el estado:", error);</span>
 <span class="cstat-no" title="statement not covered" >            return res.status(500).json({ msg: "Error interno del servidor", code: 500 });</span>
         }
     }
-    
+&nbsp;
 }
 &nbsp;
 module.exports = StationController;
@@ -877,7 +844,7 @@ module.exports = StationController;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-22T00:26:10.493Z
+                at 2025-05-25T01:54:37.424Z
             </div>
         <script src="../prettify.js"></script>
         <script>

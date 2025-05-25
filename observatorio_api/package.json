@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "./node_modules/nodemon/bin/nodemon.js ./bin/www",
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test:unit": "cross-env NODE_ENV=test jest --coverage"
   },
   "dependencies": {
     "@azure/cosmos": "^4.3.0",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "babel-jest": "^29.7.0",
+    "cross-env": "^7.0.3",
     "jest": "^29.7.0",
     "ts-jest": "^29.3.4"
   }

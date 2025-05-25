@@ -10,5 +10,18 @@
       "useUTC": true
     },
     "operatorAliases": false
+  },
+  "test": {
+    "username": "software_observatorio",
+    "password": "software_observatorio",
+    "database": "db_observatorio_test",
+    "host": "127.0.0.1",
+    "dialect": "postgres",
+    "logging": false,
+    "timezone": "+00:00",
+    "dialectOptions": {
+      "useUTC": true
+    },
+    "operatorAliases": false
   }
 }
