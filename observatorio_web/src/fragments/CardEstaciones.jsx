@@ -80,7 +80,7 @@ function MapaConEstaciones() {
             const response = await ObtenerPost(getToken(), 'estaciones/operativas/microcuenca', { external: externalId });
     
             if (response.code === 200) {
-                setSelectedMicrocuenca({ nombre: response.microcuenca_nombre, estaciones: response.info });
+                setSelectedMicrocuenca({ nombre: response.microcuenca_nombre, estaciones: response.info });             
 
                 markersRef.current.forEach(marker => marker.remove());
                 markersRef.current = [];

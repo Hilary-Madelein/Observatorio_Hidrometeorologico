@@ -21,6 +21,18 @@ class StationController {
         }
     }
 
+    async listActive(req, res) {
+        try {
+            const results = await Station.findAll({
+                where: { status: 'OPERATIVA' },
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device'],
+            });
+            res.json({ msg: 'OK!', code: 200, info: results });
+        } catch (error) {
+            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
+        }
+    }
+
     async listByMicrobasinAndStatus(req, res) {
         const { external_id, estado } = req.params;
 

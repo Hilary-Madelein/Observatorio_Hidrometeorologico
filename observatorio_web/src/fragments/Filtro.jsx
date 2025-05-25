@@ -22,6 +22,27 @@ function Filtro({ onFiltrar }) {
         if (nuevoFiltro.fechaFin !== undefined) setFechaFin(nuevoFiltro.fechaFin);
     };
 
+    useEffect(() => {
+        if (data.length === 0) {
+            try {
+                ObtenerGet(getToken(), '/listar/estacion/operativas')
+                    .then((info) => {
+                        if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
+                            borrarSesion();
+                            navegation("/admin");
+                        } else {
+                            setData(info.info);                            
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error al obtener estaciones operativas:', error);
+                    });
+            } catch (error) {
+                console.error('Error inesperado:', error);
+            }
+        }
+    }, [navegation, data]);    
+
     const manejarFiltrado = () => {
         let errorMsg = '';
 
@@ -64,9 +85,12 @@ function Filtro({ onFiltrar }) {
         }
 
         if (datosFiltro.estacion) {
-            const estacionNombre = data.find((e) => e.external_id === datosFiltro.estacion)?.name || "No seleccionada";
+            const estacionNombre = Array.isArray(data)
+                ? data.find((e) => e.external_id === datosFiltro.estacion)?.name || "No seleccionada"
+                : "No seleccionada";
             descripcion += ` | Estación: ${estacionNombre}`;
         }
+        
 
         setDescripcionFiltro(descripcion);
     };
@@ -87,20 +111,6 @@ function Filtro({ onFiltrar }) {
 
     const mostrarCamposAdicionales = filtroSeleccionado === 'rangoFechas' || filtroSeleccionado === 'mesAnio';
 
-    useEffect(() => {
-        if (data.length === 0) {
-            ObtenerGet(getToken(), '/listar/estacion/operativas').then((info) => {
-                if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
-                    borrarSesion();
-                    navegation("/admin");
-                } else {
-                    setData(info.info);
-                }
-            });
-        }
-    }, [navegation, data]);  // Añadido `data` en las dependencias para evitar reinicios innecesarios
-
-
     const calcularHoraRango = (filtroSeleccionado) => {
         const ahora = new Date();
         let fechaInicio;
@@ -118,8 +128,6 @@ function Filtro({ onFiltrar }) {
 
         return `${horaInicio} - ${horaFin}`;
     };
-
-
 
     return (
 

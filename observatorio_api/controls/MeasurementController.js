@@ -150,18 +150,18 @@ class MeasurementController {
     async getUltimasMediciones(req, res) {
         try {
             const [results] = await models.sequelize.query(`
-                SELECT p.name AS tipo_medida,
+                SELECT DISTINCT ON (p.name) 
+                       p.name AS tipo_medida,
                        q.quantity AS valor,
                        p.unit_measure AS unidad,
-                       st.name AS estacion 
+                       st.name AS estacion,
+                       m.local_date
                 FROM measurement m
                 JOIN quantity q ON m.id_quantity = q.id
                 JOIN phenomenon_type p ON m.id_phenomenon_type = p.id
                 JOIN station st ON m.id_station = st.id
-                WHERE m.status = true
-                AND q.status = true
-                ORDER BY m.local_date DESC
-                LIMIT 50;
+                WHERE m.status = true AND q.status = true
+                ORDER BY p.name, m.local_date DESC;
             `);
 
             const agrupadas = {};
@@ -223,7 +223,7 @@ class MeasurementController {
                     replacements: { fechaInicio, fechaFin, estacion: estacion || null },
                     type: models.sequelize.QueryTypes.SELECT
                 });
-                
+
                 rows = rows.filter(r => r.valor != null && r.valor <= 1000);
 
                 const info = rows.map(r => ({
@@ -235,7 +235,7 @@ class MeasurementController {
                     unidad: r.unidad
                 }));
 
-                console.log('Mediciones crudas:', info);     
+                console.log('Mediciones crudas:', info);
 
                 return res.json({ msg: `Datos crudos ${rango}`, code: 200, info });
             }
