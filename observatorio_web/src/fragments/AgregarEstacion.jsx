@@ -147,7 +147,7 @@ function AgregarEstacion({ external_id_estacion }) {
                             style={{ fontWeight: 'bold', paddingTop: '10px' }}>
                             <OverlayTrigger
                                 placement="top"
-                                overlay={<Tooltip>Identificador proporcionado por el TTN</Tooltip>}
+                                overlay={<Tooltip>Identificador proporcionado por la plataforma The Things Network TTN, se encuentra como device_id</Tooltip>}
                             >
                                 <i class="bi bi-question-circle-fill" style={{ cursor: 'pointer', color: '#60B5FF' }}></i>
                             </OverlayTrigger>
