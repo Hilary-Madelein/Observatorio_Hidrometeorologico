@@ -45,22 +45,31 @@ const ListaMicrocuencas = () => {
         (async () => {
           try {
             const info = await ObtenerGet(getToken(), ruta);
-            if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
+      
+            if (info.code === 200) {
+              if (Array.isArray(info.info)) {
+                setData(info.info);
+              } else {
+                mensajes('No se encontraron datos de microcuencas', 'info');
+                setData([]);
+              }
+      
+            } else if (info.msg === 'Acceso denegado. Token ha expirado') {
+              mensajes(info.msg, 'error', 'Error');
               borrarSesion();
-              mensajes(info.msg, 'error');
               navigate('/admin');
-            } else if (Array.isArray(info.info)) {
-              setData(info.info);
+      
             } else {
-              mensajes('No se encontraron datos de microcuencas', 'info');
-              setData([]);
+              mensajes(info.msg || 'Error desconocido al cargar datos', 'error');
             }
+      
           } catch (error) {
             console.error('Error cargando microcuencas:', error);
-            mensajes('Error cargando microcuencas', 'error');
+            mensajes('Error cargando microcuencas', 'error', 'Error');
           }
         })();
-      }, [mostrarActivos, navigate]);      
+      }, [mostrarActivos, navigate]);
+            
 
     useEffect(() => {
         cargarDatos();

@@ -11,6 +11,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { getRoles, getToken } from './utils/SessionUtil';
 import mensajes from './utils/Mensajes';
 import 'boxicons/css/boxicons.min.css';
+import Perfil from './fragments/Perfil';
 
 function App() {
 
@@ -41,6 +42,7 @@ function App() {
         
         {/** RUTAS ADMINISTRATIVAS */}
         <Route path='/admin' element={<Login />} />
+        <Route path='/admin/perfil' element={<MiddewareSesion ><Perfil /></MiddewareSesion>} />
         <Route path='/principal/admin' element={<MiddewareSesion ><ListaMicrocuencas /></MiddewareSesion>} />
         <Route path='/estaciones/:external_id' element={<MiddewareSesion ><ListaEstaciones /></MiddewareSesion>} />
         <Route path='/principal/variable' element={<MiddewareSesion ><ListaVariables /></MiddewareSesion>} />

@@ -57,25 +57,34 @@ function AgregarVariable({ external_id_variable }) {
         formData.append('external_id', external_id_variable);
         const operacionesSeleccionadas = Array.from(data.operaciones);
         operacionesSeleccionadas.forEach(op => {
-            formData.append('operaciones[]', op);
+          formData.append('operaciones[]', op);
         });
-
+      
         const endpoint = modoEdicion ? '/modificar/tipo_medida' : '/guardar/tipo_medida';
         const accion = modoEdicion ? ActualizarImagenes : GuardarImages;
-
-        accion(formData, getToken(), endpoint).then(info => {
-            if (info.code !== 200) {
-                mensajes(info.msg, 'error', 'Error');
-                borrarSesion();
-                navigate('/principal/variable');
+      
+        accion(formData, getToken(), endpoint)
+          .then(info => {
+            if (info.code === 200) {
+              mensajesConRecarga(info.msg);
+              setTimeout(() => {
+                window.location.reload();
+              }, 1200);
+      
+            } else if (info.msg === 'Acceso denegado. Token ha expirado') {
+              mensajes(info.msg, 'error', 'Error');
+              borrarSesion();
+              navigate('/principal/variable');
+      
             } else {
-                mensajes(info.msg);
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1200);
+              mensajes(info.msg, 'error', 'Error');
             }
-        });
-    };
+          })
+          .catch(err => {
+            console.error('Error guardando tipo de medida:', err);
+            mensajes('Ocurrió un error inesperado. Intente de nuevo más tarde.', 'error', 'Error');
+          });
+      };      
 
     const handleCancelClick = () => {
         swal({

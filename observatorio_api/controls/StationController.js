@@ -1,10 +1,13 @@
 'use strict';
 const { validationResult } = require('express-validator');
+const { ValidationError, UniqueConstraintError } = require('sequelize');
 const models = require('../models');
 const path = require('path');
 const uuid = require('uuid');
 const fs = require('fs');
-
+const { sequelize } = require('../models');
+const mqttClient = require('../routes/mqtt');
+const topicTemplate = process.env.TTN_TOPIC_TEMPLATE;
 const Station = models.station;
 const Microbasin = models.microbasin;
 
@@ -139,22 +142,37 @@ class StationController {
     }
 
     async create(req, res) {
-        const transaction = await models.sequelize.transaction();
+        const transaction = await sequelize.transaction();
 
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({ msg: "DATOS INCOMPLETOS", code: 400, errors: errors.array() });
+                return res.status(400).json({
+                    msg: "DATOS INCOMPLETOS",
+                    code: 400,
+                    errors: errors.array()
+                });
             }
 
-            const microbasin = await Microbasin.findOne({ where: { external_id: req.body.id_microcuenca } });
-
+            const microbasin = await Microbasin.findOne({
+                where: { external_id: req.body.id_microcuenca }
+            });
             if (!microbasin) {
-                return res.status(400).json({ msg: "La microcuenca especificada no existe", code: 400 });
+                return res.status(400).json({
+                    msg: "La microcuenca especificada no existe",
+                    code: 400
+                });
+            }
+
+            const dup = await Station.findOne({ where: { name: req.body.nombre } });
+            if (dup) {
+                return res.status(400).json({
+                    msg: "Ya existe una estación con ese nombre",
+                    code: 400
+                });
             }
 
             const pictureFilename = req.file.filename;
-
             const data = {
                 name: req.body.nombre,
                 longitude: req.body.longitud,
@@ -169,70 +187,192 @@ class StationController {
                 id_microbasin: microbasin.id,
             };
 
-            await Station.create(data, { transaction });
-            await transaction.commit();
+            const station = await Station.create(data, { transaction });
 
-            return res.status(200).json({ msg: "SE HAN REGISTRADO LOS DATOS CON ÉXITO", code: 200 });
+            if (!mqttClient.connected) {
+                throw new Error('No hay conexión con el servidor MQTT');
+            }
+
+            const topic = topicTemplate.replace('{id}', station.id_device);
+            try {
+                await new Promise((resolve, reject) => {
+                    mqttClient.subscribe(topic, err => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+                });
+            } catch (err) {
+                await transaction.rollback();
+                fs.unlinkSync(path.join(__dirname, '../public/images/estaciones', pictureFilename));
+                return res.status(500).json({
+                    msg: "No se pudo suscribir al tópico MQTT. Intenta de nuevo más tarde.",
+                    code: 500
+                });
+            }
+
+            await transaction.commit();
+            return res.status(200).json({
+                msg: "SE HAN REGISTRADO LOS DATOS CON ÉXITO",
+                code: 200
+            });
 
         } catch (error) {
+            if (transaction && !transaction.finished) {
+                await transaction.rollback();
+            }
             if (req.file?.path) {
                 fs.unlinkSync(path.join(__dirname, '../public/images/estaciones', req.file.filename));
             }
 
-            if (transaction && !transaction.finished) {
-                await transaction.rollback();
+            if (error instanceof UniqueConstraintError) {
+                return res.status(400).json({
+                    msg: 'Ya existe un registro duplicado',
+                    code: 400,
+                    errors: error.errors.map(e => e.message)
+                });
+            }
+            if (error instanceof ValidationError) {
+                return res.status(400).json({
+                    msg: 'Error de validación',
+                    code: 400,
+                    errors: error.errors.map(e => e.message)
+                });
             }
 
-            return res.status(400).json({
-                msg: error.message || "Ha ocurrido un error en el servidor",
-                code: 400
+            return res.status(500).json({
+                msg: error.message || "Error interno del servidor",
+                code: 500
             });
         }
     }
 
     async update(req, res) {
+        const transaction = await sequelize.transaction();
         try {
-            const station = await Station.findOne({ where: { external_id: req.body.external_id } });
-
-            if (!station) {
-                return res.status(400).json({ msg: "NO EXISTE EL REGISTRO", code: 400 });
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                await transaction.rollback();
+                return res.status(400).json({
+                    msg: "DATOS INCOMPLETOS",
+                    code: 400,
+                    errors: errors.array()
+                });
             }
 
-            let previousPicture = station.picture;
+            const station = await Station.findOne({
+                where: { external_id: req.body.external_id },
+                transaction
+            });
+            if (!station) {
+                await transaction.rollback();
+                return res.status(400).json({
+                    msg: "NO EXISTE EL REGISTRO",
+                    code: 400
+                });
+            }
 
-            if (req.file) {
-                if (previousPicture) {
-                    const imagePath = path.join(__dirname, '../public/images/estaciones/', previousPicture);
-                    fs.unlink(imagePath, (err) => {
-                        if (err) console.log('Error al eliminar la imagen anterior:', err);
-                        else console.log("eliminada: " + previousPicture);
+            if (req.body.nombre && req.body.nombre !== station.name) {
+                const dupName = await Station.findOne({
+                    where: { name: req.body.nombre },
+                    transaction
+                });
+                if (dupName) {
+                    await transaction.rollback();
+                    return res.status(400).json({
+                        msg: "Ya existe una estación con ese nombre",
+                        code: 400
                     });
                 }
-                previousPicture = req.file.filename;
+            }
+
+            const oldDevice = station.id_device;
+            if (req.body.id_dispositivo && req.body.id_dispositivo !== oldDevice) {
+                const dupDevice = await Station.findOne({
+                    where: { id_device: req.body.id_dispositivo },
+                    transaction
+                });
+                if (dupDevice) {
+                    await transaction.rollback();
+                    return res.status(400).json({
+                        msg: "Ya existe una estación con ese dispositivo",
+                        code: 400
+                    });
+                }
+            }
+
+            let newPicture = station.picture;
+            if (req.file) {
+                if (station.picture) {
+                    const oldPath = path.join(__dirname, '../public/images/estaciones/', station.picture);
+                    fs.unlink(oldPath, err => {
+                        if (err) console.warn('No se pudo borrar imagen antigua:', err);
+                    });
+                }
+                newPicture = req.file.filename;
             }
 
             station.name = req.body.nombre;
             station.status = req.body.estado;
             station.longitude = req.body.longitud;
-            station.altitude = req.body.altitud;
             station.latitude = req.body.latitud;
+            station.altitude = req.body.altitud;
             station.type = req.body.tipo;
             station.description = req.body.descripcion;
             station.id_device = req.body.id_dispositivo;
-            station.picture = previousPicture;
+            station.picture = newPicture;
             station.external_id = uuid.v4();
 
-            const result = await station.save();
-
-            if (!result) {
-                return res.status(400).json({ msg: "NO SE HAN MODIFICADO LOS DATOS, VUELVA A INTENTAR", code: 400 });
+            const updated = await station.save({ transaction });
+            if (!updated) {
+                throw new Error('No se lograron aplicar los cambios');
             }
 
-            return res.status(200).json({ msg: "SE HAN MODIFICADO LOS DATOS CON ÉXITO", code: 200 });
+            if (req.body.id_dispositivo && req.body.id_dispositivo !== oldDevice) {
+                if (!mqttClient.connected) {
+                    throw new Error('No hay conexión con el servidor MQTT');
+                }
+                const topic = topicTemplate.replace('{id}', updated.id_device);
+                await new Promise((resolve, reject) => {
+                    mqttClient.subscribe(topic, err => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+                });
+            }
+
+            await transaction.commit();
+            return res.status(200).json({
+                msg: "SE HAN MODIFICADO LOS DATOS CON ÉXITO",
+                code: 200
+            });
 
         } catch (error) {
-            console.error("Error en el servidor:", error);
-            return res.status(400).json({ msg: "Error en el servidor", error, code: 400 });
+            if (transaction && !transaction.finished) {
+                await transaction.rollback();
+            }
+            if (req.file?.path) {
+                fs.unlinkSync(path.join(__dirname, '../public/images/estaciones', req.file.filename));
+            }
+
+            if (error instanceof UniqueConstraintError) {
+                return res.status(400).json({
+                    msg: 'Datos duplicados',
+                    code: 400,
+                    errors: error.errors.map(e => e.message)
+                });
+            }
+            if (error instanceof ValidationError) {
+                return res.status(400).json({
+                    msg: 'Error de validación',
+                    code: 400,
+                    errors: error.errors.map(e => e.message)
+                });
+            }
+
+            return res.status(500).json({
+                msg: error.message || "Error interno del servidor",
+                code: 500
+            });
         }
     }
 

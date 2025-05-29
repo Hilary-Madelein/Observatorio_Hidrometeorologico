@@ -83,21 +83,30 @@ function AgregarEstacion({ external_id_estacion }) {
         const endpoint = modoEdicion ? '/modificar/estacion' : '/guardar/estacion';
         const accion = modoEdicion ? ActualizarImagenes : GuardarImages;
 
-        accion(formData, getToken(), endpoint).then(info => {
-            if (info.code !== 200) {
-                mensajes(info.msg, 'error', 'Error');
-                if (info.msg.includes('Token')) {
-                    borrarSesion();
-                    navigate(-1);
+        accion(formData, getToken(), endpoint)
+            .then(info => {
+                if (info.code === 200) {
+                    mensajes(info.msg, 'success', 'OK');
+                    setTimeout(() => {
+                        navigate(`/estaciones/${external_id}`);
+                        window.location.reload();
+                    }, 1200);
+
+                } else {
+                    if (info.msg === 'Acceso denegado. Token ha expirado') {
+                        mensajes(info.msg, 'error', 'Error');
+                        borrarSesion();
+                        navigate('/admin');
+                    } else {
+                        mensajes(info.msg, 'error', 'Error');
+                    }
                 }
-            } else {
-                mensajes(info.msg);
-                setTimeout(() => {
-                    navigate(`/estaciones/${external_id}`);
-                    window.location.reload();
-                }, 1200);
-            }
-        });
+            })
+            .catch(err => {
+                console.error('Error en la petición:', err);
+                mensajes('Ocurrió un error inesperado. Intente de nuevo más tarde.', 'error', 'Error');
+            });
+
     };
 
     const handleCancelClick = () => {

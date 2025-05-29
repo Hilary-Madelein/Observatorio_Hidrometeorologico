@@ -40,29 +40,36 @@ const ListaVariables = () => {
 
     const cargarDatos = useCallback(() => {
         const ruta = mostrarActivos
-            ? '/listar/tipo_medida'
-            : '/listar/tipo_medida/desactivos';
-
+          ? '/listar/tipo_medida'
+          : '/listar/tipo_medida/desactivos';
+      
         (async () => {
-            try {
-                const info = await ObtenerGet(getToken(), ruta);
-
-                if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
-                    borrarSesion();
-                    mensajes(info.msg);
-                    navegation('/admin');
-                } else if (Array.isArray(info.info)) {
-                    setVariables(info.info);
-                } else {
-                    mensajes('No se encontraron tipos de medida válidos', 'info');
-                    setVariables([]);
-                }
-            } catch (error) {
-                console.error('Error cargando tipos de medida:', error);
-                mensajes('Error cargando tipos de medida', 'error');
+          try {
+            const info = await ObtenerGet(getToken(), ruta);
+      
+            if (info.code === 200) {
+              if (Array.isArray(info.info)) {
+                setVariables(info.info);
+              } else {
+                mensajes('No se encontraron tipos de medida válidos', 'info', 'Información');
+                setVariables([]);
+              }
+      
+            } else if (info.msg === 'Acceso denegado. Token ha expirado') {
+              mensajes(info.msg, 'error', 'Error');
+              borrarSesion();
+              navegation('/admin');
+      
+            } else {
+              mensajes(info.msg || 'Error desconocido cargando tipos de medida', 'error', 'Error');
             }
+      
+          } catch (error) {
+            console.error('Error cargando tipos de medida:', error);
+            mensajes('Error cargando tipos de medida. Intente de nuevo más tarde.', 'error', 'Error');
+          }
         })();
-    }, [mostrarActivos, navegation]);
+      }, [mostrarActivos, navegation]);     
 
 
     useEffect(() => {

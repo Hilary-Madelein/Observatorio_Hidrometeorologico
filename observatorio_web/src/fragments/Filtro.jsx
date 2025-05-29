@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import '../css/Filtro_Style.css';
 import '../css/Principal_Style.css';
-import { getToken, borrarSesion } from '../utils/SessionUtil';
+import { getToken } from '../utils/SessionUtil';
 import { ObtenerGet } from '../hooks/Conexion';
-import { useNavigate } from 'react-router-dom';
 import mensajes from '../utils/Mensajes';
 
 function Filtro({ onFiltrar }) {
@@ -12,7 +11,6 @@ function Filtro({ onFiltrar }) {
     const [fechaFin, setFechaFin] = useState('');
     const [estacionSeleccionada, setEstacionSeleccionada] = useState('');
     const [data, setData] = useState([]);
-    const navegation = useNavigate();
     const [, setDescripcionFiltro] = useState("");
 
     const actualizarFiltro = (nuevoFiltro) => {
@@ -24,24 +22,27 @@ function Filtro({ onFiltrar }) {
 
     useEffect(() => {
         if (data.length === 0) {
+          (async () => {
             try {
-                ObtenerGet(getToken(), '/listar/estacion/operativas')
-                    .then((info) => {
-                        if (info.code !== 200 && info.msg === 'Acceso denegado. Token ha expirado') {
-                            borrarSesion();
-                            navegation("/admin");
-                        } else {
-                            setData(info.info);                            
-                        }
-                    })
-                    .catch((error) => {
-                        console.error('Error al obtener estaciones operativas:', error);
-                    });
+              const info = await ObtenerGet(getToken(), '/listar/estacion/operativas');
+      
+              if (info.code === 200) {
+                setData(Array.isArray(info.info) ? info.info : []);
+              } else {
+                mensajes(info.msg || 'Error al cargar estaciones operativas', 'error', 'Error');
+              }
             } catch (error) {
-                console.error('Error inesperado:', error);
+              console.error('Error al obtener estaciones operativas:', error);
+              mensajes(
+                'No se pudieron cargar las estaciones operativas. Intente de nuevo más tarde.',
+                'error',
+                'Error'
+              );
             }
+          })();
         }
-    }, [navegation, data]);    
+      }, [data]);
+        
 
     const manejarFiltrado = () => {
         let errorMsg = '';
@@ -90,8 +91,6 @@ function Filtro({ onFiltrar }) {
                 : "No seleccionada";
             descripcion += ` | Estación: ${estacionNombre}`;
         }
-        
-
         setDescripcionFiltro(descripcion);
     };
 
@@ -273,7 +272,7 @@ function Filtro({ onFiltrar }) {
                     <div className="filtro-item-btn">
                         <button
                             type="button"
-                            className="btn btn-primary custom-button-filtro"
+                            className="btn custom-button-filtro-btn"
                             onClick={manejarFiltrado}
                         >
                             Consultar datos

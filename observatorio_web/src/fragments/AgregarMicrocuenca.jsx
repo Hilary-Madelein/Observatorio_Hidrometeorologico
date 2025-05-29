@@ -62,34 +62,37 @@ function AgregarMicrocuenca({ external_id, onClose }) {
 
     const onSubmit = data => {
         const formData = new FormData();
-
         formData.append('external_id', external_id);
-
         formData.append('nombre', data.nombre.toUpperCase());
         formData.append('descripcion', data.descripcion);
         if (data.foto && data.foto[0]) {
-            formData.append('foto', data.foto[0]);
+          formData.append('foto', data.foto[0]);
         }
-
+      
         const endpoint = modoEdicion
-            ? '/modificar/microcuenca'
-            : '/guardar/microcuenca';
-
+          ? '/modificar/microcuenca'
+          : '/guardar/microcuenca';
         const funcionGuardar = modoEdicion ? ActualizarImagenes : GuardarImages;
-
+      
         funcionGuardar(formData, getToken(), endpoint)
-            .then(info => {
-                if (info.code !== 200) {
-                    mensajes(info.msg, 'error', 'Error');
-                    borrarSesion();
-                    navigate('/principal/admin');
-                } else {
-                    mensajesConRecarga(info.msg);
-                }
-            });
-
-    };
-
+          .then(info => {
+            if (info.code === 200) {
+              mensajesConRecarga(info.msg);
+      
+            } else if (info.msg === 'Acceso denegado. Token ha expirado') {
+              mensajes(info.msg, 'error', 'Error');
+              borrarSesion();
+              navigate('/admin');
+      
+            } else {
+              mensajes(info.msg, 'error', 'Error');
+            }
+          })
+          .catch(err => {
+            console.error('Error guardando microcuenca:', err);
+            mensajes('Ocurrió un error inesperado. Intente de nuevo más tarde.', 'error', 'Error');
+          });
+      };
 
     const handleCancelClick = () => {
         swal({

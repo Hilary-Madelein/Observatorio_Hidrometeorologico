@@ -6,6 +6,7 @@ import '../css/Filtro_Style.css';
 import '../css/Principal_Style.css';
 import { getToken } from '../utils/SessionUtil';
 import io from 'socket.io-client';
+import mensajes from '../utils/Mensajes';
 
 const chartColors = ['#362FD9', '#1AACAC', '#DB005B', '#19A7CE', '#DF2E38', '#8DCBE6'];
 
@@ -16,45 +17,48 @@ function Medidas() {
 
     useEffect(() => {
         const fetchData = async () => {
-            setLoading(true);
-            try {
-                const [medidasRes, fenomenosRes] = await Promise.all([
-                    ObtenerGet(getToken(), '/listar/ultima/medida'),
-                    ObtenerGet(getToken(), '/listar/tipo_medida')
-                ]);
-
-                if (medidasRes.code !== 200 || fenomenosRes.code !== 200) {
-                    console.warn("Error al obtener datos:", medidasRes.msg, fenomenosRes.msg);
-                    setVariables([]);
-                    return;
-                }
-
-                const medidas = medidasRes.info;
-                const tiposFenomenos = fenomenosRes.info;
-
-                const medidasProcesadas = procesarMedidas(medidas, tiposFenomenos);
-                setVariables(medidasProcesadas);
-
-            } catch (error) {
-                console.error("Error al obtener datos:", error);
-                setVariables([]);
-            } finally {
-                setLoading(false);
+          setLoading(true);
+          try {
+            const [medidasRes, fenomenosRes] = await Promise.all([
+              ObtenerGet(getToken(), '/listar/ultima/medida'),
+              ObtenerGet(getToken(), '/listar/tipo_medida')
+            ]);
+      
+            if (medidasRes.code !== 200) {
+              mensajes(medidasRes.msg || 'Error al obtener última medida', 'error', 'Error');
+              setVariables([]);
+              return;
             }
+            if (fenomenosRes.code !== 200) {
+              mensajes(fenomenosRes.msg || 'Error al obtener tipos de fenómeno', 'error', 'Error');
+              setVariables([]);
+              return;
+            }
+      
+            const medidas = medidasRes.info;
+            const tiposFenomenos = fenomenosRes.info;
+            const medidasProcesadas = procesarMedidas(medidas, tiposFenomenos);
+            setVariables(medidasProcesadas);
+      
+          } catch (error) {
+            console.error('Error al obtener datos:', error);
+            mensajes('Error de conexión con el servidor', 'error', 'Error');
+            setVariables([]);
+          } finally {
+            setLoading(false);
+          }
         };
-
+      
         fetchData();
-
-        // configuración del socket
+      
+        // configuración del socket 
         socketRef.current = io(URLBASE);
-        socketRef.current.on('connect', () => console.log('Socket conectado:', socketRef.current.id));
         socketRef.current.on('new-measurements', fetchData);
-
+      
         return () => {
-            socketRef.current.disconnect();
+          socketRef.current.disconnect();
         };
-    }, []);
-
+      }, []);      
 
     const procesarMedidas = (medidas, fenomenos) => {
         const agrupadas = {};

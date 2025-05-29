@@ -1,5 +1,6 @@
 'use strict';
 const { validationResult } = require('express-validator');
+const { ValidationError, UniqueConstraintError } = require('sequelize');
 const models = require('../models');
 const path = require('path');
 const uuid = require('uuid');
@@ -115,11 +116,12 @@ class MicrobasinController {
 
 
     async create(req, res) {
-        const transaction = await models.sequelize.transaction();
+        const transaction = await sequelize.transaction();
 
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
+                await transaction.rollback();
                 return res.status(400).json({
                     msg: "DATOS INCOMPLETOS",
                     code: 400,
@@ -127,8 +129,22 @@ class MicrobasinController {
                 });
             }
 
-            const pictureFilename = req.file.filename;
+            const existing = await Microbasin.findOne({
+                where: { name: req.body.nombre },
+                transaction
+            });
+            if (existing) {
+                await transaction.rollback();
+                if (req.file?.path) {
+                    fs.unlinkSync(path.join(__dirname, '../public/images/microcuencas', req.file.filename));
+                }
+                return res.status(400).json({
+                    msg: "Ya existe una microcuenca con ese nombre",
+                    code: 400
+                });
+            }
 
+            const pictureFilename = req.file.filename;
             const data = {
                 name: req.body.nombre,
                 picture: pictureFilename,
@@ -139,59 +155,142 @@ class MicrobasinController {
             await Microbasin.create(data, { transaction });
             await transaction.commit();
 
-            return res.status(200).json({ msg: "SE HA REGISTRADO MICROCUENCA CON ÉXITO", code: 200 });
+            return res.status(200).json({
+                msg: "SE HA REGISTRADO MICROCUENCA CON ÉXITO",
+                code: 200
+            });
 
         } catch (error) {
+            if (transaction && !transaction.finished) {
+                await transaction.rollback();
+            }
             if (req.file?.path) {
                 fs.unlinkSync(path.join(__dirname, '../public/images/microcuencas', req.file.filename));
             }
 
-            if (transaction && !transaction.finished) {
-                await transaction.rollback();
+            if (error instanceof UniqueConstraintError) {
+                return res.status(400).json({
+                    msg: 'Registro duplicado',
+                    code: 400,
+                    errors: error.errors.map(e => e.message)
+                });
+            }
+            if (error instanceof ValidationError) {
+                return res.status(400).json({
+                    msg: 'Error de validación',
+                    code: 400,
+                    errors: error.errors.map(e => e.message)
+                });
             }
 
-            return res.status(400).json({ msg: error.message || "Ha ocurrido un error en el servidor", code: 400 });
+            return res.status(500).json({
+                msg: error.message || "Error interno del servidor",
+                code: 500
+            });
         }
     }
 
     async update(req, res) {
-        try {
-            const existing = await Microbasin.findOne({ where: { external_id: req.body.external_id } });
+        const transaction = await sequelize.transaction();
 
-            if (!existing) {
-                return res.status(400).json({ msg: "NO EXISTE EL REGISTRO", code: 400 });
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                await transaction.rollback();
+                return res.status(400).json({
+                    msg: "DATOS INCOMPLETOS",
+                    code: 400,
+                    errors: errors.array()
+                });
             }
 
-            let previousPicture = existing.picture;
+            const existing = await Microbasin.findOne({
+                where: { external_id: req.body.external_id },
+                transaction
+            });
+            if (!existing) {
+                await transaction.rollback();
+                return res.status(400).json({
+                    msg: "NO EXISTE EL REGISTRO",
+                    code: 400
+                });
+            }
 
-            if (req.file) {
-                if (previousPicture) {
-                    const imagePath = path.join(__dirname, '../public/images/microcuencas/', previousPicture);
-                    fs.unlink(imagePath, (err) => {
-                        if (err) console.log('Error al eliminar la imagen anterior:', err);
-                        else console.log("eliminada: " + previousPicture);
+            if (req.body.nombre && req.body.nombre !== existing.name) {
+                const dup = await Microbasin.findOne({
+                    where: {
+                        name: req.body.nombre,
+                        external_id: { [Op.ne]: req.body.external_id }
+                    },
+                    transaction
+                });
+                if (dup) {
+                    await transaction.rollback();
+                    if (req.file?.path) {
+                        fs.unlinkSync(path.join(__dirname, '../public/images/microcuencas', req.file.filename));
+                    }
+                    return res.status(400).json({
+                        msg: "Ya existe una microcuenca con ese nombre",
+                        code: 400
                     });
                 }
-                previousPicture = req.file.filename;
+            }
+
+            let newPicture = existing.picture;
+            if (req.file) {
+                if (existing.picture) {
+                    const oldPath = path.join(__dirname, '../public/images/microcuencas', existing.picture);
+                    fs.unlink(oldPath, err => {
+                        if (err) console.warn('No se pudo borrar imagen antigua:', err);
+                    });
+                }
+                newPicture = req.file.filename;
             }
 
             existing.name = req.body.nombre;
             existing.status = req.body.estado;
-            existing.picture = previousPicture;
+            existing.picture = newPicture;
             existing.description = req.body.descripcion;
             existing.external_id = uuid.v4();
 
-            const result = await existing.save();
-
-            if (!result) {
-                return res.status(400).json({ msg: "NO SE HAN MODIFICADO LOS DATOS, VUELVA A INTENTAR", code: 400 });
+            const updated = await existing.save({ transaction });
+            if (!updated) {
+                throw new Error('No se aplicaron los cambios');
             }
 
-            return res.status(200).json({ msg: "SE HAN MODIFICADO LOS DATOS CON ÉXITO", code: 200 });
+            await transaction.commit();
+            return res.status(200).json({
+                msg: "SE HAN MODIFICADO LOS DATOS CON ÉXITO",
+                code: 200
+            });
 
         } catch (error) {
-            console.error("Error en el servidor:", error);
-            return res.status(400).json({ msg: "Error en el servidor", error, code: 400 });
+            if (transaction && !transaction.finished) {
+                await transaction.rollback();
+            }
+            if (req.file?.path) {
+                fs.unlinkSync(path.join(__dirname, '../public/images/microcuencas', req.file.filename));
+            }
+
+            if (error instanceof UniqueConstraintError) {
+                return res.status(400).json({
+                    msg: 'Datos duplicados',
+                    code: 400,
+                    errors: error.errors.map(e => e.message)
+                });
+            }
+            if (error instanceof ValidationError) {
+                return res.status(400).json({
+                    msg: 'Error de validación',
+                    code: 400,
+                    errors: error.errors.map(e => e.message)
+                });
+            }
+
+            return res.status(500).json({
+                msg: error.message || "Error interno del servidor",
+                code: 500
+            });
         }
     }
 

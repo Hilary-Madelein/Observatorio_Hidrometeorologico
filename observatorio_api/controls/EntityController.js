@@ -132,7 +132,10 @@ class EntityController {
 
     // PUT update entity and account
     async update(req, res) {
-        try {
+        try {            
+
+            console.log("Actualizando entidad con external_id:", req.body.external_id);
+            
             const existingEntity = await Entity.findOne({
                 where: { external_id: req.body.external_id }
             });
@@ -191,7 +194,7 @@ class EntityController {
         } catch (error) {
             console.error("Error en el servidor:", error);
             return res.status(400).json({
-                msg: "Error en el servidor",
+                msg: "Error al editar una persona",
                 code: 400,
                 error
             });

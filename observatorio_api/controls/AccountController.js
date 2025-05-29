@@ -12,7 +12,7 @@ class AccountController {
     async login(req, res) {
         try {
             const errors = validationResult(req);
-            
+
             if (!errors.isEmpty()) {
                 return res.status(400).json({
                     msg: "FALTAN DATOS",
@@ -44,7 +44,7 @@ class AccountController {
                 };
 
                 const secretKey = process.env.KEY;
-                const token = jwt.sign(tokenPayload, secretKey, { expiresIn: '12h' });
+                const token = jwt.sign(tokenPayload, secretKey, { expiresIn: '30min' });
 
                 return res.status(200).json({
                     msg: "Bienvenido " + (login.entity?.name || ''),
@@ -69,6 +69,40 @@ class AccountController {
                 msg: "Error en el servidor",
                 code: 500
             });
+        }
+    }
+
+    async changePassword(req, res) {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                msg: "FALTAN DATOS",
+                code: 400,
+                errors: errors.array()
+            });
+        }
+
+        const { currentPassword, newPassword, email } = req.body;     
+
+        try {
+            const account = await Account.findOne({ where: { email: email } });
+            if (!account) {
+                return res.status(404).json({ msg: "CUENTA NO ENCONTRADA", code: 404 });
+            }
+
+            const valid = bcrypt.compareSync(currentPassword, account.password);
+            if (!valid) {
+                return res.status(401).json({ msg: "CONTRASEÑA ACTUAL INCORRECTA", code: 401 });
+            }
+
+            const salt = bcrypt.genSaltSync(10);
+            account.password = bcrypt.hashSync(newPassword, salt);
+            await account.save();
+
+            return res.status(200).json({ msg: "Contraseña actualizada correctamente", code: 200 });
+        } catch (error) {
+            console.error("Error cambiando contraseña:", error);
+            return res.status(500).json({ msg: "Error en el servidor", code: 500 });
         }
     }
 

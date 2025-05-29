@@ -7,6 +7,8 @@ require('dotenv').config();
 
 const { Sequelize } = require('sequelize');
 const models = require('./../models');
+const StationController = require('../controls/StationController');
+const stationController = new StationController();
 const sequelize = models.sequelize;
 
 const MeasurementController = require('../controls/MeasurementController');
@@ -23,16 +25,10 @@ const endpoint = process.env.COSMOS_ENDPOINT;
 const key = process.env.COSMOS_KEY;
 const databaseId = process.env.COSMOS_DB;
 const client = new CosmosClient({ endpoint, key });
+const mqttClient = require('./mqtt'); 
 
 const DESPLAZAMIENTO_HORARIO_MINUTOS = -300;
-
-// MQTT (TTN) Configuración
-const ttnServer = process.env.TTN_SERVER;
-const mqttOptions = {
-  username: process.env.TTN_USERNAME,
-  password: process.env.TTN_PASSWORD,
-};
-const mqttClient = mqtt.connect(ttnServer, mqttOptions);
+const topicTemplate = process.env.TTN_TOPIC_TEMPLATE;
 
 function ajustarZonaHoraria(timestamp) {
   const date = new Date(timestamp);
@@ -40,10 +36,31 @@ function ajustarZonaHoraria(timestamp) {
   return date.toISOString();
 }
 
-mqttClient.on('connect', () => {
+mqttClient.on('connect', async () => {
   console.log('Conectado a TTN MQTT');
-  mqttClient.subscribe(process.env.TTN_EMA);
-  mqttClient.subscribe(process.env.TTN_EHA);
+
+  try {
+    let estaciones;
+    const fakeReq = {};  
+    const fakeRes = {
+      json: body => { estaciones = body.info; },
+      status: code => ({
+        json: body => { throw new Error(body.msg || 'Error listing stations'); }
+      })
+    };
+    await stationController.list(fakeReq, fakeRes);
+
+    estaciones.forEach(({ id_device }) => {
+      const topic = topicTemplate.replace('{id}', id_device);
+      mqttClient.subscribe(topic, err => {
+        if (err) console.error(`Error suscribiendo ${topic}:`, err);
+        else      console.log(`Suscrito a ${topic}`);
+      });
+    });
+
+  } catch (err) {
+    console.error('Error al obtener estaciones para suscripción:', err);
+  }
 });
 
 mqttClient.on('message', async (topic, message) => {
@@ -106,7 +123,6 @@ router.get('/privado/:external', async function (req, res) {
 
 module.exports = {
   router,
-  mqttClient,
   client,     
   databaseId
 };

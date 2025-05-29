@@ -47,8 +47,8 @@ export default function Graficas({ filtro }) {
         return;
       }
       setLoading(true);
+  
       try {
-        let info;
         let url;
         if (['15min', '30min', 'hora', 'diaria'].includes(filtro.tipo)) {
           url = `/mediciones/por-tiempo?rango=${filtro.tipo}`;
@@ -58,32 +58,36 @@ export default function Graficas({ filtro }) {
             url += `&fechaInicio=${new Date(filtro.fechaInicio).toISOString()}&fechaFin=${new Date(filtro.fechaFin).toISOString()}`;
           }
         }
-        if (filtro.estacion) url += `&estacion=${filtro.estacion}`;
-        info = await ObtenerGet(getToken(), url);
-
-        if (info.code !== 200) {
-          mensajes(info.msg, 'error', '¡Algo salió mal!');
-          if (info.msg.includes('Token ha expirado')) {
-            borrarSesion();
-            navigate('/login');
-          }
-          setDatosGrafica([]);
-        } else if (!info.info?.length) {
-          mensajes('No existen datos registrados', 'info', 'Sin datos');
-          setDatosGrafica([]);
-        } else {
-          setDatosGrafica(info.info);
+        if (filtro.estacion) {
+          url += `&estacion=${filtro.estacion}`;
         }
+  
+        const info = await ObtenerGet(getToken(), url);
+  
+        if (info.code === 200) {
+          // Caso éxito
+          if (!info.info?.length) {
+            mensajes('No existen datos registrados', 'info', 'Sin datos');
+            setDatosGrafica([]);
+          } else {
+            setDatosGrafica(info.info);
+          }
+        } else {
+          mensajes(info.msg || 'Error al obtener datos', 'error', '¡Algo salió mal!');
+          setDatosGrafica([]);
+        }
+  
       } catch (error) {
-        console.error(error);
+        console.error('Error de conexión con el servidor:', error);
         mensajes('Error de conexión con el servidor.', 'error');
         setDatosGrafica([]);
       } finally {
         setLoading(false);
       }
     };
+  
     obtenerDatosPorFiltro();
-  }, [filtro, navigate]);
+  }, [filtro]);  
 
   if (loading) {
     return (

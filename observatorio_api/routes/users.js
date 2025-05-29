@@ -192,6 +192,8 @@ router.post('/sesion', [
   body('password', 'Ingrese una clave valido').exists().not().isEmpty(),
 ], accountController.login)
 
+router.post('/cambiar-clave/entidad', accountController.changePassword);
+
 
 /**
  * RUTAS DE MICROCUENCAS

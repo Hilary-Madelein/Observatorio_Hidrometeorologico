@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Spinner } from 'react-bootstrap';
 import { ObtenerGet, URLBASE } from '../hooks/Conexion';
 import { getToken, borrarSesion } from '../utils/SessionUtil';
+import { useNavigate } from 'react-router-dom';
 import mensajes from '../utils/Mensajes';
 import '../css/ModalEstacion_Style.css';
 
 const ModalDetallesEstacion = ({ show, handleClose, external_id_estacion }) => {
   const [station, setStation] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!show || !external_id_estacion) {
@@ -15,24 +17,32 @@ const ModalDetallesEstacion = ({ show, handleClose, external_id_estacion }) => {
       return;
     }
     setLoading(true);
+
     ObtenerGet(getToken(), `/get/estacion/${external_id_estacion}`)
       .then(res => {
         if (res.code === 200) {
+          // Éxito
           setStation(res.info);
+
+        } else if (res.msg === 'Acceso denegado. Token ha expirado') {
+          mensajes(res.msg, 'error', 'Error');
+          borrarSesion();
+          navigate('/admin');
+
         } else {
-          mensajes(`Error cargando estación: ${res.msg}`, 'error');
-          if (res.msg.includes('Token')) {
-            borrarSesion();
-          }
+          mensajes(`Error cargando estación: ${res.msg}`, 'error', 'Error');
           handleClose();
         }
       })
-      .catch(() => {
-        mensajes('Error de conexión al servidor', 'error');
+      .catch(err => {
+        console.error('Error de conexión al servidor:', err);
+        mensajes('Error de conexión al servidor', 'error', 'Error');
         handleClose();
       })
-      .finally(() => setLoading(false));
-  }, [show, external_id_estacion, handleClose]);
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [show, external_id_estacion, handleClose, navigate]);
 
   return (
     <Modal
@@ -71,8 +81,8 @@ const ModalDetallesEstacion = ({ show, handleClose, external_id_estacion }) => {
               <p><strong>Estado:</strong> {station.status}</p>
               <p><strong>ID Dispositivo:</strong> {station.id_device}</p>
               <p>
-                <strong>Coordenadas:</strong> {station.latitude}, {station.longitude}  
-                <br/><strong>Altitud:</strong> {station.altitude}
+                <strong>Coordenadas:</strong> {station.latitude}, {station.longitude}
+                <br /><strong>Altitud:</strong> {station.altitude}
               </p>
             </div>
           </div>

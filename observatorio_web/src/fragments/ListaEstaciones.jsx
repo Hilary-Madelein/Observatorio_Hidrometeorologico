@@ -61,24 +61,32 @@ const ListaEstaciones = () => {
     const fetchEstaciones = async () => {
       if (!external_id) return;
   
-      let ruta = `/listar/estacion/${estadoFiltro}/${external_id}`;
+      const ruta = `/listar/estacion/${estadoFiltro}/${external_id}`;
   
       try {
         const info = await ObtenerGet(getToken(), ruta);
-        if (info.code !== 200 && info.msg.includes('Token ha expirado')) {
+  
+        if (info.code === 200) {
+          setData(Array.isArray(info.info) ? info.info : []);
+  
+        } else if (info.msg === 'Acceso denegado. Token ha expirado') {
+          // Token expirado
+          mensajes(info.msg, 'error', 'Error');
           borrarSesion();
-          mensajes(info.msg, 'error');
           navigate('/admin');
+  
         } else {
-          setData(info.info);
+          mensajes(info.msg || 'Error al cargar estaciones', 'error');
         }
-      } catch (e) {
-        mensajes('Error cargando estaciones', 'error');
+  
+      } catch (err) {
+        console.error('Error cargando estaciones:', err);
+        mensajes('Error cargando estaciones. Intente de nuevo más tarde.', 'error', 'Error');
       }
     };
   
     fetchEstaciones();
-  }, [estadoFiltro, navigate, external_id]);  
+  }, [estadoFiltro, external_id, navigate]);  
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);

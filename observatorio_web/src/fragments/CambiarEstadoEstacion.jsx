@@ -12,20 +12,29 @@ function CambiarEstadoEstacion({ external_id_estacion }) {
 
     const onSubmit = data => {
         const body = {
-            external_id: external_id_estacion,
-            estado: data.estado
+          external_id: external_id_estacion,
+          estado: data.estado
         };
-
+      
         PostGuardar(body, getToken(), "/estacion/cambiar_estado")
-            .then(info => {
-                if (info.code !== 200) {
-                    mensajes(info.msg, 'error', 'Error');
-                    borrarSesion();
-                } else {
-                    mensajesConRecarga(info.msg);
-                }
-            });
-    };
+          .then(info => {
+            if (info.code === 200) {
+              mensajesConRecarga(info.msg);
+      
+            } else if (info.msg === 'Acceso denegado. Token ha expirado') {
+              mensajes(info.msg, 'error', 'Error');
+              borrarSesion();
+              navigate('/admin');
+      
+            } else {
+              mensajes(info.msg, 'error', 'Error');
+            }
+          })
+          .catch(err => {
+            console.error('Error cambiando estado de estación:', err);
+            mensajes('Ocurrió un error inesperado. Intente de nuevo más tarde.', 'error', 'Error');
+          });
+      };      
 
     const handleCancelClick = () => {
         swal({
