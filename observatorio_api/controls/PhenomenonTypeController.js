@@ -273,7 +273,6 @@ class PhenomenonTypeController {
                 fs.unlinkSync(path.join(__dirname, '../public/images/phenomenon_types', req.file.filename));
             }
 
-            // Errores de clave única
             if (error instanceof UniqueConstraintError) {
                 return res.status(400).json({
                     msg: "Datos duplicados",

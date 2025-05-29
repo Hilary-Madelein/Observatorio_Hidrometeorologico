@@ -22,27 +22,27 @@ function Filtro({ onFiltrar }) {
 
     useEffect(() => {
         if (data.length === 0) {
-          (async () => {
-            try {
-              const info = await ObtenerGet(getToken(), '/listar/estacion/operativas');
-      
-              if (info.code === 200) {
-                setData(Array.isArray(info.info) ? info.info : []);
-              } else {
-                mensajes(info.msg || 'Error al cargar estaciones operativas', 'error', 'Error');
-              }
-            } catch (error) {
-              console.error('Error al obtener estaciones operativas:', error);
-              mensajes(
-                'No se pudieron cargar las estaciones operativas. Intente de nuevo más tarde.',
-                'error',
-                'Error'
-              );
-            }
-          })();
+            (async () => {
+                try {
+                    const info = await ObtenerGet(getToken(), '/listar/estacion/operativas');
+
+                    if (info.code === 200) {
+                        setData(Array.isArray(info.info) ? info.info : []);
+                    } else {
+                        mensajes(info.msg || 'Error al cargar estaciones operativas', 'error', 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error al obtener estaciones operativas:', error);
+                    mensajes(
+                        'No se pudieron cargar las estaciones operativas. Intente de nuevo más tarde.',
+                        'error',
+                        'Error'
+                    );
+                }
+            })();
         }
-      }, [data]);
-        
+    }, [data]);
+
 
     const manejarFiltrado = () => {
         let errorMsg = '';
@@ -134,7 +134,7 @@ function Filtro({ onFiltrar }) {
             <h3 className="titulo-principal">Mediciones históricas</h3>
 
             <div className='container-fluid'>
-                
+
                 <div className="informacion-presentada col-lg-12 mb-4">
                     <h5 className="mb-3 info-presentada-text">
                         <i class="bi bi-info-circle-fill me-2"></i>
@@ -186,16 +186,16 @@ function Filtro({ onFiltrar }) {
                     {/* Filtro por tipo */}
                     <div className="filtro-item">
                         <label htmlFor="filtro" className="form-label filtro-label">
-                            <i class="bi bi-hourglass-split me-2"></i>
+                            <i className="bi bi-hourglass-split me-2"></i>
                             Escala temporal:
                         </label>
                         <select
                             id="filtro"
                             className="form-select"
                             value={filtroSeleccionado}
-                            onChange={(e) => actualizarFiltro({ tipo: e.target.value })}
+                            onChange={e => actualizarFiltro({ tipo: e.target.value })}
                         >
-                            <option value="" disabled>
+                            <option value="" disabled hidden>
                                 Seleccione una escala de tiempo
                             </option>
                             <option value="15min">15 minutos</option>
@@ -206,7 +206,6 @@ function Filtro({ onFiltrar }) {
                             <option value="rangoFechas">Rango de Fechas</option>
                         </select>
                     </div>
-
 
                     {/* Combo box de estaciones */}
                     <div className="filtro-item">
@@ -220,7 +219,7 @@ function Filtro({ onFiltrar }) {
                             value={estacionSeleccionada}
                             onChange={(e) => actualizarFiltro({ estacion: e.target.value })}
                         >
-                            <option value="" disabled>
+                            <option value="" disabled hidden>
                                 Seleccione una estación
                             </option>
                             {data.map((estacion) => (

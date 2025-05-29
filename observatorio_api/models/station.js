@@ -44,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: 'METEOROLOGICA'
         },
         description: {
-            type: DataTypes.STRING(150),
+            type: DataTypes.STRING(350),
             defaultValue: "NO_DATA"
         }
     }, {

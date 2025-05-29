@@ -12,6 +12,7 @@ import { getRoles, getToken } from './utils/SessionUtil';
 import mensajes from './utils/Mensajes';
 import 'boxicons/css/boxicons.min.css';
 import Perfil from './fragments/Perfil';
+import ListaAdministradores from './fragments/ListaAdministradores';
 
 function App() {
 
@@ -46,6 +47,7 @@ function App() {
         <Route path='/principal/admin' element={<MiddewareSesion ><ListaMicrocuencas /></MiddewareSesion>} />
         <Route path='/estaciones/:external_id' element={<MiddewareSesion ><ListaEstaciones /></MiddewareSesion>} />
         <Route path='/principal/variable' element={<MiddewareSesion ><ListaVariables /></MiddewareSesion>} />
+        <Route path='/principal/gestionar/admin' element={<MiddewareSesion ><ListaAdministradores /></MiddewareSesion>} />
       </Routes>
     </div>
   );

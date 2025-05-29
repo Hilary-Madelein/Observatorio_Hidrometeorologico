@@ -82,7 +82,7 @@ class AccountController {
             });
         }
 
-        const { currentPassword, newPassword, email } = req.body;     
+        const { currentPassword, newPassword, email } = req.body;
 
         try {
             const account = await Account.findOne({ where: { email: email } });

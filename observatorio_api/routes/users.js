@@ -193,6 +193,7 @@ router.post('/sesion', [
 ], accountController.login)
 
 router.post('/cambiar-clave/entidad', accountController.changePassword);
+router.get('/modificar/cuenta-status', entityController.changeAccountStatus);
 
 
 /**

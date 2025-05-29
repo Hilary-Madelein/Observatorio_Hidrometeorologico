@@ -131,7 +131,7 @@
 
 
 .btn-registrar {
-    background-color: #0C2840;
+    background-color: #0C2840 !important;
     color: #ffffff;
     font-size: 0.8rem;
     font-weight: 600;
@@ -152,7 +152,7 @@
     transform: translateY(-2px);
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2),
                 0 15px 50px rgba(0, 0, 0, 0.2);
-    background-color: #537EC5;
+    background-color: #537EC5 !important;
 }
 
 .btn-acceder {

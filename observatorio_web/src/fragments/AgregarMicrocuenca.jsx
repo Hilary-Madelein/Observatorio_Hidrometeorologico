@@ -13,7 +13,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
     const [showModal, setShowModal] = useState(false);
     const [uploadedPhoto, setUploadedPhoto] = useState(null);
     const [modoEdicion, setModoEdicion] = useState(false);
-    const maxCaracteres = 150;
+    const maxCaracteres = 350;
 
     const handleDescripcionChange = (event) => {
         const { value } = event.target;
@@ -115,7 +115,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                 <div className="container-modal">
                     {/* Nombre */}
                     <div className="form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Nombre</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Nombre</label>
                         <input type="text" {...register('nombre', {
                             required: 'Ingrese un nombre',
                             pattern: {
@@ -128,7 +128,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
 
                     {/* Descripción */}
                     <div className="form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '20px' }}>Descripción</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '20px' }}><strong style={{ color: 'red' }}>* </strong>Descripción</label>
                         <textarea
                             {
                             ...register('descripcion', {
@@ -154,7 +154,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
 
                     {/* Foto */}
                     <div className="form-group mb-3">
-                        <label htmlFor="foto" className="form-label">Seleccionar foto</label>
+                        <label htmlFor="foto" className="form-label"><strong style={{ color: 'red' }}>* </strong>Seleccionar foto</label>
                         <input type="file"
                             {...register("foto", {
                                 validate: fileList => {

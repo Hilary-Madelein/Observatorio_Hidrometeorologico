@@ -107,7 +107,7 @@ function AgregarVariable({ external_id_variable }) {
                 <div className="container-modal">
                     {/* Nombre */}
                     <div className="form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Nombre</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Nombre</label>
                         <input
                             type="text"
                             {...register('nombre', {
@@ -121,7 +121,7 @@ function AgregarVariable({ external_id_variable }) {
 
                     {/* Unidad de medida */}
                     <div className="form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Unidad de medida</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Unidad de medida</label>
                         <input
                             type="text"
                             {...register('unidad_medida', {
@@ -135,7 +135,7 @@ function AgregarVariable({ external_id_variable }) {
 
                     {/* Operaciones */}
                     <div className="form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Operaciones asociadas</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Operaciones asociadas</label>
                         <div className="border rounded p-2">
                             {['PROMEDIO', 'MAX', 'MIN', 'SUMA'].map((op, index) => (
                                 <div key={index} className="form-check">
@@ -161,7 +161,7 @@ function AgregarVariable({ external_id_variable }) {
 
                     {/* Icono */}
                     <div className="form-group mb-3">
-                        <label htmlFor="foto" className="form-label">Seleccionar icono</label>
+                        <label htmlFor="foto" className="form-label"><strong style={{ color: 'red' }}>* </strong>Seleccionar icono</label>
                         <input
                             type="file"
                             {...register("foto", {

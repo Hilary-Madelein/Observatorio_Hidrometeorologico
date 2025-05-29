@@ -235,8 +235,6 @@ class MeasurementController {
                     unidad: r.unidad
                 }));
 
-                console.log('Mediciones crudas:', info);
-
                 return res.json({ msg: `Datos crudos ${rango}`, code: 200, info });
             }
 

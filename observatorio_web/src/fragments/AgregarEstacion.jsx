@@ -5,6 +5,8 @@ import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
 import { GuardarImages, ActualizarImagenes, ObtenerGet } from '../hooks/Conexion';
 import swal from 'sweetalert';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 
 function AgregarEstacion({ external_id_estacion }) {
     const { register, setValue, handleSubmit, formState: { errors } } = useForm();
@@ -14,7 +16,7 @@ function AgregarEstacion({ external_id_estacion }) {
     const [showModal, setShowModal] = useState(false);
     const [uploadedPhoto, setUploadedPhoto] = useState(null);
     const [modoEdicion, setModoEdicion] = useState(false);
-    const maxCaracteres = 150;
+    const maxCaracteres = 350;
 
     useEffect(() => {
         if (!external_id_estacion) return;
@@ -130,7 +132,7 @@ function AgregarEstacion({ external_id_estacion }) {
                 <div className="row container-modal">
                     {/* Nombre */}
                     <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Nombre</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Nombre</label>
                         <input
                             type="text"
                             {...register('nombre', { required: 'Ingrese un nombre' })}
@@ -141,7 +143,17 @@ function AgregarEstacion({ external_id_estacion }) {
                     </div>
                     {/* ID dispositivo */}
                     <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>ID externo del Dispositivo</label>
+                        <label
+                            style={{ fontWeight: 'bold', paddingTop: '10px' }}>
+                            <OverlayTrigger
+                                placement="top"
+                                overlay={<Tooltip>Identificador proporcionado por el TTN</Tooltip>}
+                            >
+                                <i class="bi bi-question-circle-fill" style={{ cursor: 'pointer', color: '#60B5FF' }}></i>
+                            </OverlayTrigger>
+                            <strong style={{ color: 'red' }}>* </strong>Identificador del dispositivo
+
+                        </label>
                         <input
                             type="text"
                             {...register('id_dispositivo', { required: 'Ingrese el ID del dispositivo' })}
@@ -151,8 +163,8 @@ function AgregarEstacion({ external_id_estacion }) {
                         {errors.id_dispositivo && <div className='alert alert-danger'>{errors.id_dispositivo.message}</div>}
                     </div>
                     {/* Descripción */}
-                    <div className="col-md-12 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '20px' }}>Descripción</label>
+                    <div className="col-12 form-group mb-3">
+                        <label style={{ fontWeight: 'bold', paddingTop: '20px' }}><strong style={{ color: 'red' }}>* </strong>Descripción</label>
                         <textarea
                             {
                             ...register('descripcion', {
@@ -176,7 +188,7 @@ function AgregarEstacion({ external_id_estacion }) {
                     </div>
                     {/* Coordenadas */}
                     <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Longitud</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Longitud</label>
                         <input
                             type="text"
                             {...register('longitud', {
@@ -192,7 +204,7 @@ function AgregarEstacion({ external_id_estacion }) {
                         {errors.longitud && <div className='alert alert-danger'>{errors.longitud.message}</div>}
                     </div>
                     <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Latitud</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Latitud</label>
                         <input
                             type="text"
                             {...register('latitud', {
@@ -208,7 +220,7 @@ function AgregarEstacion({ external_id_estacion }) {
                     </div>
                     {/* Altitud & Tipo */}
                     <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Altitud</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Altitud</label>
                         <input
                             type="text"
                             {...register('altitud', {
@@ -223,7 +235,7 @@ function AgregarEstacion({ external_id_estacion }) {
                         {errors.altitud && <div className='alert alert-danger'>{errors.altitud.message}</div>}
                     </div>
                     <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Tipo</label>
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Tipo</label>
                         <select
                             {...register('tipo', { required: 'Seleccione un tipo' })}
                             className="form-control form-control-user"
@@ -238,7 +250,7 @@ function AgregarEstacion({ external_id_estacion }) {
                     {/* Estado */}
                     {!modoEdicion && (
                         <div className="col-md-6 form-group mb-3">
-                            <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>Estado</label>
+                            <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Estado</label>
                             <select
                                 {...register('estado', { required: 'Seleccione un estado' })}
                                 className="form-control form-control-user"
@@ -253,8 +265,8 @@ function AgregarEstacion({ external_id_estacion }) {
                     )}
 
                     {/* Foto */}
-                    <div className="col-md-6 form-group mb-3">
-                        <label htmlFor="foto" className="form-label">Seleccionar foto</label>
+                    <div className="col-md-12 form-group mb-3">
+                        <label htmlFor="foto" className="form-label"><strong style={{ color: 'red' }}>* </strong>Seleccionar foto</label>
                         <input
                             type="file"
                             {...register("foto", {
