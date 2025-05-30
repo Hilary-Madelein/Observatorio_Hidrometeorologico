@@ -114,7 +114,8 @@ function Filtro({ onFiltrar }) {
                     {filtroSeleccionado === 'mensual' && (
                         <Box mt={1}>
                             <Typography variant="body1">
-                                <i className="bi bi-calendar3 me-1"></i>Periodo de tiempo: Datos mensuales generales
+                            <i className="bi bi-calendar3 me-1"></i>Periodo de tiempo:
+                            <Chip label="Datos mensuales generales" size="small" sx={{ ml: 1 }} />
                             </Typography>
                         </Box>
                     )}
