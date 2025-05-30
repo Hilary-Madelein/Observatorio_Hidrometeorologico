@@ -180,7 +180,32 @@ function MapaConEstaciones() {
         <div className="mapa-con-estaciones-container">
             <div className="map-container">
                 <div className="map-controls">
-                    <FormControl variant="outlined" size="small" sx={{ minWidth: 160, mr: 2 }}>
+                    <FormControl variant="outlined" size="small" sx={{
+                        minWidth: 160,
+                        mr: 2,
+                        '& .MuiOutlinedInput-root': {
+                            backgroundColor: 'transparent',    
+                            color: '#fff',                   
+                            '& fieldset': {
+                                borderColor: '#fff',         
+                            },
+                            '&:hover fieldset': {
+                                borderColor: '#fff',        
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: '#fff',           
+                            },
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: '#fff',                  
+                            '&.Mui-focused': {
+                                color: '#fff',                   
+                            },
+                        },
+                        '& .MuiSvgIcon-root': {
+                            color: '#fff',                  
+                        },
+                    }}>
                         <InputLabel>Estilo de mapa</InputLabel>
                         <Select
                             value={mapStyle}
