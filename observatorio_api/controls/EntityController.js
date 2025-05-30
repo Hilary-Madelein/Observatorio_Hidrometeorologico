@@ -3,7 +3,6 @@ const { validationResult } = require('express-validator');
 const models = require('../models');
 const Entity = models.entity;
 const Account = models.account;
-
 const bcrypt = require('bcrypt');
 const path = require('path');
 const uuid = require('uuid');

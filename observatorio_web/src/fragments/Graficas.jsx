@@ -12,9 +12,8 @@ import {
   Legend,
 } from 'chart.js';
 import { ObtenerGet, URLBASE } from '../hooks/Conexion';
-import { borrarSesion, getToken } from '../utils/SessionUtil';
+import { getToken } from '../utils/SessionUtil';
 import mensajes from '../utils/Mensajes';
-import { useNavigate } from 'react-router-dom';
 import Spinner from 'react-bootstrap/Spinner';
 import '../css/Grafica_Style.css';
 
@@ -38,7 +37,6 @@ const formatName = (name) =>
 export default function Graficas({ filtro }) {
   const [datosGrafica, setDatosGrafica] = useState([]);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const obtenerDatosPorFiltro = async () => {

@@ -4,111 +4,62 @@ import '../css/Principal_Style.css';
 import { getToken } from '../utils/SessionUtil';
 import { ObtenerGet } from '../hooks/Conexion';
 import mensajes from '../utils/Mensajes';
+import {
+    Box,
+    Typography,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    TextField,
+    Chip
+} from '@mui/material';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { es } from 'date-fns/locale';
 
 function Filtro({ onFiltrar }) {
-    const [filtroSeleccionado, setFiltroSeleccionado] = useState("");
-    const [fechaInicio, setFechaInicio] = useState('');
-    const [fechaFin, setFechaFin] = useState('');
+    const [filtroSeleccionado, setFiltroSeleccionado] = useState('');
+    const [fechaInicio, setFechaInicio] = useState(null);
+    const [fechaFin, setFechaFin] = useState(null);
     const [estacionSeleccionada, setEstacionSeleccionada] = useState('');
     const [data, setData] = useState([]);
-    const [, setDescripcionFiltro] = useState("");
-
-    const actualizarFiltro = (nuevoFiltro) => {
-        if (nuevoFiltro.tipo !== undefined) setFiltroSeleccionado(nuevoFiltro.tipo);
-        if (nuevoFiltro.estacion !== undefined) setEstacionSeleccionada(nuevoFiltro.estacion);
-        if (nuevoFiltro.fechaInicio !== undefined) setFechaInicio(nuevoFiltro.fechaInicio);
-        if (nuevoFiltro.fechaFin !== undefined) setFechaFin(nuevoFiltro.fechaFin);
-    };
 
     useEffect(() => {
-        if (data.length === 0) {
+        if (!data.length) {
             (async () => {
                 try {
                     const info = await ObtenerGet(getToken(), '/listar/estacion/operativas');
-
-                    if (info.code === 200) {
-                        setData(Array.isArray(info.info) ? info.info : []);
-                    } else {
-                        mensajes(info.msg || 'Error al cargar estaciones operativas', 'error', 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error al obtener estaciones operativas:', error);
-                    mensajes(
-                        'No se pudieron cargar las estaciones operativas. Intente de nuevo más tarde.',
-                        'error',
-                        'Error'
-                    );
+                    if (info.code === 200) setData(info.info || []);
+                    else mensajes(info.msg, 'error', 'Error');
+                } catch {
+                    mensajes('Error al cargar estaciones operativas', 'error', 'Error');
                 }
             })();
         }
     }, [data]);
 
-
     const manejarFiltrado = () => {
         let errorMsg = '';
-
-        if (filtroSeleccionado === "rangoFechas") {
-            if (!fechaInicio || !fechaFin) {
-                errorMsg = "Debe proporcionar un rango de fechas completo.";
-            } else if (new Date(fechaInicio) > new Date(fechaFin)) {
-                errorMsg = "La fecha de inicio no puede ser mayor que la fecha de fin.";
-            }
+        if (filtroSeleccionado === 'rangoFechas') {
+            if (!fechaInicio || !fechaFin) errorMsg = 'Debe proporcionar un rango de fechas completo.';
+            else if (fechaInicio > fechaFin) errorMsg = 'La fecha de inicio no puede ser mayor que la fecha de fin.';
         } else if (!filtroSeleccionado) {
             mensajes('Debe seleccionar una escala temporal.', 'info', 'Selección Inválida');
             return;
         }
-
         if (errorMsg) {
             mensajes(errorMsg, 'warning', 'Error de selección');
             return;
         }
 
-        const datosFiltro = {
+        onFiltrar({
             tipo: filtroSeleccionado,
             estacion: estacionSeleccionada,
-            fechaInicio: filtroSeleccionado === "rangoFechas" ? fechaInicio : null,
-            fechaFin: filtroSeleccionado === "rangoFechas" ? fechaFin : null
-        };
-
-        actualizarDescripcionFiltro(datosFiltro);
-        onFiltrar(datosFiltro);
+            fechaInicio: filtroSeleccionado === 'rangoFechas' ? fechaInicio.toISOString() : null,
+            fechaFin: filtroSeleccionado === 'rangoFechas' ? fechaFin.toISOString() : null
+        });
     };
-
-    const actualizarDescripcionFiltro = (datosFiltro) => {
-        let descripcion = "";
-
-        if (datosFiltro.tipo === "rangoFechas") {
-            descripcion = `Filtro: Rango de Fechas del ${formatearFecha(datosFiltro.fechaInicio)} al ${formatearFecha(datosFiltro.fechaFin)}`;
-        } else if (datosFiltro.tipo === "mensual") {
-            descripcion = "Filtro: Datos mensuales generales.";
-        } else {
-            descripcion = `Filtro: Escala de tiempo ${datosFiltro.tipo}`;
-        }
-
-        if (datosFiltro.estacion) {
-            const estacionNombre = Array.isArray(data)
-                ? data.find((e) => e.external_id === datosFiltro.estacion)?.name || "No seleccionada"
-                : "No seleccionada";
-            descripcion += ` | Estación: ${estacionNombre}`;
-        }
-        setDescripcionFiltro(descripcion);
-    };
-
-    const formatearFecha = (fecha) => {
-        if (!fecha) return "No definida";
-        const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return new Date(fecha).toLocaleDateString('es-ES', opciones);
-    };
-
-    const obtenerFechaActual = () => {
-        const hoy = new Date();
-        const dia = String(hoy.getDate()).padStart(2, '0');
-        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-        const anio = hoy.getFullYear();
-        return `${anio}-${mes}-${dia}`;
-    };
-
-    const mostrarCamposAdicionales = filtroSeleccionado === 'rangoFechas' || filtroSeleccionado === 'mesAnio';
 
     const calcularHoraRango = (filtroSeleccionado) => {
         const ahora = new Date();
@@ -128,159 +79,134 @@ function Filtro({ onFiltrar }) {
         return `${horaInicio} - ${horaFin}`;
     };
 
-    return (
+    const estacionNombre = data.find(e => e.external_id === estacionSeleccionada)?.name || 'No seleccionada';
 
+    return (
         <div>
             <h3 className="titulo-principal">Mediciones históricas</h3>
+            <div className="container-fluid">
 
-            <div className='container-fluid'>
-
+                {/* Información presentada */}
                 <div className="informacion-presentada col-lg-12 mb-4">
                     <h5 className="mb-3 info-presentada-text">
-                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <i className="bi bi-info-circle-fill me-2"></i>
                         Información presentada:
                     </h5>
 
-                    <span className='info-params'>Estación:</span>
-                    <span className="ms-2 badge bg-secondary text-light">
-                        {data.find((e) => e.external_id === estacionSeleccionada)?.name || 'No seleccionada'}
-                    </span>
+                    <Box display="flex" alignItems="center" flexWrap="wrap" mb={1}>
+                        <Typography variant="body1" className="info-params">
+                            <i className="bi bi-pin-map-fill me-1" />Estación:
+                        </Typography>
+                        <Chip label={estacionNombre} size="small" sx={{ ml: 1 }} />
+                    </Box>
 
                     {filtroSeleccionado === 'rangoFechas' && (
-                        <div className="mb-2">
-                            <span className='info-params'>Periodo de tiempo:</span>
-                            <span className="ms-2 badge bg-secondary text-light">{formatearFecha(fechaInicio)}</span>
-                            <span className="ms-1 me-1 text-muted">hasta</span>
-                            <span className="badge bg-secondary text-light">{formatearFecha(fechaFin)}</span>
-                        </div>
-                    )}
-                    {filtroSeleccionado === 'mensual' && (
-                        <div className="mb-2">
-                            <span className="info-params">Periodo de tiempo:</span>
-                            <span className="ms-2 badge bg-secondary text-light">Datos mensuales generales</span>
-                        </div>
-                    )}
-                    {['15min', '30min', 'hora'].includes(filtroSeleccionado) && (
-                        <div className="mb-2">
-                            <span className="info-params">Periodo de tiempo:</span>
-                            <span className="ms-2 badge bg-secondary text-light">
-                                {calcularHoraRango(filtroSeleccionado)}
-                            </span>
-                        </div>
-                    )}
-                    {filtroSeleccionado === 'diaria' && (
-                        <div className="mb-2">
-                            <span className="info-params" >Fecha:</span>
-                            <span className="ms-2 badge bg-secondary text-light">
-                                {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
-                            </span>
-                        </div>
+                        <Box display="flex" alignItems="center">
+                            <Typography variant="body1" className="info-params">
+                                <i className="bi bi-calendar-range me-1" />Periodo de tiempo:
+                            </Typography>
+                            <Chip label={fechaInicio?.toLocaleDateString('es-ES')} size="small" sx={{ mx: 1 }} />
+                            <Typography variant="body1" className="text-muted">hasta</Typography>
+                            <Chip label={fechaFin?.toLocaleDateString('es-ES')} size="small" sx={{ ml: 1 }} />
+                        </Box>
                     )}
 
+                    {filtroSeleccionado === 'mensual' && (
+                        <Box mt={1}>
+                            <Typography variant="body1">
+                                <i className="bi bi-calendar3 me-1"></i>Periodo de tiempo: Datos mensuales generales
+                            </Typography>
+                        </Box>
+                    )}
+
+                    {['15min', '30min', 'hora'].includes(filtroSeleccionado) && (
+                        <Box mt={1}>
+                            <Typography variant="body1">
+                                <i className="bi bi-clock-history me-1"></i>Periodo de tiempo:
+                                <Chip label={calcularHoraRango(filtroSeleccionado)} size="small" sx={{ ml: 1 }} />
+                            </Typography>
+                        </Box>
+                    )}
+
+                    {filtroSeleccionado === 'diaria' && (
+                        <Box mt={1}>
+                            <Typography variant="body1">
+                            <i className="bi bi-calendar-day me-1"></i>Fecha: 
+                            <Chip label={new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} size="small" sx={{ ml: 1 }} />
+                            </Typography>
+                        </Box>
+                    )}
                 </div>
 
 
-                <div className={`filtro-container col-lg-12 mb-4 ${mostrarCamposAdicionales ? 'columna' : ''}`}>
-                    {/* Mostrar la descripción del filtro */}
+                <div className={`filtro-container col-lg-12 mb-4 ${filtroSeleccionado === 'rangoFechas' ? 'columna' : ''}`}>
 
-                    {/* Filtro por tipo */}
-                    <div className="filtro-item">
-                        <label htmlFor="filtro" className="form-label filtro-label">
-                            <i className="bi bi-hourglass-split me-2"></i>
-                            Escala temporal:
-                        </label>
-                        <select
+                    {/* Selector Escala Temporal */}
+                    <FormControl className="filtro-item">
+                        <InputLabel htmlFor="filtro"><i className="bi bi-hourglass-split me-1"></i>Escala temporal</InputLabel>
+                        <Select
                             id="filtro"
-                            className="form-select"
                             value={filtroSeleccionado}
-                            onChange={e => actualizarFiltro({ tipo: e.target.value })}
+                            label="Escala temporal"
+                            onChange={e => setFiltroSeleccionado(e.target.value)}
                         >
-                            <option value="" disabled hidden>
-                                Seleccione una escala de tiempo
-                            </option>
-                            <option value="15min">15 minutos</option>
-                            <option value="30min">30 minutos</option>
-                            <option value="hora">Hora</option>
-                            <option value="diaria">Diaria</option>
-                            <option value="mensual">Mensual</option>
-                            <option value="rangoFechas">Rango de Fechas</option>
-                        </select>
-                    </div>
+                            <MenuItem value="15min">15 minutos</MenuItem>
+                            <MenuItem value="30min">30 minutos</MenuItem>
+                            <MenuItem value="hora">Hora</MenuItem>
+                            <MenuItem value="diaria">Diaria</MenuItem>
+                            <MenuItem value="mensual">Mensual</MenuItem>
+                            <MenuItem value="rangoFechas">Rango de Fechas</MenuItem>
+                        </Select>
+                    </FormControl>
 
-                    {/* Combo box de estaciones */}
-                    <div className="filtro-item">
-                        <label htmlFor="estacion" className="form-label filtro-label">
-                            <i class="bi bi-pin-map-fill me-2"></i>
-                            Estación:
-                        </label>
-                        <select
+                    {/* Selector Estación */}
+                    <FormControl className="filtro-item">
+                        <InputLabel htmlFor="estacion"><i className="bi bi-pin-map-fill me-1"></i>Estación</InputLabel>
+                        <Select
                             id="estacion"
-                            className="form-select"
                             value={estacionSeleccionada}
-                            onChange={(e) => actualizarFiltro({ estacion: e.target.value })}
+                            label="Estación"
+                            onChange={e => setEstacionSeleccionada(e.target.value)}
                         >
-                            <option value="" disabled hidden>
-                                Seleccione una estación
-                            </option>
-                            {data.map((estacion) => (
-                                <option key={estacion.id} value={estacion.external_id}>
-                                    {estacion.name}
-                                </option>
+                            {data.map(est => (
+                                <MenuItem key={est.external_id} value={est.external_id}>{est.name}</MenuItem>
                             ))}
-                        </select>
+                        </Select>
+                    </FormControl>
 
-                    </div>
-
-                    {/* Mostrar inputs adicionales según el filtro */}
+                    {/* Calendarios Material UI */}
                     {filtroSeleccionado === 'rangoFechas' && (
-                        <>
-                            <div className="filtro-item">
-                                <label htmlFor="fecha-inicio" className="form-label filtro-label">
-                                    <i class="bi bi-calendar-range me-2"></i>
-                                    Fecha inicio:
-                                </label>
-                                <input
-                                    type="date"
-                                    className="form-control"
-                                    id="fecha-inicio"
+                        <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
+                            <FormControl className="filtro-item">
+                                <DatePicker
+                                    label="Fecha inicio"
                                     value={fechaInicio}
-                                    onChange={(e) => actualizarFiltro({ fechaInicio: e.target.value })}
-                                    max={obtenerFechaActual()}
+                                    onChange={newVal => setFechaInicio(newVal)}
+                                    maxDate={new Date()}
+                                    renderInput={params => <TextField fullWidth size="small" {...params} />}
                                 />
-                            </div>
-
-                            <div className="filtro-item">
-                                <label htmlFor="fecha-fin" className="form-label filtro-label">
-                                    <i class="bi bi-calendar-range me-2"></i>
-                                    Fecha fin:
-                                </label>
-                                <input
-                                    type="date"
-                                    className="form-control"
-                                    id="fecha-fin"
+                            </FormControl>
+                            <FormControl className="filtro-item">
+                                <DatePicker
+                                    label="Fecha fin"
                                     value={fechaFin}
-                                    onChange={(e) => actualizarFiltro({ fechaFin: e.target.value })}
-                                    max={obtenerFechaActual()}
+                                    onChange={newVal => setFechaFin(newVal)}
+                                    maxDate={new Date()}
+                                    renderInput={params => <TextField fullWidth size="small" {...params} />}
                                 />
-                            </div>
-
-                        </>
+                            </FormControl>
+                        </LocalizationProvider>
                     )}
 
-                    {/* Botón de Filtrar */}
+                    {/* Botón */}
                     <div className="filtro-item-btn">
-                        <button
-                            type="button"
-                            className="btn custom-button-filtro-btn"
-                            onClick={manejarFiltrado}
-                        >
+                        <button type="button" className="btn custom-button-filtro-btn" onClick={manejarFiltrado}>
                             Consultar datos
                         </button>
                     </div>
+
                 </div>
-
             </div>
-
         </div>
     );
 }

@@ -9,6 +9,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import { getToken } from '../utils/SessionUtil';
 import { ObtenerGet, ObtenerPost, URLBASE } from '../hooks/Conexion';
 import mensajes from '../utils/Mensajes';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFkZWxlaW4iLCJhIjoiY20wd2w4N3VqMDMyYzJqb2ZlNXF5ZnhiZCJ9.i3tWgoA_5CQmQmZyt2yjhg';
 
@@ -40,28 +41,28 @@ function MapaConEstaciones() {
 
     useEffect(() => {
         if (!mapContainerRef.current) return;
-      
+
         const mapInstance = new mapboxgl.Map({
-          container: mapContainerRef.current,
-          style: mapStyle,
-          center: initialView.center,
-          zoom:  initialView.zoom,
+            container: mapContainerRef.current,
+            style: mapStyle,
+            center: initialView.center,
+            zoom: initialView.zoom,
         });
-      
+
         mapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
         setMap(mapInstance);
-      
+
         mapInstance.on('move', () => {
-          setLocation({
-            lat:  mapInstance.getCenter().lat.toFixed(5),
-            lng:  mapInstance.getCenter().lng.toFixed(5),
-            zoom: mapInstance.getZoom().toFixed(2),
-          });
+            setLocation({
+                lat: mapInstance.getCenter().lat.toFixed(5),
+                lng: mapInstance.getCenter().lng.toFixed(5),
+                zoom: mapInstance.getZoom().toFixed(2),
+            });
         });
-      
+
         return () => mapInstance.remove();
-      }, [mapContainerRef, mapStyle, initialView.center, initialView.zoom]);
-      
+    }, [mapContainerRef, mapStyle, initialView.center, initialView.zoom]);
+
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -75,31 +76,31 @@ function MapaConEstaciones() {
 
     const obtenerEstacionesMicrocuenca = async (externalId) => {
         try {
-          setLoading(true);
-      
-          const response = await ObtenerPost(getToken(), 'estaciones/operativas/microcuenca', { external: externalId });
-      
-          if (response.code === 200) {
-            setSelectedMicrocuenca({
-              nombre: response.microcuenca_nombre,
-              estaciones: response.info
-            });
-      
-            markersRef.current.forEach(marker => marker.remove());
-            markersRef.current = [];
-      
-            const bounds = new mapboxgl.LngLatBounds();
-            let hasValidCoordinates = false;
-      
-            response.info.forEach(estacion => {
-              const coords = [estacion.longitude, estacion.latitude];
-              if (
-                Array.isArray(coords) &&
-                coords.length === 2 &&
-                !isNaN(coords[0]) &&
-                !isNaN(coords[1])
-              ) {
-                const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
+            setLoading(true);
+
+            const response = await ObtenerPost(getToken(), 'estaciones/operativas/microcuenca', { external: externalId });
+
+            if (response.code === 200) {
+                setSelectedMicrocuenca({
+                    nombre: response.microcuenca_nombre,
+                    estaciones: response.info
+                });
+
+                markersRef.current.forEach(marker => marker.remove());
+                markersRef.current = [];
+
+                const bounds = new mapboxgl.LngLatBounds();
+                let hasValidCoordinates = false;
+
+                response.info.forEach(estacion => {
+                    const coords = [estacion.longitude, estacion.latitude];
+                    if (
+                        Array.isArray(coords) &&
+                        coords.length === 2 &&
+                        !isNaN(coords[0]) &&
+                        !isNaN(coords[1])
+                    ) {
+                        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
                   <div style="text-align:center;font-family:Arial,sans-serif">
                     <h5 style="color:#333;font-weight:bold">${estacion.name}</h5>
                     <p style="color:#777;font-size:12px">
@@ -110,35 +111,35 @@ function MapaConEstaciones() {
                          style="width:100%;border-radius:8px;border:1px solid #ddd" />
                   </div>
                 `);
-      
-                const marker = new mapboxgl.Marker()
-                  .setLngLat(coords)
-                  .setPopup(popup)
-                  .addTo(map);
-      
-                markersRef.current.push(marker);
-                bounds.extend(coords);
-                hasValidCoordinates = true;
-              }
-            });
-      
-            if (hasValidCoordinates) {
-              map.fitBounds(bounds, { padding: 50 });
+
+                        const marker = new mapboxgl.Marker()
+                            .setLngLat(coords)
+                            .setPopup(popup)
+                            .addTo(map);
+
+                        markersRef.current.push(marker);
+                        bounds.extend(coords);
+                        hasValidCoordinates = true;
+                    }
+                });
+
+                if (hasValidCoordinates) {
+                    map.fitBounds(bounds, { padding: 50 });
+                }
+
+            } else {
+                mensajes(response.msg || 'No se pudieron cargar las estaciones de esta microcuenca.', 'error', 'Error');
+                console.error('Error al obtener estaciones:', response.msg);
             }
-      
-          } else {
-            mensajes(response.msg || 'No se pudieron cargar las estaciones de esta microcuenca.', 'error', 'Error');
-            console.error('Error al obtener estaciones:', response.msg);
-          }
-      
+
         } catch (error) {
-          console.error('Error inesperado al visualizar el mapa:', error);
-          mensajes('Lo sentimos, el mapa no se puede visualizar. Intente más tarde.', 'error', 'Error');
-      
+            console.error('Error inesperado al visualizar el mapa:', error);
+            mensajes('Lo sentimos, el mapa no se puede visualizar. Intente más tarde.', 'error', 'Error');
+
         } finally {
-          setLoading(false);
+            setLoading(false);
         }
-      };     
+    };
 
     const volverVistaInicial = () => {
         setSelectedMicrocuenca(null);
@@ -179,14 +180,21 @@ function MapaConEstaciones() {
         <div className="mapa-con-estaciones-container">
             <div className="map-container">
                 <div className="map-controls">
-                    <select onChange={changeMapStyle} value={mapStyle} className="map-select">
-                        <option value="mapbox://styles/mapbox/streets-v11">Calles</option>
-                        <option value="mapbox://styles/mapbox/outdoors-v11">Exteriores</option>
-                        <option value="mapbox://styles/mapbox/light-v10">Claro</option>
-                        <option value="mapbox://styles/mapbox/dark-v10">Oscuro</option>
-                        <option value="mapbox://styles/mapbox/satellite-v9">Satélite</option>
-                        <option value="mapbox://styles/mapbox/satellite-streets-v12">Satélite con Calles</option>
-                    </select>
+                    <FormControl variant="outlined" size="small" sx={{ minWidth: 160, mr: 2 }}>
+                        <InputLabel>Estilo de mapa</InputLabel>
+                        <Select
+                            value={mapStyle}
+                            onChange={changeMapStyle}
+                            label="Estilo de mapa"
+                        >
+                            <MenuItem value="mapbox://styles/mapbox/streets-v11">Calles</MenuItem>
+                            <MenuItem value="mapbox://styles/mapbox/outdoors-v11">Exteriores</MenuItem>
+                            <MenuItem value="mapbox://styles/mapbox/light-v10">Claro</MenuItem>
+                            <MenuItem value="mapbox://styles/mapbox/dark-v10">Oscuro</MenuItem>
+                            <MenuItem value="mapbox://styles/mapbox/satellite-v9">Satélite</MenuItem>
+                            <MenuItem value="mapbox://styles/mapbox/satellite-streets-v12">Satélite con Calles</MenuItem>
+                        </Select>
+                    </FormControl>
                     <button onClick={getUserLocation} className="location-button">Ubicación actual</button>
                     <div className="map-info"> <strong>Lat:</strong> {location.lat} | <strong>Lng:</strong> {location.lng} | <strong>Zoom:</strong> {location.zoom}</div>
                 </div>

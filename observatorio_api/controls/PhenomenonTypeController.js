@@ -5,7 +5,7 @@ const models = require('../models');
 const uuid = require('uuid');
 const path = require('path');
 const fs = require('fs');
-
+const { sequelize } = require('../models');
 const PhenomenonType = models.phenomenon_type;
 const TypeOperation = models.type_operation;
 

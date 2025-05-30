@@ -1,6 +1,7 @@
 'use strict';
 const { validationResult } = require('express-validator');
 const { ValidationError, UniqueConstraintError } = require('sequelize');
+const { sequelize } = require('../models');
 const models = require('../models');
 const path = require('path');
 const uuid = require('uuid');

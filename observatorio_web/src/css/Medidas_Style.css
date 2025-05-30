@@ -16,7 +16,7 @@
     border: 1px solid #f0f0f0;
     cursor: pointer;
     background: #ffffff;
-    box-shadow: #0000006b 0px 3px 4px;
+    box-shadow: #0000006b 0px 1px 2px;
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     position: relative;
     display: flex;
