@@ -144,7 +144,7 @@ function Filtro({ onFiltrar }) {
 
                     {/* Selector Escala Temporal */}
                     <FormControl className="filtro-item">
-                        <InputLabel htmlFor="filtro"><i className="bi bi-hourglass-split me-1"></i>Escala temporal</InputLabel>
+                        <InputLabel htmlFor="filtro">Escala temporal</InputLabel>
                         <Select
                             id="filtro"
                             value={filtroSeleccionado}
@@ -162,7 +162,7 @@ function Filtro({ onFiltrar }) {
 
                     {/* Selector Estación */}
                     <FormControl className="filtro-item">
-                        <InputLabel htmlFor="estacion"><i className="bi bi-pin-map-fill me-1"></i>Estación</InputLabel>
+                        <InputLabel htmlFor="estacion">Estación</InputLabel>
                         <Select
                             id="estacion"
                             value={estacionSeleccionada}

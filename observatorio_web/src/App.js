@@ -2,7 +2,6 @@ import React from 'react';
 import './App.css';
 import Principal from './fragments/Principal';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import './css/Global.css';
 import Login from './fragments/Login';
 import ListaMicrocuencas from './fragments/ListaMicrocuencas';
 import ListaEstaciones from './fragments/ListaEstaciones';
