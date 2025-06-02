@@ -136,6 +136,7 @@ const uploadIconoEstacion = uploadIcono('../public/images/icons_estaciones');
 
 /** RUTAS DE MEASUREMENT */
 router.get('/listar/ultima/medida', measurementController.getUltimasMediciones);
+router.post('/listar/ultima/medida/estacion', measurementController.getUltimasMedicionesPorEstacion);
 router.get('/mediciones/por-tiempo', measurementController.getMedicionesPorTiempo);
 
 /** RUTAS DE DAILY MEASUREMENT */

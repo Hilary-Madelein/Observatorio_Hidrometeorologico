@@ -312,7 +312,6 @@ class StationController {
             }
 
             station.name = req.body.nombre;
-            station.status = req.body.estado;
             station.longitude = req.body.longitud;
             station.latitude = req.body.latitud;
             station.altitude = req.body.altitud;

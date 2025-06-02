@@ -161,6 +161,16 @@
     font-size: 14px;
 }
 
+.custom-popup .mapboxgl-popup-content {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+  .custom-popup .mapboxgl-popup-tip {
+    display: none;
+  }
+  
+
 @media (max-width: 1800px) {
 
     .btn-back {

@@ -185,6 +185,60 @@ class MeasurementController {
     }
 
     /**
+  * Retorna la última medición registrada por cada variable
+  * para la estación cuyo external_id se recibe como query parameter.
+  */
+    async getUltimasMedicionesPorEstacion(req, res) {
+        const externalId = req.body.externalId;
+        if (!externalId) {
+            return res.status(400).json({
+                msg: 'Datos incompletos para buscar información de la estación',
+                code: 400
+            });
+        }
+    
+        try {
+            const results = await models.sequelize.query(`
+                SELECT DISTINCT ON (p.name)
+                       p.name          AS tipo_medida,
+                       q.quantity      AS valor,
+                       p.unit_measure  AS unidad,
+                       m.local_date    AS fecha_medicion
+                FROM measurement m
+                JOIN quantity q ON m.id_quantity = q.id
+                JOIN phenomenon_type p ON m.id_phenomenon_type = p.id
+                JOIN station st ON m.id_station = st.id
+                WHERE m.status = true
+                  AND q.status = true
+                  AND st.external_id = :externalId
+                ORDER BY p.name, m.local_date DESC;
+            `, {
+                replacements: { externalId },
+                type: models.sequelize.QueryTypes.SELECT
+            });
+    
+            const salida = results.map(row => ({
+                tipo_medida:    row.tipo_medida,
+                valor:          parseFloat(row.valor),
+                unidad:         row.unidad,
+                fecha_medicion: row.fecha_medicion
+            }));
+    
+            return res.status(200).json({
+                msg: 'Últimas mediciones de la estación',
+                code: 200,
+                info: salida
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                msg: 'Error al obtener últimas mediciones para la estación',
+                code: 500
+            });
+        }
+    }
+   
+    /**
    * Retorna series de estadísticas (PROMEDIO, MAX, MIN, SUMA) por fenómeno
    * agrupadas en intervalos de tiempo según 'rango' (minuto u hora).
    */

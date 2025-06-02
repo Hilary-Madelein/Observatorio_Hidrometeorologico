@@ -77,70 +77,220 @@ function MapaConEstaciones() {
     const obtenerEstacionesMicrocuenca = async (externalId) => {
         try {
             setLoading(true);
-
-            const response = await ObtenerPost(getToken(), 'estaciones/operativas/microcuenca', { external: externalId });
-
-            if (response.code === 200) {
-                setSelectedMicrocuenca({
-                    nombre: response.microcuenca_nombre,
-                    estaciones: response.info
-                });
-
-                markersRef.current.forEach(marker => marker.remove());
-                markersRef.current = [];
-
-                const bounds = new mapboxgl.LngLatBounds();
-                let hasValidCoordinates = false;
-
-                response.info.forEach(estacion => {
-                    const coords = [estacion.longitude, estacion.latitude];
-                    if (
-                        Array.isArray(coords) &&
-                        coords.length === 2 &&
-                        !isNaN(coords[0]) &&
-                        !isNaN(coords[1])
-                    ) {
-                        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-                  <div style="text-align:center;font-family:Arial,sans-serif">
-                    <h5 style="color:#333;font-weight:bold">${estacion.name}</h5>
-                    <p style="color:#777;font-size:12px">
-                      Microcuenca: ${response.microcuenca_nombre || 'No disponible'}
-                    </p>
-                    <img src="${URLBASE}/images/estaciones/${estacion.picture}"
-                         alt="${estacion.name}"
-                         style="width:100%;border-radius:8px;border:1px solid #ddd" />
-                  </div>
-                `);
-
-                        const marker = new mapboxgl.Marker()
-                            .setLngLat(coords)
-                            .setPopup(popup)
-                            .addTo(map);
-
-                        markersRef.current.push(marker);
-                        bounds.extend(coords);
-                        hasValidCoordinates = true;
-                    }
-                });
-
-                if (hasValidCoordinates) {
-                    map.fitBounds(bounds, { padding: 50 });
-                }
-
-            } else {
-                mensajes(response.msg || 'No se pudieron cargar las estaciones de esta microcuenca.', 'error', 'Error');
-                console.error('Error al obtener estaciones:', response.msg);
+    
+            const response = await ObtenerPost(
+                getToken(),
+                'estaciones/operativas/microcuenca',
+                { external: externalId }
+            );
+    
+            if (response.code !== 200) {
+                mensajes(
+                    response.msg || 'No se pudieron cargar las estaciones de esta microcuenca.',
+                    'error',
+                    'Error'
+                );
+                return;
             }
+    
+            const estacionesBase = response.info;
+            const microcuencaNombre = response.microcuenca_nombre;
+    
+            const estacionesConMediciones = [];
+            for (const estacion of estacionesBase) {
+                const measResponse = await ObtenerPost(
+                    getToken(),
+                    '/listar/ultima/medida/estacion',
+                    { externalId: estacion.external_id }
+                );
+    
+                const mediciones = measResponse.code === 200 ? measResponse.info : [];
+                estacionesConMediciones.push({
+                    ...estacion,
+                    mediciones
+                });
+            }
+    
+            setSelectedMicrocuenca({
+                nombre: microcuencaNombre,
+                estaciones: estacionesConMediciones
+            });
+            markersRef.current.forEach((marker) => marker.remove());
+            markersRef.current = [];
 
+            const bounds = new mapboxgl.LngLatBounds();
+            let hasValidCoordinates = false;
+    
+            estacionesConMediciones.forEach((estacion) => {
+                const { latitude, longitude, name, picture, mediciones } = estacion;
+                const coords = [longitude, latitude];
+    
+                if (
+                    Array.isArray(coords) &&
+                    coords.length === 2 &&
+                    !isNaN(coords[0]) &&
+                    !isNaN(coords[1])
+                ) {
+                    const popupHtml = `
+                      <style>
+                        /* Quitar fondo que Mapbox añade */
+                        .mapboxgl-popup-content {
+                          background: transparent !important;
+                          box-shadow: none !important;
+                          padding: 0 !important;
+                          overflow: visible;
+                        }
+                          
+                        .mapboxgl-popup-tip {
+                          display: none !important;
+                        }
+
+                        .mapboxgl-popup-close-button {
+                          color: #333 !important;
+                          right: 8px !important;
+                          top: 8px !important;
+                          background: rgba(255,255,255,0.8);
+                          border-radius: 50%;
+                          width: 22px;
+                          height: 22px;
+                          font-size: 16px;
+                          line-height: 20px;
+                          text-align: center;
+                        }
+                      </style>
+    
+                      <div style="
+                          font-family: Arial, sans-serif;
+                          background: #ffffff;
+                          border-radius: 8px;
+                          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                          width: 260px;
+                          padding: 0;
+                          overflow: hidden;
+                          position: relative;
+                      ">
+                        <!-- CABECERA -->
+                        <div style="
+                            background: #537EC5;
+                            padding: 12px 10px;
+                            text-align: center;
+                        ">
+                          <div style="
+                              font-size: 16px;
+                              font-weight: 600;
+                              color: #ffffff;
+                              margin-bottom: 2px;
+                          ">
+                            ${name}
+                          </div>
+                          <div style="
+                              font-size: 12px;
+                              color: #e0e0e0;
+                          ">
+                            ${microcuencaNombre || ''}
+                          </div>
+                        </div>
+    
+                        <!-- IMAGEN -->
+                        <div style="
+                            text-align: center;
+                            background: #f5f5f5;
+                            padding: 8px 0;
+                        ">
+                          <img
+                            src="${URLBASE}/images/estaciones/${picture}"
+                            alt="${name}"
+                            style="
+                              width: 240px;
+                              max-width: 100%;
+                              border-radius: 6px;
+                              border: 1px solid #ddd;
+                            "
+                          />
+                        </div>
+    
+                        <!-- CONTENIDO: MEDICIONES -->
+                        <div style="padding: 8px 10px 12px 10px;">
+                          ${
+                            mediciones.length > 0
+                              ? mediciones
+                                  .map((m) => {
+                                    const fechaLocal = new Date(m.fecha_medicion).toLocaleString();
+                                    return `
+                                      <div style="margin-bottom: 10px;">
+                                        <div style="
+                                            display: flex;
+                                            justify-content: space-between;
+                                            align-items: baseline;
+                                          ">
+                                          <span style="
+                                              font-size: 13px;
+                                              font-weight: 600;
+                                              color: #333;
+                                          ">
+                                            ${m.tipo_medida}
+                                          </span>
+                                          <span style="
+                                              font-size: 13px;
+                                              font-weight: 600;
+                                              color: #034d8f;
+                                          ">
+                                            ${m.valor} ${m.unidad}
+                                          </span>
+                                        </div>
+                                        <div style="
+                                            margin-top: 2px;
+                                            font-size: 11px;
+                                            color: #777;
+                                        ">
+                                          ${fechaLocal}
+                                        </div>
+                                      </div>
+                                    `;
+                                  })
+                                  .join('')
+                              : `<div style="
+                                   text-align: center;
+                                   font-size: 12px;
+                                   color: #777;
+                                   padding: 10px 0;
+                                 ">
+                                   No hay mediciones recientes.
+                                 </div>`
+                          }
+                        </div>
+                      </div>
+                    `;
+    
+                    const popup = new mapboxgl.Popup({
+                        offset: 0,
+                        closeButton: true,
+                        closeOnClick: true,
+                        className: ''  
+                    }).setHTML(popupHtml);
+    
+                    const marker = new mapboxgl.Marker()
+                        .setLngLat(coords)
+                        .setPopup(popup)
+                        .addTo(map);
+    
+                    markersRef.current.push(marker);
+                    bounds.extend(coords);
+                    hasValidCoordinates = true;
+                }
+            });
+    
+            if (hasValidCoordinates) {
+                map.fitBounds(bounds, { padding: 50 });
+            }
         } catch (error) {
-            console.error('Error inesperado al visualizar el mapa:', error);
-            mensajes('Lo sentimos, el mapa no se puede visualizar. Intente más tarde.', 'error', 'Error');
-
+            console.error('Error inesperado al obtener/mostrar estaciones:', error);
+            mensajes('Lo sentimos, no pudimos cargar el mapa con las estaciones. Intente más tarde.', 'error', 'Error');
         } finally {
             setLoading(false);
         }
     };
-
+   
     const volverVistaInicial = () => {
         setSelectedMicrocuenca(null);
         markersRef.current.forEach(marker => marker.remove());
