@@ -32,7 +32,7 @@ services:
       TTN_SERVER: mqtt://nam1.cloud.thethings.network:1883
       TTN_USERNAME: puar-unl-esp32@ttn
       TTN_PASSWORD: NNSXS.FGSQU3PH2K2E32I5U5QDUFKURE4OB42PWDP6N7A.GBTQGXU4TRE3ELIOBWTBLGXDOFQPFIN5UH6CVDHU27Q2E4XMHO3Q
-      TTN_TOPIC_TEMPLATE: "v3/puar-unl-esp32@ttn/devices/{id}/up"
+      TTN_TOPIC_TEMPLATE: v3/puar-unl-esp32@ttn/devices/{id}/up
       KEY_SQ: OBSERVATORIO-IOT-MQTT
       KEY: OBSERVATORIO-IOT
     depends_on:

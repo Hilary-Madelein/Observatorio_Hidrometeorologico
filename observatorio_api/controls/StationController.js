@@ -198,7 +198,7 @@ class StationController {
                 await new Promise((resolve, reject) => {
                     mqttClient.subscribe(topic, err => {
                         if (err) reject(err);
-                        else resolve();
+                        else resolve();                        
                     });
                 });
             } catch (err) {

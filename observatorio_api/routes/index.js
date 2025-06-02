@@ -25,7 +25,7 @@ const endpoint = process.env.COSMOS_ENDPOINT;
 const key = process.env.COSMOS_KEY;
 const databaseId = process.env.COSMOS_DB;
 const client = new CosmosClient({ endpoint, key });
-const mqttClient = require('./mqtt'); 
+const mqttClient = require('./mqtt');
 
 const DESPLAZAMIENTO_HORARIO_MINUTOS = -300;
 const topicTemplate = process.env.TTN_TOPIC_TEMPLATE;
@@ -41,7 +41,7 @@ mqttClient.on('connect', async () => {
 
   try {
     let estaciones;
-    const fakeReq = {};  
+    const fakeReq = {};
     const fakeRes = {
       json: body => { estaciones = body.info; },
       status: code => ({
@@ -54,7 +54,7 @@ mqttClient.on('connect', async () => {
       const topic = topicTemplate.replace('{id}', id_device);
       mqttClient.subscribe(topic, err => {
         if (err) console.error(`Error suscribiendo ${topic}:`, err);
-        else      console.log(`Suscrito a ${topic}`);
+        else console.log(`Suscrito a ${topic}`);
       });
     });
 
@@ -123,6 +123,6 @@ router.get('/privado/:external', async function (req, res) {
 
 module.exports = {
   router,
-  client,     
+  client,
   databaseId
 };
