@@ -21,7 +21,7 @@ VALUES
   (2,
    'deadbeef-dead-beef-dead-beefdeadbeef',
    TRUE,
-   'admin-observatorio@.unl.edu.ec',
+   'admin-observatorio@unl.edu.ec',
    '$2a$08$vcbwdzAoBjH027Yt6B9PwO3G65afLhrMfejne1EJ7uoPGuLslHLC6',
    '2025-05-18 21:00:00-05',
    '2025-05-18 21:00:00-05',
