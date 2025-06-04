@@ -22,7 +22,7 @@ function App() {
     if (!autenticado) {
       return <Navigate to='/admin' />;
     }
-  
+
     if (requiredRoles && requiredRoles.length > 0) {
       const hasRequiredRole = roles.some(role => requiredRoles.includes(role.nombre));
       if (!hasRequiredRole) {
@@ -30,16 +30,16 @@ function App() {
         return <Navigate to='/admin' />;
       }
     }
-  
+
     return children;
   };
 
   return (
-    <div className="App">
+    <BrowserRouter basename="/hid">
       <Routes>
         <Route path='/principal/monitorizacion' element={<Principal />} />
         <Route path='*' element={<Navigate to='/principal/monitorizacion' />} />
-        
+
         {/** RUTAS ADMINISTRATIVAS */}
         <Route path='/admin' element={<Login />} />
         <Route path='/admin/perfil' element={<MiddewareSesion ><Perfil /></MiddewareSesion>} />
@@ -48,7 +48,7 @@ function App() {
         <Route path='/principal/variable' element={<MiddewareSesion ><ListaVariables /></MiddewareSesion>} />
         <Route path='/principal/gestionar/admin' element={<MiddewareSesion ><ListaAdministradores /></MiddewareSesion>} />
       </Routes>
-    </div>
+    </BrowserRouter>
   );
 }
 

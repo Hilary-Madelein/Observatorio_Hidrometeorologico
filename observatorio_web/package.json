@@ -1,6 +1,7 @@
 {
   "name": "frontend_observatorio",
   "version": "0.1.0",
+  "homepage": "/hid",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.14.0",
