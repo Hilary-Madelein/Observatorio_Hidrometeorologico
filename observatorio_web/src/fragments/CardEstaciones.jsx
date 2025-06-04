@@ -331,7 +331,7 @@ function MapaConEstaciones() {
             <div className="map-container">
                 <div className="map-controls">
                     <FormControl variant="outlined" size="small" sx={{
-                        minWidth: 160,
+                        minWidth: { xs: 100, sm: 160 },
                         mr: 2,
                         '& .MuiOutlinedInput-root': {
                             backgroundColor: 'transparent',    

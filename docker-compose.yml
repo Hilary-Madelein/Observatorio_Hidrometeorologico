@@ -43,7 +43,17 @@ services:
       - "3006:3006"
     networks:
       - app-network
-
+  frontend:
+    build:
+      context: ./observatorio_web
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - app-network 
 volumes:
   db_data:
   backend_data:

@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom'; // <-- importamos Link
 import { borrarSesion } from '../utils/SessionUtil';
-import { useNavigate } from 'react-router-dom';
 import '../css/Header_Style.css';
 import 'boxicons';
 
@@ -10,6 +10,7 @@ const Header = () => {
 
   const handleClick = () => {
     borrarSesion();
+    // Si navegas con navigate('/admin'), React Router lo convertirá en '/hid/admin'
     navigate('/admin');
   };
 
@@ -18,11 +19,15 @@ const Header = () => {
   return (
     <header className="header">
       <div className="logo-container">
-        <img src="/img/Recurso 12.svg" alt="Logo Monitor" className="logo" />
+        {/* Si quieres que la imagen cargue bien con basename="/hid", usa PUBLIC_URL */}
+        <img
+          src={process.env.PUBLIC_URL + '/img/Recurso 12.svg'}
+          alt="Logo Monitor"
+          className="logo"
+        />
         <h1 className="titulo">Observatorio Hidrometeorológico</h1>
       </div>
 
-      {/* Checkbox oculto para controlar menú */}
       <input
         type="checkbox"
         id="check"
@@ -30,7 +35,15 @@ const Header = () => {
         onChange={toggleMenu}
         style={{ display: 'none' }}
       />
-      <label htmlFor="check" className="icons" aria-label="Toggle menu" tabIndex={0} onKeyPress={(e) => { if(e.key === 'Enter') toggleMenu(); }}>
+      <label
+        htmlFor="check"
+        className="icons"
+        aria-label="Toggle menu"
+        tabIndex={0}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter') toggleMenu();
+        }}
+      >
         {menuOpen ? (
           <i id="close-icon" className="bx bx-x"></i>
         ) : (
@@ -39,11 +52,22 @@ const Header = () => {
       </label>
 
       <nav className="navbar">
-        <a href="/principal/admin" onClick={() => setMenuOpen(false)}>Microcuencas</a>
-        <a href="/principal/variable" onClick={() => setMenuOpen(false)}>Variables</a>
-        <a href="/principal/gestionar/admin" onClick={() => setMenuOpen(false)}>Gestionar admin</a>
-        <a href="/admin/perfil" onClick={() => setMenuOpen(false)}>Perfil</a>
-        <a href="/admin" onClick={handleClick} style={{ cursor: 'pointer' }}>Cerrar sesión</a>
+        <Link to="/principal/admin" onClick={() => setMenuOpen(false)}>
+          Microcuencas
+        </Link>
+        <Link to="/principal/variable" onClick={() => setMenuOpen(false)}>
+          Variables
+        </Link>
+        <Link to="/principal/gestionar/admin" onClick={() => setMenuOpen(false)}>
+          Gestionar admin
+        </Link>
+        <Link to="/admin/perfil" onClick={() => setMenuOpen(false)}>
+          Perfil
+        </Link>
+
+        <span onClick={handleClick} style={{ cursor: 'pointer' }}>
+          Cerrar sesión
+        </span>
       </nav>
     </header>
   );
