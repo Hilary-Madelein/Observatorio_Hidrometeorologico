@@ -45,7 +45,7 @@ export default function Graficas({ filtro }) {
         return;
       }
       setLoading(true);
-  
+
       try {
         let url;
         if (['15min', '30min', 'hora', 'diaria'].includes(filtro.tipo)) {
@@ -59,11 +59,10 @@ export default function Graficas({ filtro }) {
         if (filtro.estacion) {
           url += `&estacion=${filtro.estacion}`;
         }
-  
+
         const info = await ObtenerGet(getToken(), url);
-  
+
         if (info.code === 200) {
-          // Caso éxito
           if (!info.info?.length) {
             mensajes('No existen datos registrados', 'info', 'Sin datos');
             setDatosGrafica([]);
@@ -74,7 +73,6 @@ export default function Graficas({ filtro }) {
           mensajes(info.msg || 'Error al obtener datos', 'error', '¡Algo salió mal!');
           setDatosGrafica([]);
         }
-  
       } catch (error) {
         console.error('Error de conexión con el servidor:', error);
         mensajes('Error de conexión con el servidor.', 'error');
@@ -83,9 +81,9 @@ export default function Graficas({ filtro }) {
         setLoading(false);
       }
     };
-  
+
     obtenerDatosPorFiltro();
-  }, [filtro]);  
+  }, [filtro]);
 
   if (loading) {
     return (
@@ -98,14 +96,16 @@ export default function Graficas({ filtro }) {
 
   if (!filtro?.tipo) {
     return (
-      <div className="custom-container-graficas d-flex justify-content-center align-items-center" style={{ height: '250px' }}>
+      <div
+        className="custom-container-graficas d-flex justify-content-center align-items-center"
+        style={{ height: '250px' }}
+      >
         <div className="card w-75 text-center border-info shadow-sm">
-          <div className="card-body">
+          <div className="card-body justify-content-center align-items-center">
             <i className="bi bi-info-circle-fill text-info" style={{ fontSize: '2rem' }} />
             <h5 className="card-title mt-2">¡Atención!</h5>
-            <p className="card-text text-muted mb-0">
-              Para visualizar información en las gráficas,<br />
-              por favor configure el filtro.
+            <p className="text-muted mb-0 ">
+              Para visualizar información en las gráficas, por favor configure el filtro.
             </p>
           </div>
         </div>
@@ -114,39 +114,82 @@ export default function Graficas({ filtro }) {
   }
 
   const isRaw = datosGrafica.length > 0 && datosGrafica[0].hasOwnProperty('valor');
-  const medidasDisponibles = isRaw
-    ? Array.from(new Set(datosGrafica.map((d) => d.tipo_medida)))
-    : Object.keys(datosGrafica[0]?.medidas || {});
+  const estacionesUnicas = Array.from(new Set(datosGrafica.map((d) => d.estacion)));
 
-  const prepararDatosPorMedida = (medida, idx) => {
+  /**
+   * Ajustamos prepararDatosPorMedida para que, cuando filtro.tipo === 'diaria',
+   * use toLocaleString y muestre día+mes+hora:minuto, en lugar de solo hora.
+   */
+  const prepararDatosPorMedida = (medida, datosFiltrados, idxColor) => {
     const isBar = medida.toLowerCase() === 'lluvia';
 
-    if (!datosGrafica.length) return { labels: [], datasets: [] };
+    if (!datosFiltrados.length) {
+      return { labels: [], datasets: [] };
+    }
 
     if (isRaw) {
-      const labels = Array.from(
-        new Set(
-          datosGrafica.map((d) =>
-            new Date(d.hora).toLocaleTimeString('es-ES', {
+      const labelsUnicos = new Set(
+        datosFiltrados.map((d) => {
+          const fecha = new Date(d.hora);
+          if (filtro.tipo === 'diaria') {
+            // Ejemplo: "15 mar, 14:00"
+            return fecha.toLocaleString('es-ES', {
+              day: '2-digit',
+              month: 'short',
               hour: '2-digit',
               minute: '2-digit',
-            })
-          )
-        )
-      ).sort();
+            });
+          } else {
+            // Para '15min', '30min' o 'hora', solo hora
+            return fecha.toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+          }
+        })
+      );
 
-      const color = chartColors[idx % chartColors.length];
+      // Convertimos Set a array y ordenamos cronológicamente
+      const labels = Array.from(labelsUnicos).sort((a, b) => {
+        // Para comparar, convertimos cada etiqueta de vuelta a Date:
+        const fechaA =
+          filtro.tipo === 'diaria'
+            ? new Date(
+                // Quitamos la coma para parsear correctamente
+                a.replace(',', '')
+              )
+            : new Date(`1970-01-01 ${a}`); // caso solo 'HH:mm', usamos fecha dummy
+        const fechaB =
+          filtro.tipo === 'diaria'
+            ? new Date(b.replace(',', ''))
+            : new Date(`1970-01-01 ${b}`);
+        return fechaA - fechaB;
+      });
+
+      // Ahora generamos un solo dataset para esta medida
+      const color = chartColors[idxColor % chartColors.length];
       const dataset = {
         label: formatName(medida),
         data: labels.map((lbl) => {
-          const rec = datosGrafica.find(
-            (d) =>
-              new Date(d.hora).toLocaleTimeString('es-ES', {
+          // Buscamos el registro que coincida con lbl
+          const rec = datosFiltrados.find((d) => {
+            const fecha = new Date(d.hora);
+            if (filtro.tipo === 'diaria') {
+              const check = fecha.toLocaleString('es-ES', {
+                day: '2-digit',
+                month: 'short',
                 hour: '2-digit',
                 minute: '2-digit',
-              }) === lbl &&
-              d.tipo_medida === medida
-          );
+              });
+              return check === lbl && d.tipo_medida === medida;
+            } else {
+              const check = fecha.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit',
+              });
+              return check === lbl && d.tipo_medida === medida;
+            }
+          });
           return rec ? parseFloat(rec.valor) : null;
         }),
         backgroundColor: `${color}88`,
@@ -162,23 +205,41 @@ export default function Graficas({ filtro }) {
 
       return { labels, datasets: [dataset] };
     } else {
-      const labels = datosGrafica.map((d) =>
-        new Date(d.hora).toLocaleString('es-ES', {
-          day: '2-digit',
-          month: 'short',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      );
-      const primera = datosGrafica.find((d) => d.medidas?.[medida]);
-      const metricas = primera
-        ? Object.keys(primera.medidas[medida]).filter((k) => k !== 'icon' && k !== 'unidad')
+      // ================ CASO HISTÓRICO (mensual/rangoFechas) ================
+      const ordenados = datosFiltrados
+        .slice()
+        .sort((a, b) => new Date(a.hora) - new Date(b.hora));
+
+      // En histórico no cambiamos nada (ya lo tenías bien):
+      const labels = ordenados.map((d) => {
+        const fecha = new Date(d.hora);
+        if (filtro.tipo === 'mensual') {
+          return fecha.toLocaleDateString('es-ES', {
+            month: 'short',
+            year: 'numeric',
+          });
+        } else {
+          return fecha.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: 'short',
+          });
+        }
+      });
+
+      const primerRegistro = datosFiltrados.find((d) => d.medidas?.[medida]);
+      const metricas = primerRegistro
+        ? Object.keys(primerRegistro.medidas[medida]).filter((k) => k !== 'icon' && k !== 'unidad')
         : [];
+
       const datasets = metricas.map((metrica, mi) => {
-        const color = chartColors[(idx + mi) % chartColors.length];
+        const color = chartColors[(idxColor + mi) % chartColors.length];
         return {
           label: formatName(`${metrica.toUpperCase()}`),
-          data: datosGrafica.map((d) => d.medidas?.[medida]?.[metrica] ?? null),
+          data: ordenados.map((d) =>
+            d.medidas && d.medidas[medida] && d.medidas[medida][metrica] != null
+              ? d.medidas[medida][metrica]
+              : null
+          ),
           borderColor: color,
           backgroundColor: `${color}88`,
           borderWidth: 2,
@@ -189,23 +250,57 @@ export default function Graficas({ filtro }) {
           type: isBar ? 'bar' : 'line',
         };
       });
+
       return { labels, datasets };
     }
   };
 
+  // ============= “Aplanar” todas las gráficas en una sola row =============
+  const todasGraficas = [];
+  estacionesUnicas.forEach((est, idxEst) => {
+    const datosDeEstaEstacion = datosGrafica.filter((d) => d.estacion === est);
+    const medidasDisponibles = isRaw
+      ? Array.from(new Set(datosDeEstaEstacion.map((d) => d.tipo_medida)))
+      : Array.from(
+          new Set(
+            datosDeEstaEstacion.flatMap((d) => (d.medidas ? Object.keys(d.medidas) : []))
+          )
+        );
+    medidasDisponibles.forEach((medida) => {
+      todasGraficas.push({
+        estacion: est,
+        medida,
+        idxColor: idxEst,
+      });
+    });
+  });
+
   return (
     <div className="custom-container-graficas">
+      {todasGraficas.length === 0 && (
+        <div className="text-center mt-3">No hay datos para mostrar.</div>
+      )}
+
       <div className="row">
-        {medidasDisponibles.map((medida, idx) => {
-          const { labels, datasets } = prepararDatosPorMedida(medida, idx);
-          const stationName = datosGrafica[0]?.estacion || datosGrafica[0]?.estacion_nombre || '';
+        {todasGraficas.map(({ estacion, medida, idxColor }, idxGlobal) => {
+          const datosDeEstaEstacion = datosGrafica.filter((d) => d.estacion === estacion);
+          const { labels, datasets } = prepararDatosPorMedida(
+            medida,
+            datosDeEstaEstacion,
+            idxColor + idxGlobal
+          );
+
+          const primerRegistro = datosDeEstaEstacion.find((d) =>
+            isRaw ? d.tipo_medida === medida : d.medidas?.[medida]
+          );
           const iconFilename = isRaw
-            ? datosGrafica.find((d) => d.tipo_medida === medida)?.icon
-            : datosGrafica[0].medidas[medida]?.icon;
+            ? primerRegistro?.icon
+            : primerRegistro?.medidas?.[medida]?.icon;
           const iconUrl = iconFilename ? `${URLBASE}/images/icons_estaciones/${iconFilename}` : '';
           const unidad = isRaw
-            ? datosGrafica.find(d => d.tipo_medida === medida)?.unidad
-            : datosGrafica[0].medidas[medida]?.unidad;
+            ? primerRegistro?.unidad
+            : primerRegistro?.medidas?.[medida]?.unidad;
+
           const ChartCmp = medida.toLowerCase() === 'lluvia' ? Bar : Line;
 
           const opciones = {
@@ -221,28 +316,41 @@ export default function Graficas({ filtro }) {
               },
             },
             scales: {
-              x: { grid: { color: '#e5e5e5' }, ticks: { maxRotation: 45 } },
+              x: {
+                grid: { color: '#e5e5e5' },
+                ticks: { maxRotation: 45 },
+              },
               y: {
-                grid: { color: '#e5e5e5' }, ticks: { callback: (v) => v.toFixed(2) }, title: {
+                grid: { color: '#e5e5e5' },
+                ticks: { callback: (v) => (typeof v === 'number' ? v.toFixed(2) : v) },
+                title: {
                   display: Boolean(unidad),
-                  text: unidad || ''
-                }
+                  text: unidad || '',
+                },
               },
             },
           };
 
-
           return (
-            <div key={medida} className={`${datosGrafica.length > 50 ? 'col-12' : 'col-lg-6 col-md-6'} mb-4`}>
+            <div
+              key={`${estacion}_${medida}_${idxGlobal}`}
+              className={`${
+                datosDeEstaEstacion.length > 50 ? 'col-12' : 'col-lg-6 col-md-6'
+              } mb-4`}
+            >
               <div className="grafica-card">
                 <div className="grafica-header">
                   <i className="bi bi-pin-map-fill icono-estacion" />
                   <span className="estacion-text">
-                    <strong>Estación:</strong> {stationName}
+                    <strong>Estación:</strong> {estacion}
                   </span>
                   {iconUrl && (
                     <div className="icono-superior">
-                      <img src={iconUrl} alt={`${formatName(medida)} icono`} className="icono-variable" />
+                      <img
+                        src={iconUrl}
+                        alt={`${formatName(medida)} icono`}
+                        className="icono-variable"
+                      />
                     </div>
                   )}
                 </div>

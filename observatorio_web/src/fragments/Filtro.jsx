@@ -94,7 +94,7 @@ function Filtro({ onFiltrar }) {
                     </h5>
 
                     <Box display="flex" alignItems="center" flexWrap="wrap" mb={1}>
-                        <Typography variant="body1" className="info-params">
+                        <Typography variant="body2" className="info-params">
                             <i className="bi bi-pin-map-fill me-1" />Estación:
                         </Typography>
                         <Chip label={estacionNombre} size="small" sx={{ ml: 1 }} />
@@ -102,7 +102,7 @@ function Filtro({ onFiltrar }) {
 
                     {filtroSeleccionado === 'rangoFechas' && (
                         <Box display="flex" alignItems="center">
-                            <Typography variant="body1" className="info-params">
+                            <Typography variant="body2" className="info-params">
                                 <i className="bi bi-calendar-range me-1" />Periodo de tiempo:
                             </Typography>
                             <Chip label={fechaInicio?.toLocaleDateString('es-ES')} size="small" sx={{ mx: 1 }} />
@@ -113,16 +113,16 @@ function Filtro({ onFiltrar }) {
 
                     {filtroSeleccionado === 'mensual' && (
                         <Box mt={1}>
-                            <Typography variant="body1">
-                            <i className="bi bi-calendar3 me-1"></i>Periodo de tiempo:
-                            <Chip label="Datos mensuales generales" size="small" sx={{ ml: 1 }} />
+                            <Typography variant="body2">
+                                <i className="bi bi-calendar3 me-1"></i>Periodo de tiempo:
+                                <Chip label="Datos mensuales generales" size="small" sx={{ ml: 1 }} />
                             </Typography>
                         </Box>
                     )}
 
                     {['15min', '30min', 'hora'].includes(filtroSeleccionado) && (
                         <Box mt={1}>
-                            <Typography variant="body1">
+                            <Typography variant="body2">
                                 <i className="bi bi-clock-history me-1"></i>Periodo de tiempo:
                                 <Chip label={calcularHoraRango(filtroSeleccionado)} size="small" sx={{ ml: 1 }} />
                             </Typography>
@@ -131,9 +131,9 @@ function Filtro({ onFiltrar }) {
 
                     {filtroSeleccionado === 'diaria' && (
                         <Box mt={1}>
-                            <Typography variant="body1">
-                            <i className="bi bi-calendar-day me-1"></i>Fecha: 
-                            <Chip label={new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} size="small" sx={{ ml: 1 }} />
+                            <Typography variant="body2">
+                                <i className="bi bi-calendar-day me-1"></i>Fecha:
+                                <Chip label={new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })} size="small" sx={{ ml: 1 }} />
                             </Typography>
                         </Box>
                     )}
@@ -143,13 +143,18 @@ function Filtro({ onFiltrar }) {
                 <div className={`filtro-container col-lg-12 mb-4 ${filtroSeleccionado === 'rangoFechas' ? 'columna' : ''}`}>
 
                     {/* Selector Escala Temporal */}
-                    <FormControl className="filtro-item">
+                    <FormControl
+                        className="filtro-item"
+                        size="small"                  
+                        sx={{ minWidth: 100 }}         
+                    >
                         <InputLabel htmlFor="filtro">Escala temporal</InputLabel>
                         <Select
                             id="filtro"
                             value={filtroSeleccionado}
                             label="Escala temporal"
                             onChange={e => setFiltroSeleccionado(e.target.value)}
+                            size="small"                 
                         >
                             <MenuItem value="15min">15 minutos</MenuItem>
                             <MenuItem value="30min">30 minutos</MenuItem>
@@ -161,24 +166,34 @@ function Filtro({ onFiltrar }) {
                     </FormControl>
 
                     {/* Selector Estación */}
-                    <FormControl className="filtro-item">
+                    <FormControl
+                        className="filtro-item"
+                        size="small"
+                        sx={{ minWidth: 120 }}
+                    >
                         <InputLabel htmlFor="estacion">Estación</InputLabel>
                         <Select
                             id="estacion"
                             value={estacionSeleccionada}
                             label="Estación"
                             onChange={e => setEstacionSeleccionada(e.target.value)}
+                            size="small"
                         >
                             {data.map(est => (
-                                <MenuItem key={est.external_id} value={est.external_id}>{est.name}</MenuItem>
+                                <MenuItem key={est.external_id} value={est.external_id}>
+                                    {est.name}
+                                </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
 
-                    {/* Calendarios Material UI */}
                     {filtroSeleccionado === 'rangoFechas' && (
                         <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
-                            <FormControl className="filtro-item">
+                            <FormControl
+                                className="filtro-item"
+                                size="small"
+                                sx={{ minWidth: 120 }}
+                            >
                                 <DatePicker
                                     label="Fecha inicio"
                                     value={fechaInicio}
@@ -187,7 +202,11 @@ function Filtro({ onFiltrar }) {
                                     renderInput={params => <TextField fullWidth size="small" {...params} />}
                                 />
                             </FormControl>
-                            <FormControl className="filtro-item">
+                            <FormControl
+                                className="filtro-item"
+                                size="small"
+                                sx={{ minWidth: 120 }}
+                            >
                                 <DatePicker
                                     label="Fecha fin"
                                     value={fechaFin}
@@ -201,12 +220,17 @@ function Filtro({ onFiltrar }) {
 
                     {/* Botón */}
                     <div className="filtro-item-btn">
-                        <button type="button" className="btn custom-button-filtro-btn" onClick={manejarFiltrado}>
+                        <button
+                            type="button"
+                            className="btn custom-button-filtro-btn"
+                            onClick={manejarFiltrado}
+                        >
                             Consultar datos
                         </button>
                     </div>
 
                 </div>
+
             </div>
         </div>
     );

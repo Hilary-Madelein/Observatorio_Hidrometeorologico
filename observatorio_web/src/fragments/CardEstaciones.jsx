@@ -77,13 +77,13 @@ function MapaConEstaciones() {
     const obtenerEstacionesMicrocuenca = async (externalId) => {
         try {
             setLoading(true);
-    
+
             const response = await ObtenerPost(
                 getToken(),
                 'estaciones/operativas/microcuenca',
                 { external: externalId }
             );
-    
+
             if (response.code !== 200) {
                 mensajes(
                     response.msg || 'No se pudieron cargar las estaciones de esta microcuenca.',
@@ -92,10 +92,10 @@ function MapaConEstaciones() {
                 );
                 return;
             }
-    
+
             const estacionesBase = response.info;
             const microcuencaNombre = response.microcuenca_nombre;
-    
+
             const estacionesConMediciones = [];
             for (const estacion of estacionesBase) {
                 const measResponse = await ObtenerPost(
@@ -103,14 +103,14 @@ function MapaConEstaciones() {
                     '/listar/ultima/medida/estacion',
                     { externalId: estacion.external_id }
                 );
-    
+
                 const mediciones = measResponse.code === 200 ? measResponse.info : [];
                 estacionesConMediciones.push({
                     ...estacion,
                     mediciones
                 });
             }
-    
+
             setSelectedMicrocuenca({
                 nombre: microcuencaNombre,
                 estaciones: estacionesConMediciones
@@ -120,11 +120,11 @@ function MapaConEstaciones() {
 
             const bounds = new mapboxgl.LngLatBounds();
             let hasValidCoordinates = false;
-    
+
             estacionesConMediciones.forEach((estacion) => {
                 const { latitude, longitude, name, picture, mediciones } = estacion;
                 const coords = [longitude, latitude];
-    
+
                 if (
                     Array.isArray(coords) &&
                     coords.length === 2 &&
@@ -132,154 +132,208 @@ function MapaConEstaciones() {
                     !isNaN(coords[1])
                 ) {
                     const popupHtml = `
-                      <style>
-                        /* Quitar fondo que Mapbox añade */
-                        .mapboxgl-popup-content {
-                          background: transparent !important;
-                          box-shadow: none !important;
-                          padding: 0 !important;
-                          overflow: visible;
-                        }
-                          
-                        .mapboxgl-popup-tip {
-                          display: none !important;
-                        }
+                            <style>
+                                /* Estilos generales del popup */
+                                .mapboxgl-popup-content {
+                                background: transparent !important;
+                                box-shadow: none !important;
+                                padding: 0 !important;
+                                overflow: visible;
+                                }
+                                
+                                .mapboxgl-popup-tip {
+                                display: none !important;
+                                }
 
-                        .mapboxgl-popup-close-button {
-                          color: #333 !important;
-                          right: 8px !important;
-                          top: 8px !important;
-                          background: rgba(255,255,255,0.8);
-                          border-radius: 50%;
-                          width: 22px;
-                          height: 22px;
-                          font-size: 16px;
-                          line-height: 20px;
-                          text-align: center;
-                        }
-                      </style>
-    
-                      <div style="
-                          font-family: Arial, sans-serif;
-                          background: #ffffff;
-                          border-radius: 8px;
-                          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                          width: 260px;
-                          padding: 0;
-                          overflow: hidden;
-                          position: relative;
-                      ">
-                        <!-- CABECERA -->
-                        <div style="
-                            background: #537EC5;
-                            padding: 12px 10px;
-                            text-align: center;
-                        ">
-                          <div style="
-                              font-size: 16px;
-                              font-weight: 600;
-                              color: #ffffff;
-                              margin-bottom: 2px;
-                          ">
-                            ${name}
-                          </div>
-                          <div style="
-                              font-size: 12px;
-                              color: #e0e0e0;
-                          ">
-                            ${microcuencaNombre || ''}
-                          </div>
-                        </div>
-    
-                        <!-- IMAGEN -->
-                        <div style="
-                            text-align: center;
-                            background: #f5f5f5;
-                            padding: 8px 0;
-                        ">
-                          <img
-                            src="${URLBASE}/images/estaciones/${picture}"
-                            alt="${name}"
-                            style="
-                              width: 240px;
-                              max-width: 100%;
-                              border-radius: 6px;
-                              border: 1px solid #ddd;
-                            "
-                          />
-                        </div>
-    
-                        <!-- CONTENIDO: MEDICIONES -->
-                        <div style="padding: 8px 10px 12px 10px;">
-                          ${
-                            mediciones.length > 0
-                              ? mediciones
-                                  .map((m) => {
-                                    const fechaLocal = new Date(m.fecha_medicion).toLocaleString();
-                                    return `
-                                      <div style="margin-bottom: 10px;">
-                                        <div style="
-                                            display: flex;
-                                            justify-content: space-between;
-                                            align-items: baseline;
-                                          ">
-                                          <span style="
-                                              font-size: 13px;
-                                              font-weight: 600;
-                                              color: #333;
-                                          ">
-                                            ${m.tipo_medida}
-                                          </span>
-                                          <span style="
-                                              font-size: 13px;
-                                              font-weight: 600;
-                                              color: #034d8f;
-                                          ">
-                                            ${m.valor} ${m.unidad}
-                                          </span>
-                                        </div>
-                                        <div style="
-                                            margin-top: 2px;
-                                            font-size: 11px;
-                                            color: #777;
-                                        ">
-                                          ${fechaLocal}
-                                        </div>
-                                      </div>
-                                    `;
-                                  })
-                                  .join('')
-                              : `<div style="
-                                   text-align: center;
-                                   font-size: 12px;
-                                   color: #777;
-                                   padding: 10px 0;
-                                 ">
-                                   No hay mediciones recientes.
-                                 </div>`
-                          }
-                        </div>
-                      </div>
-                    `;
-    
+                                .mapboxgl-popup-close-button {
+                                color: #333 !important;
+                                right: 8px !important;
+                                top: 8px !important;
+                                background: rgba(255,255,255,0.8);
+                                border-radius: 50%;
+                                width: 22px;
+                                height: 22px;
+                                font-size: 16px;
+                                line-height: 20px;
+                                text-align: center;
+                                }
+
+                                /* Contenedor principal del popup */
+                                .popup-container {
+                                font-family: Arial, sans-serif;
+                                background: #ffffff;
+                                border-radius: 8px;
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                                width: 260px;
+                                padding: 0;
+                                overflow: hidden;
+                                position: relative;
+                                }
+
+                                /* Encabezado */
+                                .popup-header {
+                                background: #537EC5;
+                                padding: 12px 10px;
+                                text-align: center;
+                                }
+                                .popup-title {
+                                font-size: 16px;
+                                font-weight: 600;
+                                color: #ffffff;
+                                margin-bottom: 2px;
+                                }
+                                .popup-subtitle {
+                                font-size: 12px;
+                                color: #e0e0e0;
+                                }
+
+                                /* Imagen */
+                                .popup-image-wrapper {
+                                text-align: center;
+                                background: #f5f5f5;
+                                padding: 8px 0;
+                                }
+                                .popup-image-wrapper img {
+                                width: 240px;
+                                max-width: 100%;
+                                border-radius: 6px;
+                                border: 1px solid #ddd;
+                                }
+
+                                /* Contenido de mediciones */
+                                .popup-content {
+                                padding: 8px 10px 12px 10px;
+                                }
+                                .medicion-item {
+                                margin-bottom: 10px;
+                                }
+                                .medicion-row {
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: baseline;
+                                }
+                                .medicion-tipo {
+                                font-size: 13px;
+                                font-weight: 600;
+                                color: #333;
+                                }
+                                .medicion-valor {
+                                font-size: 13px;
+                                font-weight: 600;
+                                color: #034d8f;
+                                }
+                                .medicion-fecha {
+                                margin-top: 2px;
+                                font-size: 11px;
+                                color: #777;
+                                }
+                                .sin-mediciones {
+                                text-align: center;
+                                font-size: 12px;
+                                color: #777;
+                                padding: 10px 0;
+                                }
+
+                                /* ==== Media Query para móviles ==== */
+                                @media (max-width: 600px) {
+                                .popup-container {
+                                    width: 90vw;               
+                                    max-width: 200px;         
+                                }
+                                .popup-header {
+                                    padding: 8px 6px; 
+                                }
+                                .popup-title {
+                                    font-size: 14px;           
+                                }
+                                .popup-subtitle {
+                                    font-size: 10px;
+                                }
+                                .popup-image-wrapper {
+                                    padding: 6px 0;
+                                }
+                                .popup-image-wrapper img {
+                                    width: 180px;             
+                                }
+                                .popup-content {
+                                    padding: 6px 8px 8px 8px;
+                                }
+                                .medicion-tipo, .medicion-valor {
+                                    font-size: 12px;
+                                }
+                                .medicion-fecha {
+                                    font-size: 10px;
+                                }
+                                .sin-mediciones {
+                                    font-size: 10px;
+                                    padding: 8px 0;
+                                }
+                                .mapboxgl-popup-close-button {
+                                    width: 18px;              
+                                    height: 18px;
+                                    font-size: 14px;
+                                    line-height: 18px;
+                                    right: 6px;
+                                    top: 6px;
+                                }
+                                }
+                            </style>
+
+                            <div class="popup-container">
+                                <!-- CABECERA -->
+                                <div class="popup-header">
+                                <div class="popup-title">${name}</div>
+                                <div class="popup-subtitle">${microcuencaNombre || ''}</div>
+                                </div>
+
+                                <!-- IMAGEN -->
+                                <div class="popup-image-wrapper">
+                                <img
+                                    src="${URLBASE}/images/estaciones/${picture}"
+                                    alt="${name}"
+                                />
+                                </div>
+
+                                <!-- CONTENIDO: MEDICIONES -->
+                                <div class="popup-content">
+                                ${mediciones.length > 0
+                                                        ? mediciones
+                                                            .map((m) => {
+                                                                const fechaLocal = new Date(m.fecha_medicion).toLocaleString();
+                                                                return `
+                                            <div class="medicion-item">
+                                                <div class="medicion-row">
+                                                <span class="medicion-tipo">${m.tipo_medida}</span>
+                                                <span class="medicion-valor">${m.valor} ${m.unidad}</span>
+                                                </div>
+                                                <div class="medicion-fecha">${fechaLocal}</div>
+                                            </div>
+                                            `;
+                                                            })
+                                                            .join('')
+                                                        : `<div class="sin-mediciones">No hay mediciones recientes.</div>`
+                                                    }
+                                </div>
+                            </div>
+                            `;
                     const popup = new mapboxgl.Popup({
                         offset: 0,
                         closeButton: true,
                         closeOnClick: true,
-                        className: ''  
+                        className: ''
                     }).setHTML(popupHtml);
-    
+
                     const marker = new mapboxgl.Marker()
                         .setLngLat(coords)
                         .setPopup(popup)
                         .addTo(map);
-    
+
                     markersRef.current.push(marker);
                     bounds.extend(coords);
                     hasValidCoordinates = true;
                 }
             });
-    
+
             if (hasValidCoordinates) {
                 map.fitBounds(bounds, { padding: 50 });
             }
@@ -290,7 +344,7 @@ function MapaConEstaciones() {
             setLoading(false);
         }
     };
-   
+
     const volverVistaInicial = () => {
         setSelectedMicrocuenca(null);
         markersRef.current.forEach(marker => marker.remove());
@@ -330,46 +384,58 @@ function MapaConEstaciones() {
         <div className="mapa-con-estaciones-container">
             <div className="map-container">
                 <div className="map-controls">
-                    <FormControl variant="outlined" size="small" sx={{
-                        minWidth: 160,
-                        mr: 2,
-                        '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'transparent',    
-                            color: '#fff',                   
-                            '& fieldset': {
-                                borderColor: '#fff',         
+                    <FormControl
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                            minWidth: { xs: 70, sm: 100 },
+                            '& .MuiOutlinedInput-root': {
+                                backgroundColor: 'transparent',
+                                color: '#fff',
+                                '& fieldset': {
+                                    borderColor: '#fff',
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: '#fff',
+                                },
+                                '&.Mui-focused fieldset': {
+                                    borderColor: '#fff',
+                                },
                             },
-                            '&:hover fieldset': {
-                                borderColor: '#fff',        
+                            '& .MuiInputLabel-root': {
+                                color: '#fff',
+                                '&.Mui-focused': {
+                                    color: '#fff',
+                                },
+                                fontSize: { xs: '0.55rem', sm: '0.7rem' },
                             },
-                            '&.Mui-focused fieldset': {
-                                borderColor: '#fff',           
+                            '& .MuiSelect-select': {
+                                padding: { xs: '4px 32px 4px 8px', sm: '6px 32px 6px 8px' },
+                                fontSize: { xs: '0.55rem', sm: '0.6rem' },
                             },
-                        },
-                        '& .MuiInputLabel-root': {
-                            color: '#fff',                  
-                            '&.Mui-focused': {
-                                color: '#fff',                   
+                            '& .MuiSvgIcon-root': {
+                                color: '#fff',
                             },
-                        },
-                        '& .MuiSvgIcon-root': {
-                            color: '#fff',                  
-                        },
-                    }}>
+                        }}
+                    >
                         <InputLabel>Estilo de mapa</InputLabel>
                         <Select
                             value={mapStyle}
                             onChange={changeMapStyle}
                             label="Estilo de mapa"
+                            size="small"
                         >
                             <MenuItem value="mapbox://styles/mapbox/streets-v11">Calles</MenuItem>
                             <MenuItem value="mapbox://styles/mapbox/outdoors-v11">Exteriores</MenuItem>
                             <MenuItem value="mapbox://styles/mapbox/light-v10">Claro</MenuItem>
                             <MenuItem value="mapbox://styles/mapbox/dark-v10">Oscuro</MenuItem>
                             <MenuItem value="mapbox://styles/mapbox/satellite-v9">Satélite</MenuItem>
-                            <MenuItem value="mapbox://styles/mapbox/satellite-streets-v12">Satélite con Calles</MenuItem>
+                            <MenuItem value="mapbox://styles/mapbox/satellite-streets-v12">
+                                Satélite con Calles
+                            </MenuItem>
                         </Select>
                     </FormControl>
+
                     <button onClick={getUserLocation} className="location-button">Ubicación actual</button>
                     <div className="map-info"> <strong>Lat:</strong> {location.lat} | <strong>Lng:</strong> {location.lng} | <strong>Zoom:</strong> {location.zoom}</div>
                 </div>
@@ -403,7 +469,7 @@ function MapaConEstaciones() {
                         ) : (
                             <div className="row mt-4">
                                 {selectedMicrocuenca.estaciones.map((item, index) => (
-                                    <div key={index} className="col-md-3 col-sm-6 mb-4">
+                                    <div key={index} className="col-sm-12 gap-3 mb-4">
                                         <div className="modern-card">
                                             <img
                                                 className="card-img-top"

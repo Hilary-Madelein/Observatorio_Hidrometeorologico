@@ -1,85 +1,83 @@
 .custom-navbar {
-    background: #0C2840;
-    width: 100%;
-    padding: 10px 40px; 
-    display: flex;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+  background: #0C2840;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .header1 {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
-    width: 100%;
-    max-width: 1600px;
-    padding: 10px 2%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  max-width: 1000px;
+  padding: 5px 2.5%;
+  width: 100%;
+  
+  top: 0;
 }
 
 .logoBarra {
-    width: 30px;
-    height: auto;
-    display: block;
-    transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+  width: 30px;
+  height: auto;
+  display: block;
+  transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
 }
 
 .logoBarra:hover {
-    transform: scale(1.05);
-    filter: drop-shadow(2px 2px 5px rgba(255, 255, 255, 0.178));
+  transform: scale(1.05);
+  filter: drop-shadow(2px 2px 5px rgba(255, 255, 255, 0.178));
 }
 
 .tituloBarra {
-    color: white;
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin: 0;
-    white-space: nowrap; 
-    background: none; 
-    -webkit-text-fill-color: white;
-    border-bottom: none;
-    padding-bottom: 0;
-
-    transition: text-shadow 0.3s ease-in-out;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  white-space: nowrap;
+  background: none;
+  -webkit-text-fill-color: white;
+  border-bottom: none;
+  padding-bottom: 0;
+  transition: text-shadow 0.3s ease-in-out;
 }
 
 .titulo:hover {
-    text-shadow: 4px 4px 8px rgba(255, 255, 255, 0.247); 
+  text-shadow: 4px 4px 8px rgba(255, 255, 255, 0.247);
 }
 
 @media (max-width: 900px) {
-    .custom-navbar {
-      top: 0 !important;
-      width: 100% !important;
-      z-index: 1000 !important;
-      background: #0C2840 !important;
-      opacity: 1 !important;
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      padding: 10px !important;
-    }
-  
-    .header1 {
-      flex-direction: row !important;
-      justify-content: flex-start !important;
-      gap: 8px !important;
-      padding: 0 2% !important;
-      margin: 0 auto !important;
-      width: calc(100% - 40px) !important; 
-    }
-  
-    .logoBarra {
-      width: 25px !important;
-      height: auto !important;
-    }
-  
-    .tituloBarra {
-      font-size: 1rem !important;
-      white-space: nowrap !important;
-    }
+  .custom-navbar {
+    top: 0 !important;
+    width: 100% !important;
+    z-index: 1000 !important;
+    background: #0C2840 !important;
+    opacity: 1 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 8 !important;
   }
-  
-  
+
+  .header1 {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    margin: 0 auto !important;
+    width: calc(100% - 40px) !important;
+  }
+
+  .logoBarra {
+    width: 25px !important;
+    height: auto !important;
+  }
+
+  .tituloBarra {
+    font-size: 1rem !important;
+    white-space: nowrap !important;
+  }
+}

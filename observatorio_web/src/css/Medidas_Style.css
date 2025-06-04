@@ -2,16 +2,16 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 15px;
-    padding-top: 20px;
+    gap: 10px;
+    padding-top: 15px;
     padding-bottom: 15px;
     margin: 0 auto;
 }
 
 .custom-card {
     flex: 1 1 calc(33.333% - 20px);
-    max-width: 350px; 
-    height: 100px;
+    max-width: 250px; 
+    height: auto;
     border-radius: 6px;
     border: 1px solid #f0f0f0;
     cursor: pointer;
@@ -30,36 +30,36 @@
 }
 
 .icono-variable {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     position: absolute;
+    margin-left: -5px;
     top: 50%;
     transform: translateY(-50%);
 }
 
 .contenido-card {
-    margin-left: 75px;
+    margin-left: 55px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
-    gap: 5px;
 }
 
 .titulo-variables {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #0C2840;
 }
 
 .unidad-medida {
-    font-size: 1rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: #555;
 }
 
 .estacion-valor {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: bold;
     color: #034d8f;
     background-color: #e0ecff !important;
@@ -71,7 +71,7 @@
 
 .estaciones-container {
     margin-top: 5px;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
 }
 
 .estacion-nombre {
@@ -157,6 +157,7 @@
         flex: 0 1 calc(50% - 8px); 
         max-width: calc(50% - 8px);
         max-height: 90px;
+        height: auto;
         display: flex;
         align-items: center;
         gap: 10px;
