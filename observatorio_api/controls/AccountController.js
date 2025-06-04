@@ -44,7 +44,7 @@ class AccountController {
                 };
 
                 const secretKey = process.env.KEY;
-                const token = jwt.sign(tokenPayload, secretKey, { expiresIn: '30min' });
+                const token = jwt.sign(tokenPayload, secretKey, { expiresIn: '40min' });
 
                 return res.status(200).json({
                     msg: "Bienvenido " + (login.entity?.name || ''),
