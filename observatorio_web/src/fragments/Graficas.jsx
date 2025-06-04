@@ -116,10 +116,6 @@ export default function Graficas({ filtro }) {
   const isRaw = datosGrafica.length > 0 && datosGrafica[0].hasOwnProperty('valor');
   const estacionesUnicas = Array.from(new Set(datosGrafica.map((d) => d.estacion)));
 
-  /**
-   * Ajustamos prepararDatosPorMedida para que, cuando filtro.tipo === 'diaria',
-   * use toLocaleString y muestre día+mes+hora:minuto, en lugar de solo hora.
-   */
   const prepararDatosPorMedida = (medida, datosFiltrados, idxColor) => {
     const isBar = medida.toLowerCase() === 'lluvia';
 
@@ -132,7 +128,6 @@ export default function Graficas({ filtro }) {
         datosFiltrados.map((d) => {
           const fecha = new Date(d.hora);
           if (filtro.tipo === 'diaria') {
-            // Ejemplo: "15 mar, 14:00"
             return fecha.toLocaleString('es-ES', {
               day: '2-digit',
               month: 'short',
@@ -140,7 +135,6 @@ export default function Graficas({ filtro }) {
               minute: '2-digit',
             });
           } else {
-            // Para '15min', '30min' o 'hora', solo hora
             return fecha.toLocaleTimeString('es-ES', {
               hour: '2-digit',
               minute: '2-digit',
@@ -149,29 +143,23 @@ export default function Graficas({ filtro }) {
         })
       );
 
-      // Convertimos Set a array y ordenamos cronológicamente
       const labels = Array.from(labelsUnicos).sort((a, b) => {
-        // Para comparar, convertimos cada etiqueta de vuelta a Date:
         const fechaA =
           filtro.tipo === 'diaria'
             ? new Date(
-                // Quitamos la coma para parsear correctamente
                 a.replace(',', '')
               )
-            : new Date(`1970-01-01 ${a}`); // caso solo 'HH:mm', usamos fecha dummy
+            : new Date(`1970-01-01 ${a}`); 
         const fechaB =
           filtro.tipo === 'diaria'
             ? new Date(b.replace(',', ''))
             : new Date(`1970-01-01 ${b}`);
         return fechaA - fechaB;
       });
-
-      // Ahora generamos un solo dataset para esta medida
       const color = chartColors[idxColor % chartColors.length];
       const dataset = {
         label: formatName(medida),
         data: labels.map((lbl) => {
-          // Buscamos el registro que coincida con lbl
           const rec = datosFiltrados.find((d) => {
             const fecha = new Date(d.hora);
             if (filtro.tipo === 'diaria') {
@@ -205,12 +193,10 @@ export default function Graficas({ filtro }) {
 
       return { labels, datasets: [dataset] };
     } else {
-      // ================ CASO HISTÓRICO (mensual/rangoFechas) ================
       const ordenados = datosFiltrados
         .slice()
         .sort((a, b) => new Date(a.hora) - new Date(b.hora));
 
-      // En histórico no cambiamos nada (ya lo tenías bien):
       const labels = ordenados.map((d) => {
         const fecha = new Date(d.hora);
         if (filtro.tipo === 'mensual') {
@@ -255,7 +241,6 @@ export default function Graficas({ filtro }) {
     }
   };
 
-  // ============= “Aplanar” todas las gráficas en una sola row =============
   const todasGraficas = [];
   estacionesUnicas.forEach((est, idxEst) => {
     const datosDeEstaEstacion = datosGrafica.filter((d) => d.estacion === est);
