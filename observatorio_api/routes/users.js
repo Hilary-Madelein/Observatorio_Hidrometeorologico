@@ -25,48 +25,69 @@ router.get('/', function (req, res, next) {
   res.json({ "version": "1.0", "name": "hidrometeorologica-backend" });
 });
 
-let auth = function middleware(req, res, next) {
-  const token = req.headers['x-api-token'];
-  if (token) {
-    require('dotenv').config();
+let auth = function (options = { checkAdmin: false }) {
+  return async function middleware(req, res, next) {
+    const token = req.headers['x-api-token'];
+    if (!token) {
+      return res.status(401).json({
+        msg: "No existe token",
+        code: 401
+      });
+    }
+
     const llave = process.env.KEY;
     jwt.verify(token, llave, async (err, decoded) => {
       if (err) {
-        res.status(401);
-        res.json({
-          msg: "Token no valido",
+        return res.status(401).json({
+          msg: "Acceso denegado. Token ha expirado",
           code: 401
         });
-      } else {
-        const models = require('../models');
-        const cuenta = models.cuenta;
-        req.decoded = decoded;
-        let aux = await cuenta.findOne({ 
-          where: { 
-            external_id: req.decoded.external 
-          } 
-        })
-        if (aux === null) {
-          res.status(401);
-          res.json({
-            msg: "Token no valido o expirado",
+      }
+
+      const models = require('../models');
+      const { account, entity } = models;
+      req.decoded = decoded;
+
+      try {
+        let aux = await account.findOne({
+          where: { external_id: req.decoded.external },
+          include: [{ model: entity, as: 'entity' }]
+        });
+
+        if (!aux) {
+          return res.status(401).json({
+            msg: "Acceso denegado. Token ha expirado",
             code: 401
           });
-        } else {
-          next();
         }
+
+        if (options.checkAdmin && aux.entity?.role !== 'ADMINISTRADOR') {
+          return res.status(403).json({
+            msg: "Acceso denegado: se requiere rol ADMINISTRADOR",
+            code: 403
+          });
+        }
+
+        req.user = {
+          id: aux.id,
+          external_id: aux.external_id,
+          email: aux.email,
+          role: aux.entity?.role,
+          name: aux.entity?.name,
+          lastname: aux.entity?.lastname
+        };
+
+        return next();
+      } catch (dbErr) {
+        console.error(dbErr);
+        return res.status(500).json({
+          msg: "Error interno al validar usuario",
+          code: 500
+        });
       }
     });
-  } else {
-    res.status(401);
-    res.json({
-      msg: "No existe token",
-      code: 401
-    });
-  }
-
+  };
 };
-
 
 // GUARDAR IMAGENES 
 
@@ -146,7 +167,7 @@ router.get('/mediciones/historicas', dailyMeasurementController.getMedicionesHis
  * RUTAS DE PERSONA
  */
 
-router.post('/guardar/entidad', (req, res, next) => {
+router.post('/guardar/entidad', auth({ checkAdmin: true }), (req, res, next) => {
   uploadFotoPersona.single('foto')(req, res, (error) => {
     if (error) {
       if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
@@ -164,7 +185,7 @@ router.post('/guardar/entidad', (req, res, next) => {
   });
 });
 
-router.put('/modificar/entidad', (req, res, next) => {
+router.put('/modificar/entidad', auth({ checkAdmin: true }), (req, res, next) => {
   uploadFotoPersona.single('foto')(req, res, (error) => {
     if (error) {
       if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
@@ -181,8 +202,8 @@ router.put('/modificar/entidad', (req, res, next) => {
     entityController.update(req, res, next);
   });
 });
-router.get('/listar/entidad', entityController.list);
-router.get('/obtener/entidad/:external',  entityController.get);
+router.get('/listar/entidad', auth({ checkAdmin: true }), entityController.list);
+router.get('/obtener/entidad/:external',  auth({ checkAdmin: true }), entityController.get);
 
 /**
  * RUTAS DE CUENTA
@@ -193,15 +214,15 @@ router.post('/sesion', [
   body('password', 'Ingrese una clave valido').exists().not().isEmpty(),
 ], accountController.login)
 
-router.post('/cambiar-clave/entidad', accountController.changePassword);
-router.get('/modificar/cuenta-status', entityController.changeAccountStatus);
+router.post('/cambiar-clave/entidad', auth({ checkAdmin: true }), accountController.changePassword);
+router.get('/modificar/cuenta-status', auth({ checkAdmin: true }), entityController.changeAccountStatus);
 
 
 /**
  * RUTAS DE MICROCUENCAS
  */
 
-router.post('/guardar/microcuenca', (req, res, next) => {
+router.post('/guardar/microcuenca', auth({ checkAdmin: true }), (req, res, next) => {
   uploadFotoMicrocuenca.single('foto')(req, res, (error) => {
     if (error) {
       if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
@@ -219,7 +240,7 @@ router.post('/guardar/microcuenca', (req, res, next) => {
   });
 });
 
-router.put('/modificar/microcuenca', (req, res, next) => {
+router.put('/modificar/microcuenca', auth({ checkAdmin: true }), (req, res, next) => {
   uploadFotoMicrocuenca.single('foto')(req, res, (error) => {
     if (error) {
       if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
@@ -236,18 +257,18 @@ router.put('/modificar/microcuenca', (req, res, next) => {
     microbasinController.update(req, res, next);
   });
 });
-router.get('/listar/microcuenca', microbasinController.list);
+router.get('/listar/microcuenca', auth({ checkAdmin: true }), microbasinController.list);
 router.get('/listar/microcuenca/operativas', microbasinController.listActive);
-router.get('/listar/microcuenca/desactivas', microbasinController.listInactive);
-router.get('/obtener/microcuenca/:external',  microbasinController.get);
-router.get('/desactivar/microcuenca/:external_id', microbasinController.changeStatus); 
+router.get('/listar/microcuenca/desactivas', auth({ checkAdmin: true }), microbasinController.listInactive);
+router.get('/obtener/microcuenca/:external', auth({ checkAdmin: true }), microbasinController.get);
+router.get('/desactivar/microcuenca/:external_id', auth({ checkAdmin: true }), microbasinController.changeStatus); 
 router.get('/microcuenca/estaciones', microbasinController.getWithStations);
 
 /**
  * RUTAS DE ESTACIONES
  */
 
-router.post('/guardar/estacion', (req, res, next) => {
+router.post('/guardar/estacion', auth({ checkAdmin: true }), (req, res, next) => {
   uploadFotoEstacion.single('foto')(req, res, (error) => {
     if (error) {
       if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
@@ -265,7 +286,7 @@ router.post('/guardar/estacion', (req, res, next) => {
   });
 });
 
-router.put('/modificar/estacion', (req, res, next) => {
+router.put('/modificar/estacion', auth({ checkAdmin: true }), (req, res, next) => {
   uploadFotoEstacion.single('foto')(req, res, (error) => {
     if (error) {
       if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
@@ -282,19 +303,19 @@ router.put('/modificar/estacion', (req, res, next) => {
     stationController.update(req, res, next);
   });
 });
-router.get('/listar/estacion', stationController.list);
+router.get('/listar/estacion', auth({ checkAdmin: true }), stationController.list);
 router.get('/listar/estacion/operativas', stationController.listActive);
-router.get('/listar/estacion/:estado/:external_id', stationController.listByMicrobasinAndStatus);
-router.get('/obtener/estacion/:external',  stationController.getByMicrobasinParam);
-router.get('/get/estacion/:external_id', stationController.getByExternal);
-router.post('/estacion/cambiar_estado', stationController.changeStatus);
-router.post('/estaciones/operativas/microcuenca', stationController.getByMicrobasinBody)
+router.get('/listar/estacion/:estado/:external_id',auth({ checkAdmin: true }), stationController.listByMicrobasinAndStatus);
+router.get('/obtener/estacion/:external', auth({ checkAdmin: true }), stationController.getByMicrobasinParam);
+router.get('/get/estacion/:external_id', auth({ checkAdmin: true }), stationController.getByExternal);
+router.post('/estacion/cambiar_estado', auth({ checkAdmin: true }), stationController.changeStatus);
+router.post('/estaciones/operativas/microcuenca', stationController.getByMicrobasinBody);
 
 /**
  * RUTAS DE TIPOS DE FENOMENOS
  */
 
-router.post('/guardar/tipo_medida', (req, res, next) => {
+router.post('/guardar/tipo_medida', auth({ checkAdmin: true }), (req, res, next) => {
   uploadIconoEstacion.single('foto')(req, res, (error) => {
     if (error) {
       if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
@@ -312,7 +333,7 @@ router.post('/guardar/tipo_medida', (req, res, next) => {
   });
 });
 
-router.put('/modificar/tipo_medida', (req, res, next) => {
+router.put('/modificar/tipo_medida', auth({ checkAdmin: true }), (req, res, next) => {
   uploadIconoEstacion.single('foto')(req, res, (error) => {
     if (error) {
       if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
@@ -330,8 +351,8 @@ router.put('/modificar/tipo_medida', (req, res, next) => {
   });
 });
 router.get('/listar/tipo_medida', phenomenonTypeController.list);
-router.get('/listar/tipo_medida/desactivos', phenomenonTypeController.listFalse);
-router.get('/obtener/tipo_medida/:external', phenomenonTypeController.get);
-router.get('/tipo_fenomeno/cambiar_estado/:external_id', phenomenonTypeController.changeStatus);
+router.get('/listar/tipo_medida/desactivos', auth({ checkAdmin: true }), phenomenonTypeController.listFalse);
+router.get('/obtener/tipo_medida/:external', auth({ checkAdmin: true }), phenomenonTypeController.get);
+router.get('/tipo_fenomeno/cambiar_estado/:external_id', auth({ checkAdmin: true }), phenomenonTypeController.changeStatus);
 
 module.exports = router;
