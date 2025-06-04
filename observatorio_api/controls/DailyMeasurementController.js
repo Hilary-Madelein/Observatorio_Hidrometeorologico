@@ -6,14 +6,14 @@ const models = require('../models');
 class DailyMeasurementController {
   async getMedicionesHistoricas(req, res) {
     const { rango, estacion, fechaInicio, fechaFin } = req.query;
-
+  
     if (!rango || !['mensual', 'rangoFechas'].includes(rango)) {
       return res.status(400).json({ msg: 'Rango de tiempo inválido', code: 400 });
     }
-
+  
     try {
       let rows;
-
+  
       if (rango === 'mensual') {
         rows = await models.sequelize.query(
           `
@@ -41,7 +41,7 @@ class DailyMeasurementController {
             type: models.sequelize.QueryTypes.SELECT
           }
         );
-
+  
       } else if (rango === 'rangoFechas') {
         if (!fechaInicio || !fechaFin) {
           return res.status(400).json({
@@ -49,7 +49,10 @@ class DailyMeasurementController {
             code: 400
           });
         }
-
+  
+        const inicioDate = fechaInicio.slice(0, 10); 
+        const finDate    = fechaFin.slice(0, 10);  
+  
         rows = await models.sequelize.query(
           `
           SELECT
@@ -65,7 +68,7 @@ class DailyMeasurementController {
           FROM daily_measurement dm
           JOIN phenomenon_type p ON dm.id_phenomenon_type = p.id
           JOIN station st        ON dm.id_station        = st.id
-          WHERE dm.local_date BETWEEN :fechaInicio AND :fechaFin
+          WHERE dm.local_date BETWEEN :fechaInicio::date AND :fechaFin::date
             AND dm.status = true
             AND p.status  = true
             AND (st.external_id = :estacion OR :estacion IS NULL)
@@ -74,15 +77,15 @@ class DailyMeasurementController {
           `,
           {
             replacements: {
-              fechaInicio: new Date(fechaInicio).toISOString(),
-              fechaFin:   new Date(fechaFin).toISOString(),
-              estacion:   estacion || null
+              fechaInicio: inicioDate,
+              fechaFin:    finDate,
+              estacion:    estacion || null
             },
             type: models.sequelize.QueryTypes.SELECT
           }
         );
       }
-
+  
       rows = rows.filter(r => {
         if (r.promedio != null && r.promedio > 1000) return false;
         if (r.maximo  != null && r.maximo  > 1000) return false;
@@ -90,38 +93,40 @@ class DailyMeasurementController {
         if (r.suma    != null && r.suma    > 1000) return false;
         return true;
       });
-
+  
       const seriesMap = {};
       rows.forEach(r => {
-        const key = new Date(r.periodo).toISOString();
-
+        const periodoISO = new Date(r.periodo).toISOString();
+  
+        const key = `${r.estacion_nombre}__${periodoISO}`;
+  
         if (!seriesMap[key]) {
           seriesMap[key] = {
-            hora:      key,
-            estacion:  r.estacion_nombre,
+            hora:     periodoISO,
+            estacion: r.estacion_nombre,
             medidas:  {}
           };
         }
-
+  
         const ops = {};
         if (r.promedio != null) ops.PROMEDIO = parseFloat(Number(r.promedio).toFixed(2));
         if (r.maximo  != null) ops.MAX      = parseFloat(r.maximo);
         if (r.minimo  != null) ops.MIN      = parseFloat(r.minimo);
         if (r.suma    != null) ops.SUMA     = parseFloat(r.suma);
-
-        ops.icon = r.variable_icon;
+        ops.icon   = r.variable_icon;
         ops.unidad = r.unidad;
-
+  
         seriesMap[key].medidas[r.tipo_medida] = ops;
       });
-
+  
       const info = Object.values(seriesMap);
-
+  
       return res.status(200).json({
         msg:  'Series históricas de mediciones agregadas',
         code: 200,
         info
       });
+  
     } catch (error) {
       console.error(error);
       return res.status(500).json({
@@ -130,7 +135,8 @@ class DailyMeasurementController {
       });
     }
   }
-
+  
+  
 }
 
 module.exports = DailyMeasurementController;
