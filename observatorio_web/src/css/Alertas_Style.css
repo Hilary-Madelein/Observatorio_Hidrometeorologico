@@ -1,13 +1,12 @@
-/* Clase personalizada para el contenedor del mensaje */
 .custom-swal-popup {
     border-radius: 15px;
     padding: 30px;
     font-family: 'Arial', sans-serif;
     background-color: #ffffff;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    height: auto;
 }
 
-/* Estilo para el título del mensaje */
 .custom-swal-title {
     font-size: 20px;
     font-weight: bold;
@@ -15,7 +14,6 @@
     transition: color 0.3s ease;
 }
 
-/* Estilo para el botón de confirmación */
 .custom-swal-btn {
     background-color: #0C2840;
     color: white;
@@ -25,7 +23,6 @@
     border: none;
 }
 
-/* Animación personalizada */
 .animate__fadeInDown {
     animation: fadeInDown 0.5s ease-in-out;
 }
@@ -34,7 +31,6 @@
     animation: fadeOutUp 0.5s ease-in-out;
 }
 
-/* Definir el fadeInDown */
 @keyframes fadeInDown {
     0% {
         opacity: 0;
@@ -46,7 +42,6 @@
     }
 }
 
-/* Definir el fadeOutUp */
 @keyframes fadeOutUp {
     0% {
         opacity: 1;
