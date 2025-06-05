@@ -1,4 +1,4 @@
-FROM node:18-slim AS runtime
+FROM node:18-bullseye AS builder
 
 WORKDIR /usr/src/app
 ENV NODE_ENV=production

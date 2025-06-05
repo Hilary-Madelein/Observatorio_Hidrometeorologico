@@ -1,5 +1,5 @@
-const URL = 'http://localhost:3006/api/';
-export const URLBASE = "http://localhost:3006/"; 
+const URL = 'https://computacion.unl.edu.ec/hid/api/api/';
+export const URLBASE = "https://computacion.unl.edu.ec/hid/"; 
 
 export const InicioSesion = async (data) => {
     const headers = {
