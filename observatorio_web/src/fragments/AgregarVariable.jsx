@@ -108,14 +108,13 @@ function AgregarVariable({ external_id_variable }) {
                     {/* Nombre */}
                     <div className="form-group mb-3">
                         <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Nombre</label>
-                        <input
-                            type="text"
-                            {...register('nombre', {
-                                required: 'Ingrese un nombre'
-                            })}
-                            className="form-control form-control-user"
-                            placeholder="Ingrese el nombre"
-                        />
+                        <input type="text" {...register('nombre', {
+                            required: 'Ingrese un nombre',
+                            pattern: {
+                                value: /^(?!\s*$)[a-zA-Z\s]+(?<![<>])$/,
+                                message: "Ingrese un nombre correcto"
+                            }
+                        })} className="form-control form-control-user" placeholder="Ingrese el nombre" />
                         {errors.nombre && <div className='alert alert-danger'>{errors.nombre.message}</div>}
                     </div>
 
@@ -125,7 +124,11 @@ function AgregarVariable({ external_id_variable }) {
                         <input
                             type="text"
                             {...register('unidad_medida', {
-                                required: 'Ingrese una unidad de medida'
+                                required: 'Ingrese una unidad de medida',
+                                pattern: {
+                                    value: /^(?!\s*$)[a-zA-Z\s]+(?<![<>])$/,
+                                    message: "Ingrese un nombre correcto"
+                                }
                             })}
                             className="form-control form-control-user"
                             placeholder="Ingrese la unidad de medida"

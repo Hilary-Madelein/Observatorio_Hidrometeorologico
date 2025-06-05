@@ -14,7 +14,7 @@ const ModalAgregarMicrocuenca = ({ show, handleClose, external_id }) => {
       centered
       dialogClassName="modal-estacion"
     >
-      <Modal.Header closeButton>
+      <Modal.Header className="modal-header" closeButton>
         <Modal.Title>
           {external_id ? 'Editar Microcuenca' : 'Agregar Microcuenca'}
         </Modal.Title>
@@ -26,6 +26,7 @@ const ModalAgregarMicrocuenca = ({ show, handleClose, external_id }) => {
           onClose={handleClose}
         />
       </Modal.Body>
+      <Modal.Footer className="modal-footer" />
     </Modal>
   );
 };

@@ -10,8 +10,6 @@ import Footer from './Footer';
 import { ObtenerGet, URLBASE } from '../hooks/Conexion';
 import { Dropdown, FormControl, InputGroup } from 'react-bootstrap';
 import swal from 'sweetalert';
-
-// Importa tu modal
 import ModalAgregarMicrocuenca from './ModalAgregarMicrocuenca';
 
 const ListaMicrocuencas = () => {
@@ -132,13 +130,14 @@ const ListaMicrocuencas = () => {
 
                         {mostrarActivos && (
                             <button className="btn-registrar" onClick={handleAddShow}>
-                                Agregar Microcuenca
+                                <i class="bi bi-clipboard2-plus me-2"></i>
+                                Agregar
                             </button>
                         )}
                     </div>
                 </div>
 
-                <InputGroup className="mb-3">
+                <InputGroup className="buscar-input mb-3 input-group-custom">
                     <InputGroup.Text>
                         <i className="bi bi-search"></i>
                     </InputGroup.Text>
@@ -170,7 +169,7 @@ const ListaMicrocuencas = () => {
                                     />
                                     <div className="card-body">
                                         <div className="d-flex justify-content-between">
-                                            <h5><strong>{mc.name}</strong></h5>
+                                            <h5 className='titulo-microcuenca'>{mc.name}</h5>
                                             <Dropdown onClick={e => e.stopPropagation()}>
                                                 <Dropdown.Toggle variant="light" size="sm">
                                                     <i class="bi bi-sliders"></i>

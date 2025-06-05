@@ -115,3 +115,53 @@ main.perfil-card {
 .password-section .form-group {
   flex: 1 1 30%;
 }
+
+@media screen and (max-width: 768px) {
+  main.perfil-card {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .img-fluid {
+    width: 150px;
+    height: 150px;
+  }
+
+  .perfil-form {
+    flex-direction: column;
+  }
+
+  .form-group {
+    flex: 1 1 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  .password-section .form-group {
+    flex: 1 1 100%;
+  }
+
+  .profile-section, .password-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .password-section h3 {
+    font-size: 1.2rem; 
+  }
+
+  .form-group input {
+    font-size: 0.85rem;
+    padding: 0.375rem; 
+  }
+
+  .form-group label {
+    font-size: 0.85rem; 
+  }
+}

@@ -1,0 +1,13 @@
+.table-custom {
+    font-size: 1rem; 
+}
+
+@media screen and (max-width: 768px) {
+    .table-custom {
+        font-size: 0.6rem;
+    }
+
+    .table-custom th, .table-custom td {
+        padding: 8px;
+    }
+}

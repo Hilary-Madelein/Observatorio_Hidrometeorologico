@@ -114,13 +114,14 @@ const ListaAdministradores = () => {
             </Button>
             {mostrarActivos && (
               <Button className='btn-registrar' onClick={() => { setSelectedAdmin(null); setShowAdd(true); }}>
-                Agregar Admin
+                <i class="bi bi-clipboard2-plus me-2"></i>
+                Agregar
               </Button>
             )}
           </div>
         </div>
 
-        <InputGroup className='mb-3'>
+        <InputGroup className='buscar-input mb-3 input-group-custom'>
           <InputGroup.Text><i className='bi bi-search'></i></InputGroup.Text>
           <FormControl placeholder='Buscar por nombre, email...' value={searchTerm} onChange={handleSearchChange} />
         </InputGroup>
@@ -129,7 +130,7 @@ const ListaAdministradores = () => {
           <p className='text-center text-muted'>No hay registros.</p>
         ) : (
           <div className='table-responsive'>
-            <Table striped bordered hover className='text-center align-middle'>
+            <Table striped bordered hover className='text-center align-middle table-custom'>
               <thead className='table-light'>
                 <tr>
                   <th>Avatar</th>

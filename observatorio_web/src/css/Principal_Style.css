@@ -208,6 +208,50 @@
     .titulo-principal {
         font-size: 16px;
     }
+
+    .titulo-admin {
+        font-size: 16px;
+    }
+
+    .titulo-admin::before {
+        height: 55%;
+    }
+
+    .btn-registrar {
+        font-size: 0.5rem;
+    }
+
+    .btn-acceder {
+        font-size: 0.5rem !important;
+    }
+
+    .btn-outline-secondary {
+        font-size: 0.7rem;
+    }
+
+    .input-group-custom {
+        font-size: 0.6rem;
+    }
+
+    .input-group-custom .input-group-text {
+        font-size: 0.5rem;
+        padding: 10px;
+    }
+
+    .input-group-custom .form-control {
+        font-size: 0.6rem;
+        padding: 10px;
+    }
+    
+    .input-group-custom .input-group {
+        width: 100%; 
+        display: flex;
+        flex-direction: row; 
+    }
+
+    .input-group-custom .form-control {
+        flex: 1;
+    }
 }
 
 @media (max-width: 1800px) {

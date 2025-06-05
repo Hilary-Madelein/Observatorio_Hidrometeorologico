@@ -15,7 +15,7 @@ const ModalAgregarVariable = ({ show, handleClose, external_id_variable }) => {
       centered
       dialogClassName="modal-estacion"
     >
-      <Modal.Header className="modal-header">
+      <Modal.Header className="modal-header" closeButton>
         <Modal.Title className="modal-title">
           {esEdicion ? 'Editar variable' : 'Agregar variable'}
         </Modal.Title>

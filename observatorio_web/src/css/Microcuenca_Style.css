@@ -42,10 +42,32 @@
     margin-bottom: 10px;
   }
   
-
-@media screen and (max-width: 768px) {
-    main.table {
+  @media screen and (max-width: 1200px) {
+    .container-microcuenca {
+      margin: 20px 10px; 
+      padding: 15px; 
+  }
+  
+    .card-microcuenca {
         width: 100%;
-        height: auto;
+    }
+}
+
+  @media screen and (max-width: 768px) {
+    .container-microcuenca {
+        margin: 20px 10px; 
+        padding: 15px; 
+    }
+
+    .card-microcuenca {
+        width: 100%;
+    }
+
+    .img-microcuenca {
+        height: 100px; 
+    }
+
+    .titulo-microcuenca {
+        font-size: 0.8rem !important; 
     }
 }

@@ -16,7 +16,7 @@ const ModalAgregarEstacion = ({ show, handleClose, external_id_estacion }) => {
       centered
       dialogClassName="modal-estacion"
     >
-      <Modal.Header className="modal-header">
+      <Modal.Header className="modal-header" closeButton>
         <Modal.Title className="modal-title">
           {esEdicion ? 'Editar estación' : 'Agregar estación'}
         </Modal.Title>

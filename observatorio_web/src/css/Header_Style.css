@@ -88,10 +88,7 @@
   }
 
   .titulo {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 14px;
+    display: none;
   }
 
   .icons {
@@ -137,6 +134,7 @@
     display: block;
     margin: 12px 0;
     font-size: 1rem;
+    z-index: 1000;
   }
 }
 

@@ -107,39 +107,53 @@ export default function AgregarAdmin({ external_id_admin, onSaved }) {
       <div className="col-12 form-group mb-3">
         <label><strong style={{ color: 'red' }}>* </strong>Nombres</label>
         <input
-          {...register('nombres', { required: 'Requerido' })}
+          {...register('nombres', { required: 'Ingrese un nombre',
+            pattern: {
+                value: /^(?!\s*$)[a-zA-Z\s]+(?<![<>])$/,
+                message: "Ingrese un nombre correcto"
+            } })}
           className="form-control form-control-user"
         />
-        {errors.nombres && <small className='text-danger'>{errors.nombres.message}</small>}
+        {errors.nombres && <small className='alert alert-danger'>{errors.nombres.message}</small>}
       </div>
 
       <div className="form-group mb-3">
         <label><strong style={{ color: 'red' }}>* </strong>Apellidos</label>
         <input
-          {...register('apellidos', { required: 'Requerido' })}
+          {...register('apellidos', { required: 'Ingrese un nombre',
+            pattern: {
+                value: /^(?!\s*$)[a-zA-Z\s]+(?<![<>])$/,
+                message: "Ingrese un nombre correcto"
+            } })}
           className="form-control form-control-user"
         />
-        {errors.apellidos && <small className='text-danger'>{errors.apellidos.message}</small>}
+        {errors.apellidos && <small className='alert alert-danger'>{errors.apellidos.message}</small>}
       </div>
 
       <div className="form-group mb-3">
         <label><strong style={{ color: 'red' }}>* </strong>Teléfono</label>
         <input
-          {...register('telefono')}
+          {...register('telefono', {
+            required: 'Ingrese un telefono', pattern: {
+                value: /^-?\d+(\.\d+)?$/,
+                message: 'Ingrese un número correcto'
+            }
+        })}
           className="form-control form-control-user"
         />
+        {errors.telefono && <small className='alert alert-danger'>{errors.telefono.message}</small>}
       </div>
 
       <div className="form-group mb-3">
         <label><strong style={{ color: 'red' }}>* </strong>Correo</label>
         <input
           {...register('correo', {
-            required: 'Requerido',
+            required: 'Ingrese un correo',
             pattern: { value: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, message: 'Email inválido' }
           })}
           className="form-control form-control-user"
         />
-        {errors.correo && <small className='text-danger'>{errors.correo.message}</small>}
+        {errors.correo && <small className='alert alert-danger'>{errors.correo.message}</small>}
       </div>
 
       {!modoEdicion && (
@@ -147,10 +161,10 @@ export default function AgregarAdmin({ external_id_admin, onSaved }) {
           <label><strong style={{ color: 'red' }}>* </strong>Clave</label>
           <input
             type="password"
-            {...register('clave', { required: 'Requerido', minLength: { value: 6, message: 'Mínimo 6 caracteres' } })}
+            {...register('clave', { required: 'Ingrese una clave', minLength: { value: 6, message: 'Mínimo 6 caracteres' } })}
             className="form-control form-control-user"
           />
-          {errors.clave && <small className='text-danger'>{errors.clave.message}</small>}
+          {errors.clave && <small className='alert alert-danger'>{errors.clave.message}</small>}
         </div>
       )}
 
