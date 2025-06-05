@@ -5,6 +5,7 @@ import { FormControl, InputGroup, Table, Pagination } from 'react-bootstrap';
 import swal from 'sweetalert';
 import Header from './Header';
 import Footer from './Footer';
+import '../css/Table_Style.css';
 import ModalAgregarVariable from './ModalAgregarVariable';
 import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes from '../utils/Mensajes';
@@ -40,35 +41,36 @@ const ListaVariables = () => {
 
     const cargarDatos = useCallback(() => {
         const ruta = mostrarActivos
-          ? '/listar/tipo_medida'
-          : '/listar/tipo_medida/desactivos';
-      
+            ? '/listar/tipo_medida'
+            : '/listar/tipo_medida/desactivos';
+
         (async () => {
-          try {
-            const info = await ObtenerGet(getToken(), ruta);
-      
-            if (info.code === 200) {
-              if (Array.isArray(info.info)) {
-                setVariables(info.info);
-              } else {
-                mensajes('No se encontraron tipos de medida válidos', 'info', 'Información');
-                setVariables([]);
-              }
-      
-            } else if (info.msg === 'Acceso denegado. Token ha expirado') {
-              mensajes(info.msg, 'error', 'Error');
-              borrarSesion();
-              navegation('/admin');
-      
-            } else {
-              mensajes(info.msg || 'Error desconocido cargando tipos de medida', 'error', 'Error');
+            try {
+                const info = await ObtenerGet(getToken(), ruta);
+
+                if (info.code === 200) {
+                    if (Array.isArray(info.info)) {
+                        setVariables(info.info);
+                    } else {
+                        mensajes('No se encontraron tipos de medida válidos', 'info', 'Información');
+                        setVariables([]);
+                    }
+
+                } else if (info.msg === 'Acceso denegado. Token ha expirado') {
+                    mensajes(info.msg, 'error', 'Error');
+                    borrarSesion();
+                    navegation('/admin');
+
+                } else {
+                    mensajes(info.msg || 'Error desconocido cargando tipos de medida', 'error', 'Error');
+                }
+
+            } catch (error) {
+                console.error('Error cargando tipos de medida:', error);
+                mensajes('Error cargando tipos de medida. Intente de nuevo más tarde.', 'error', 'Error');
             }
-      
-          } catch (error) {
-            console.error('Error cargando tipos de medida:', error);
-          }
         })();
-      }, [mostrarActivos, navegation]);     
+    }, [mostrarActivos, navegation]);
 
 
     useEffect(() => {
@@ -154,20 +156,21 @@ const ListaVariables = () => {
             <Header />
             <div className="container-microcuenca shadow-lg rounded p-5">
                 <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                    <h1 className='titulo-admin'>Variables hidrometeorológicas {mostrarActivos ? 'activas' : 'inactivas'}</h1>
+                    <h1 className='titulo-admin'>Variables {mostrarActivos ? 'activas' : 'inactivas'}</h1>
                     <div className="d-flex ms-auto flex-wrap align-items-center gap-2">
                         <button className="btn btn-outline-secondary" onClick={() => setMostrarActivos(!mostrarActivos)}>
                             {mostrarActivos ? 'Ver inactivas' : 'Ver activas'}
                         </button>
                         {mostrarActivos && (
                             <button type="button" className="btn btn-registrar" onClick={handleShow}>
-                                AGREGAR VARIABLE
+                                <i class="bi bi-clipboard2-plus me-2"></i>
+                                Agregar
                             </button>
                         )}
                     </div>
                 </div>
 
-                <InputGroup className="mb-3">
+                <InputGroup className="buscar-input mb-3 input-group-custom">
                     <InputGroup.Text>
                         <i className="bi bi-search"></i>
                     </InputGroup.Text>
@@ -184,7 +187,7 @@ const ListaVariables = () => {
                         No existen registros.</p>
                 ) : (
                     <div className="table-responsive">
-                        <Table striped bordered hover className="text-center align-middle">
+                        <Table striped bordered hover className="text-center align-middle table-custom">
                             <thead className="table-light">
                                 <tr>
                                     <th>Icono</th>
@@ -227,6 +230,7 @@ const ListaVariables = () => {
                                 ))}
                             </tbody>
                         </Table>
+
                         <div className="d-flex justify-content-end">
                             {renderPagination()}
                         </div>

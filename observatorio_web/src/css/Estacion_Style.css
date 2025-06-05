@@ -5,14 +5,18 @@
   }
 
   .card-estacion-horizontal {
+    flex: 1 1 calc(50% - 20px);
     border-radius: 10px;
     overflow: hidden;
     background-color: #fff;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
     height: 150px;
+    width: 100%;
     transition: transform 0.2s;
     display: flex;
     flex-direction: row;
+    margin-bottom: 20px;
+    margin-right: 20px;
   }
   
   .card-estacion-horizontal:hover {
@@ -26,19 +30,12 @@
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
   }
-  
-  .titulo-estacion {
-    font-weight: 700;
-    font-size: 1rem;
-    color: #0C2840;
-  }
 
   /* Responsividad */
 @media (max-width: 1200px) {
   .card-estacion-horizontal {
-    flex-direction: column;
-    height: auto;
-  }
+    flex: 1 1 100%;
+}
   
   .img-estacion-horizontal {
     width: 100px;

@@ -166,7 +166,7 @@ export default function Perfil() {
               {editMode && (
                 <>
                   <button type='button' className='btn-registrar w-100 mb-1' onClick={() => fileInputRef.current.click()}>
-                    <i className='bx bx-camera me-1'></i> Cambiar Foto
+                    <i className='bx bx-camera me-1'></i> Seleccionar
                   </button>
                   {fotoFile && (
                     <button type='button' className='btn-cancelar-modal w-100' onClick={eliminarFoto}>

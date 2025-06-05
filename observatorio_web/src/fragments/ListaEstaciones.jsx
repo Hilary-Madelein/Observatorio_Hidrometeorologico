@@ -132,12 +132,13 @@ const ListaEstaciones = () => {
             </button>
 
             <button className="btn-registrar" onClick={handleAddShow}>
-              Agregar Estación
+            <i class="bi bi-clipboard2-plus me-2"></i>
+              Agregar
             </button>
           </div>
         </div>
 
-        <InputGroup className="mb-3">
+        <InputGroup className="buscar-input mb-3 input-group-custom">
           <InputGroup.Text>
             <i className="bi bi-search"></i>
           </InputGroup.Text>
@@ -169,7 +170,7 @@ const ListaEstaciones = () => {
                   />
                   <div className="card-body px-3 flex-grow-1">
                     <div className="d-flex justify-content-between align-items-center">
-                      <h6 className="titulo-estacion mb-0">{est.name}</h6>
+                      <h6 className="titulo-microcuenca">{est.name}</h6>
                       <Dropdown onClick={e => e.stopPropagation()}>
                         <Dropdown.Toggle variant="light" size="sm">
                           <i class="bi bi-sliders"></i>

@@ -89,3 +89,43 @@
     background-color: #83ff9e !important;
     color: #000;
 }
+
+@media (max-width: 576px) {
+    .modal-estacion .modal-dialog {
+        max-width: 100%; /* Ajusta el modal para que ocupe el 100% en pantallas pequeñas */
+    }
+
+    .modal-estacion .btn-preview,
+    .modal-estacion .btn-delete {
+        font-size: 0.75rem; /* Reduce el tamaño de la fuente */
+        padding: 0.25rem 0.5rem; /* Reduce el padding de los botones */
+    }
+
+    .btn-Modal {
+        font-size: 0.75rem !important; /* Reduce el tamaño de la fuente de los botones */
+    }
+
+    .btn-cancelar-modal,
+    .btn-registrar-modal {
+        font-size: 0.75rem !important; /* Reduce el tamaño de la fuente de los botones */
+        padding: 0.375rem 0.75rem; /* Ajusta el padding */
+    }
+
+    .modal-estacion .form-control {
+        font-size: 0.85rem; /* Reduce el tamaño de la fuente en inputs */
+        padding: 0.5rem; /* Ajusta el padding de los inputs */
+    }
+
+    .modal-estacion .modal-title {
+        font-size: 1rem; /* Ajusta el tamaño del título en el modal */
+    }
+
+    .modal-estacion textarea.form-control {
+        font-size: 0.85rem; /* Reduce el tamaño de la fuente en el área de texto */
+        padding: 0.5rem; /* Ajusta el padding en el área de texto */
+    }
+
+    .container-modal {
+        font-size: 0.85rem; /* Ajusta el tamaño de la fuente en el contenedor del modal */
+    }
+}
