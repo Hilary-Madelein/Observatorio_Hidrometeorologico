@@ -110,7 +110,7 @@ const ListaEstaciones = () => {
             onClick={() => navigate(-1)}
             style={{ cursor: 'pointer', fontSize: '22px', color: '#0C2840' }}
           ></i>
-          <h1 className="titulo-admin">Estaciones Registradas</h1>
+          <h1 className="titulo-admin">Estaciones</h1>
 
           <div className="d-flex ms-auto flex-wrap align-items-center gap-2">
             <button

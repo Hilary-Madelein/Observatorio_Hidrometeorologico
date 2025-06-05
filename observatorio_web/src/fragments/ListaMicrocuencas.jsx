@@ -118,7 +118,7 @@ const ListaMicrocuencas = () => {
             <Header />
             <div className="container-microcuenca shadow-lg rounded p-5">
                 <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                    <h1 className="titulo-admin">Microcuencas Registradas {mostrarActivos ? '(Activas)' : '(Inactivas)'}</h1>
+                    <h1 className="titulo-admin">Microcuencas {mostrarActivos ? '(Activas)' : '(Inactivas)'}</h1>
 
                     <div className="d-flex ms-auto flex-wrap align-items-center">
                         <button
