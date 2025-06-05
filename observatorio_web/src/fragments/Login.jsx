@@ -54,7 +54,7 @@ const Login = () => {
                     <div className="login-left position-relative">
                         <div className="login-overlay d-flex flex-column justify-content-between">
                             <div className="d-flex align-items-center">
-                                <img src="img/unl.png" alt="Logo UNL" style={{ width: '450px' }} />
+                                <img src="/hid/img/unl.png" alt="Logo UNL" style={{ width: '450px' }} />
                             </div>
                         </div>
                     </div>

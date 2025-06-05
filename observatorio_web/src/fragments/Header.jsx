@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // <-- importamos Link
+import { useNavigate, Link } from 'react-router-dom';
 import { borrarSesion } from '../utils/SessionUtil';
 import '../css/Header_Style.css';
 import 'boxicons';
@@ -10,7 +10,6 @@ const Header = () => {
 
   const handleClick = () => {
     borrarSesion();
-    // Si navegas con navigate('/admin'), React Router lo convertirá en '/hid/admin'
     navigate('/admin');
   };
 
@@ -19,9 +18,8 @@ const Header = () => {
   return (
     <header className="header">
       <div className="logo-container">
-        {/* Si quieres que la imagen cargue bien con basename="/hid", usa PUBLIC_URL */}
         <img
-          src={process.env.PUBLIC_URL + '/img/Recurso 12.svg'}
+          src={'/hid/img/Recurso 12.svg'}
           alt="Logo Monitor"
           className="logo"
         />

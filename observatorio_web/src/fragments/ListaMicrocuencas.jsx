@@ -65,7 +65,6 @@ const ListaMicrocuencas = () => {
       
           } catch (error) {
             console.error('Error cargando microcuencas:', error);
-            mensajes('Error cargando microcuencas', 'error', 'Error');
           }
         })();
       }, [mostrarActivos, navigate]);

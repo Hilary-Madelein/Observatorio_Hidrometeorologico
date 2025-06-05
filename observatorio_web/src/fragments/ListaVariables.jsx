@@ -66,7 +66,6 @@ const ListaVariables = () => {
       
           } catch (error) {
             console.error('Error cargando tipos de medida:', error);
-            mensajes('Error cargando tipos de medida. Intente de nuevo más tarde.', 'error', 'Error');
           }
         })();
       }, [mostrarActivos, navegation]);     

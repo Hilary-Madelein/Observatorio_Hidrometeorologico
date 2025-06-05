@@ -81,7 +81,6 @@ const ListaEstaciones = () => {
   
       } catch (err) {
         console.error('Error cargando estaciones:', err);
-        mensajes('Error cargando estaciones. Intente de nuevo más tarde.', 'error', 'Error');
       }
     };
   

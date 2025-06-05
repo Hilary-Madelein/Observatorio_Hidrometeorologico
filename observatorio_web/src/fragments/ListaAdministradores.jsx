@@ -42,7 +42,6 @@ const ListaAdministradores = () => {
       }
     } catch (err) {
       console.error(err);
-      mensajes('Error cargando administradores', 'error');
     }
   }, [mostrarActivos, navigate]);
 
