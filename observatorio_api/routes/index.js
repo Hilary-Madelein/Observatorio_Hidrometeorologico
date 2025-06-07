@@ -48,7 +48,7 @@ mqttClient.on('connect', async () => {
         json: body => { throw new Error(body.msg || 'Error listing stations'); }
       })
     };
-    await stationController.list(fakeReq, fakeRes);
+    await stationController.listActive(fakeReq, fakeRes);
 
     estaciones.forEach(({ id_device }) => {
       const topic = topicTemplate.replace('{id}', id_device);

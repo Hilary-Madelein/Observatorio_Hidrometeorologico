@@ -35,7 +35,7 @@
 }
 
 .logo-cis {
-    width: 600px;
+    width: 400px;
 }
 
 .btn-principal {
@@ -131,7 +131,7 @@
 .btn-registrar {
     background-color: #0C2840 !important;
     color: #ffffff;
-    font-size: 0.8rem;
+    font-size: 0.6rem;
     font-weight: 600;
     padding: 10px 24px;
     border: none;
@@ -169,6 +169,10 @@
 .btn-acceder:hover {
     background-color: #85ceff;
     color: #000;
+}
+
+.btn-outline-secondary {
+    font-size: 0.8rem;
 }
 
 .footer-content {
@@ -210,7 +214,7 @@
     }
 
     .titulo-admin {
-        font-size: 16px;
+        font-size: 14px;
     }
 
     .titulo-admin::before {
