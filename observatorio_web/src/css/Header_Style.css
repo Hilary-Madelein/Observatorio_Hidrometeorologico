@@ -32,7 +32,7 @@
 
 .navbar a {
   position: relative;
-  font-size: 16px;
+  font-size: 13px;
   color: #e4e4e4 !important;
   text-decoration: none;
   font-weight: 600;
@@ -76,7 +76,7 @@
 /* Responsive */
 @media (max-width: 890px) {
   .header {
-    padding: 16px 5%;
+    padding: 10px 5%;
     flex-wrap: nowrap;
     position: relative; 
   }

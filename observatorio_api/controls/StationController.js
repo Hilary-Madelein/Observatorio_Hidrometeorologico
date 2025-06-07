@@ -377,32 +377,62 @@ class StationController {
 
     async changeStatus(req, res) {
         try {
-
             const external_id = req.body.external_id;
-
+    
             const estacion = await Station.findOne({
                 where: { external_id }
             });
-
+    
             if (!estacion) {
                 return res.status(404).json({ msg: "Estación no encontrada", code: 404 });
             }
-
-            estacion.status = req.body.estado;
-
+    
+            const estadoMap = req.body.estado.replace(/ /g, '_');
+    
+            const validStates = ['OPERATIVA', 'NO_OPERATIVA', 'MANTENIMIENTO'];
+            if (!validStates.includes(estadoMap)) {
+                return res.status(400).json({ msg: "Estado no válido", code: 400 });
+            }
+    
+            estacion.status = estadoMap;
             await estacion.save();
-
+    
+            if (estacion.status === 'NO_OPERATIVA' || estacion.status === 'MANTENIMIENTO') {
+                const topic = topicTemplate.replace('{id}', estacion.id_device);
+                if (mqttClient.connected) {
+                    mqttClient.unsubscribe(topic, (err) => {
+                        if (err) {
+                            console.error("Error al desuscribirse del tópico:", err);
+                        } else {
+                            console.log(`Desuscripción exitosa del tópico: ${topic}`);
+                        }
+                    });
+                }
+            } else {
+                const topic = topicTemplate.replace('{id}', estacion.id_device);
+                if (mqttClient.connected) {
+                    mqttClient.subscribe(topic, (err) => {
+                        if (err) {
+                            console.error("Error al suscribirse al tópico:", err);
+                        } else {
+                            console.log(`Suscripción exitosa al tópico: ${topic}`);
+                        }
+                    });
+                }
+            }
+    
             return res.status(200).json({
                 msg: `Estado actualizado correctamente. Nuevo estado: ${estacion.status}`,
                 code: 200,
                 info: { external_id, nuevo_estado: estacion.status }
             });
-
+    
         } catch (error) {
             console.error("Error al cambiar el estado:", error);
             return res.status(500).json({ msg: "Error interno del servidor", code: 500 });
         }
     }
+    
 
 }
 
