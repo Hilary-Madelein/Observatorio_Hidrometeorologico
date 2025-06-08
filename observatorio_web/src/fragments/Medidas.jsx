@@ -17,48 +17,48 @@ function Medidas() {
 
     useEffect(() => {
         const fetchData = async () => {
-          setLoading(true);
-          try {
-            const [medidasRes, fenomenosRes] = await Promise.all([
-              ObtenerGet(getToken(), '/listar/ultima/medida'),
-              ObtenerGet(getToken(), '/listar/tipo_medida')
-            ]);
-      
-            if (medidasRes.code !== 200) {
-              mensajes(medidasRes.msg || 'Error al obtener última medida', 'error', 'Error');
-              setVariables([]);
-              return;
+            setLoading(true);
+            try {
+                const [medidasRes, fenomenosRes] = await Promise.all([
+                    ObtenerGet(getToken(), '/listar/ultima/medida'),
+                    ObtenerGet(getToken(), '/listar/tipo_medida')
+                ]);
+
+                if (medidasRes.code !== 200) {
+                    mensajes(medidasRes.msg || 'Error al obtener última medida', 'error', 'Error');
+                    setVariables([]);
+                    return;
+                }
+                if (fenomenosRes.code !== 200) {
+                    mensajes(fenomenosRes.msg || 'Error al obtener tipos de fenómeno', 'error', 'Error');
+                    setVariables([]);
+                    return;
+                }
+
+                const medidas = medidasRes.info;
+                const tiposFenomenos = fenomenosRes.info;
+                const medidasProcesadas = procesarMedidas(medidas, tiposFenomenos);
+                setVariables(medidasProcesadas);
+
+            } catch (error) {
+                console.error('Error al obtener datos:', error);
+                mensajes('Error de conexión con el servidor', 'error', 'Error');
+                setVariables([]);
+            } finally {
+                setLoading(false);
             }
-            if (fenomenosRes.code !== 200) {
-              mensajes(fenomenosRes.msg || 'Error al obtener tipos de fenómeno', 'error', 'Error');
-              setVariables([]);
-              return;
-            }
-      
-            const medidas = medidasRes.info;
-            const tiposFenomenos = fenomenosRes.info;
-            const medidasProcesadas = procesarMedidas(medidas, tiposFenomenos);
-            setVariables(medidasProcesadas);
-      
-          } catch (error) {
-            console.error('Error al obtener datos:', error);
-            mensajes('Error de conexión con el servidor', 'error', 'Error');
-            setVariables([]);
-          } finally {
-            setLoading(false);
-          }
         };
-      
+
         fetchData();
-      
+
         // configuración del socket 
         socketRef.current = io(URLBASE);
         socketRef.current.on('new-measurements', fetchData);
-      
+
         return () => {
-          socketRef.current.disconnect();
+            socketRef.current.disconnect();
         };
-      }, []);      
+    }, []);
 
     const procesarMedidas = (medidas, fenomenos) => {
         const agrupadas = {};
@@ -120,16 +120,16 @@ function Medidas() {
                             </div>
                             <div className="contenido-card">
                                 <h5 className="titulo-variables">{variable.nombre} <span className="unidad-medida">({variable.unidad})</span></h5>
-                                <div className="estaciones-container">
-                                    {variable.estaciones.map((estacion, idx) => (
-                                        <p key={idx} className="estacion-info">
-                                            <span className="estacion-nombre">{estacion.nombre}: </span>
-                                            <span className="estacion-valor">
-                                                {estacion.valor} {variable.unidad}
-                                            </span>
-                                        </p>
-                                    ))}
-                                </div>
+
+                                {variable.estaciones.map((estacion, idx) => (
+                                    <p key={idx} className="estacion-info">
+                                        <span className="estacion-nombre">{estacion.nombre}: </span>
+                                        <span className="estacion-valor">
+                                            {estacion.valor} {variable.unidad}
+                                        </span>
+                                    </p>
+                                ))}
+
                             </div>
                         </div>
                     ))}

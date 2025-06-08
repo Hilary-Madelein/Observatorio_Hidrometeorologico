@@ -112,7 +112,9 @@ export default function Perfil() {
         }, 1500);
       } else {
         mensajes(res.msg, 'error');
-        if (res.msg === 'Acceso denegado. Token ha expirado') borrarSesion();
+        if (res.msg === 'Acceso denegado. Token ha expirado')
+          navigate('/admin');
+          borrarSesion();
       }
     } catch (err) {
       console.error(err);

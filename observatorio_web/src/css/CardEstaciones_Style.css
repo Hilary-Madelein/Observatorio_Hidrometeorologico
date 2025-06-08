@@ -24,7 +24,8 @@
     width: 40%;
     height: 100%;
     overflow-y: auto;
-}
+    overflow-x: hidden;
+  }  
 
 .modern-card {
     width: 90%;
@@ -33,7 +34,7 @@
     border-radius: 6px;
     border: solid 1px #e0e0e0;
     background-color: #ffffff;
-    box-shadow: #0000006b 0px 3px 4px;
+    box-shadow: #00000041 0px 3px 4px;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     display: flex;
     flex-direction: row;         
@@ -265,6 +266,7 @@
         flex-direction: column;
         max-width: auto;
         height: 550px;
+        margin-top: 10px;
     }
 
     .map-container {

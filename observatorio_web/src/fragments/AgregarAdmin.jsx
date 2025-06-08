@@ -123,7 +123,7 @@ export default function AgregarAdmin({ external_id_admin, onSaved }) {
           {...register('apellidos', { required: 'Ingrese un nombre',
             pattern: {
                 value: /^(?!\s*$)[a-zA-Z\s]+(?<![<>])$/,
-                message: "Ingrese un nombre correcto"
+                message: "Ingrese un apellido correcto"
             } })}
           className="form-control form-control-user"
         />

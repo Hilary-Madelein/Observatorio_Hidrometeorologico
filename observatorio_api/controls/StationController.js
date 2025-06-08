@@ -38,28 +38,48 @@ class StationController {
 
     async listByMicrobasinAndStatus(req, res) {
         const { external_id, estado } = req.params;
-
+    
         try {
             const microbasin = await Microbasin.findOne({ where: { external_id } });
-
+    
             if (!microbasin) {
                 return res.status(404).json({ msg: 'Microcuenca no encontrada', code: 404 });
             }
-
+    
             const estaciones = await Station.findAll({
                 where: {
                     id_microbasin: microbasin.id,
                     status: estado.toUpperCase()
                 },
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+                attributes: [
+                    'name',
+                    'external_id',
+                    'picture',
+                    'longitude',
+                    'latitude',
+                    'altitude',
+                    'status',
+                    'type',
+                    'id_device',
+                    'description'
+                ]
             });
-
-            return res.status(200).json({ msg: 'OK!', code: 200, info: estaciones });
+    
+            return res.status(200).json({
+                msg: 'OK!',
+                code: 200,
+                info: {
+                    microcuenca: microbasin.name,
+                    estaciones: estaciones
+                }
+            });
+    
         } catch (error) {
             console.error('Error filtrando estaciones:', error);
             return res.status(500).json({ msg: 'Error interno del servidor', code: 500 });
         }
     }
+    
 
     async getByMicrobasinParam(req, res) {
         const external = req.params.external;

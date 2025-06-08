@@ -298,25 +298,39 @@ class MicrobasinController {
     async changeStatus(req, res) {
         try {
             const external_id = req.params.external_id;
-
-            const microbasin = await Microbasin.findOne({
-                where: { external_id }
-            });
-
+    
+            const microbasin = await Microbasin.findOne({ where: { external_id } });
+    
             if (!microbasin) {
                 return res.status(404).json({ msg: "Microcuenca no encontrada", code: 404 });
             }
-
-
+    
+            if (microbasin.status === true) {
+                const estacionesActivas = await Station.findAll({
+                    where: {
+                        id_microbasin: microbasin.id,
+                        status: 'OPERATIVA'
+                    }
+                });
+    
+                if (estacionesActivas.length > 0) {
+                    return res.status(400).json({
+                        msg: "No se puede desactivar la microcuenca porque tiene estaciones activas asociadas. Desactive primero las estaciones.",
+                        code: 400,
+                        info: { estaciones_activas: estacionesActivas.length }
+                    });
+                }
+            }
+    
             microbasin.status = !microbasin.status;
             await microbasin.save();
-
+    
             return res.status(200).json({
                 msg: `Estado actualizado correctamente. Nuevo estado: ${microbasin.status ? 'ACTIVO' : 'INACTIVO'}`,
                 code: 200,
                 info: { external_id, nuevo_estado: microbasin.status }
             });
-
+    
         } catch (error) {
             console.error("Error al cambiar el estado:", error);
             return res.status(500).json({ msg: "Error interno del servidor", code: 500 });
