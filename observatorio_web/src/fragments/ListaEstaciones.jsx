@@ -17,6 +17,7 @@ const ListaEstaciones = () => {
   const navigate = useNavigate();
   const { external_id } = useParams();
   const [data, setData] = useState([]);
+  const [nombreMicrocuenca, setNombreMicrocuenca] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [estadoFiltro, setEstadoFiltro] = useState('OPERATIVA');
 
@@ -60,32 +61,32 @@ const ListaEstaciones = () => {
   useEffect(() => {
     const fetchEstaciones = async () => {
       if (!external_id) return;
-  
+
       const ruta = `/listar/estacion/${estadoFiltro}/${external_id}`;
-  
+
       try {
         const info = await ObtenerGet(getToken(), ruta);
-  
+
         if (info.code === 200) {
-          setData(Array.isArray(info.info) ? info.info : []);
-  
+          const { microcuenca, estaciones } = info.info;
+          setNombreMicrocuenca(microcuenca || '');
+          setData(Array.isArray(estaciones) ? estaciones : []);
         } else if (info.msg === 'Acceso denegado. Token ha expirado') {
-          // Token expirado
           mensajes(info.msg, 'error', 'Error');
           borrarSesion();
           navigate('/admin');
-  
         } else {
           mensajes(info.msg || 'Error al cargar estaciones', 'error');
         }
-  
+
+
       } catch (err) {
         console.error('Error cargando estaciones:', err);
       }
     };
-  
+
     fetchEstaciones();
-  }, [estadoFiltro, external_id, navigate]);  
+  }, [estadoFiltro, external_id, navigate]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -109,7 +110,8 @@ const ListaEstaciones = () => {
             onClick={() => navigate(-1)}
             style={{ cursor: 'pointer', fontSize: '22px', color: '#0C2840' }}
           ></i>
-          <h1 className="titulo-admin">Estaciones</h1>
+          <h1 className="titulo-admin">Estaciones de {nombreMicrocuenca}</h1>
+
 
           <div className="d-flex ms-auto flex-wrap align-items-center gap-2">
             <button
@@ -132,7 +134,7 @@ const ListaEstaciones = () => {
             </button>
 
             <button className="btn-registrar" onClick={handleAddShow}>
-            <i class="bi bi-clipboard2-plus me-2"></i>
+              <i class="bi bi-clipboard2-plus me-2"></i>
               Agregar
             </button>
           </div>

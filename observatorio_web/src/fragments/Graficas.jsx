@@ -104,7 +104,7 @@ export default function Graficas({ filtro }) {
           <div className="card-body justify-content-center align-items-center">
             <i className="bi bi-info-circle-fill text-info" style={{ fontSize: '2rem' }} />
             <h5 className="card-title mt-2">¡Atención!</h5>
-            <p className="text-muted mb-0 ">
+            <p className="text-muted mb-0 mt-2 text-center">
               Para visualizar información en las gráficas, por favor configure el filtro.
             </p>
           </div>
@@ -112,8 +112,9 @@ export default function Graficas({ filtro }) {
       </div>
     );
   }
-
+  
   const isRaw = datosGrafica.length > 0 && datosGrafica[0].hasOwnProperty('valor');
+
   const estacionesUnicas = Array.from(new Set(datosGrafica.map((d) => d.estacion)));
 
   const prepararDatosPorMedida = (medida, datosFiltrados, idxColor) => {
@@ -127,56 +128,33 @@ export default function Graficas({ filtro }) {
       const labelsUnicos = new Set(
         datosFiltrados.map((d) => {
           const fecha = new Date(d.hora);
-          if (filtro.tipo === 'diaria') {
-            return fecha.toLocaleString('es-ES', {
-              day: '2-digit',
-              month: 'short',
-              hour: '2-digit',
-              minute: '2-digit',
-            });
-          } else {
-            return fecha.toLocaleTimeString('es-ES', {
-              hour: '2-digit',
-              minute: '2-digit',
-            });
-          }
+          return fecha.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+
         })
       );
 
       const labels = Array.from(labelsUnicos).sort((a, b) => {
-        const fechaA =
-          filtro.tipo === 'diaria'
-            ? new Date(
-                a.replace(',', '')
-              )
-            : new Date(`1970-01-01 ${a}`); 
-        const fechaB =
-          filtro.tipo === 'diaria'
-            ? new Date(b.replace(',', ''))
-            : new Date(`1970-01-01 ${b}`);
+        const fechaA = new Date(`1970-01-01T${a}`);
+        const fechaB = new Date(`1970-01-01T${b}`);
         return fechaA - fechaB;
       });
+
+
       const color = chartColors[idxColor % chartColors.length];
       const dataset = {
         label: formatName(medida),
         data: labels.map((lbl) => {
           const rec = datosFiltrados.find((d) => {
             const fecha = new Date(d.hora);
-            if (filtro.tipo === 'diaria') {
-              const check = fecha.toLocaleString('es-ES', {
-                day: '2-digit',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-              return check === lbl && d.tipo_medida === medida;
-            } else {
-              const check = fecha.toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-              return check === lbl && d.tipo_medida === medida;
-            }
+            const check = fecha.toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+            return check === lbl && d.tipo_medida === medida;
+
           });
           return rec ? parseFloat(rec.valor) : null;
         }),
@@ -193,6 +171,7 @@ export default function Graficas({ filtro }) {
 
       return { labels, datasets: [dataset] };
     } else {
+      // ================ CASO HISTÓRICO (mensual / rangoFechas / diaria) ================
       const ordenados = datosFiltrados
         .slice()
         .sort((a, b) => new Date(a.hora) - new Date(b.hora));
@@ -200,17 +179,26 @@ export default function Graficas({ filtro }) {
       const labels = ordenados.map((d) => {
         const fecha = new Date(d.hora);
         if (filtro.tipo === 'mensual') {
+          // mantiene mes/año
           return fecha.toLocaleDateString('es-ES', {
             month: 'short',
             year: 'numeric',
           });
+        } else if (filtro.tipo === 'diaria') {
+          // ¡aquí le decimos mostrar hora en lugar de fecha!
+          return fecha.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
         } else {
+          // rangoFechas u otros -> día/mes
           return fecha.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: 'short',
           });
         }
       });
+
 
       const primerRegistro = datosFiltrados.find((d) => d.medidas?.[medida]);
       const metricas = primerRegistro
@@ -247,10 +235,10 @@ export default function Graficas({ filtro }) {
     const medidasDisponibles = isRaw
       ? Array.from(new Set(datosDeEstaEstacion.map((d) => d.tipo_medida)))
       : Array.from(
-          new Set(
-            datosDeEstaEstacion.flatMap((d) => (d.medidas ? Object.keys(d.medidas) : []))
-          )
-        );
+        new Set(
+          datosDeEstaEstacion.flatMap((d) => (d.medidas ? Object.keys(d.medidas) : []))
+        )
+      );
     medidasDisponibles.forEach((medida) => {
       todasGraficas.push({
         estacion: est,
@@ -303,7 +291,9 @@ export default function Graficas({ filtro }) {
             scales: {
               x: {
                 grid: { color: '#e5e5e5' },
-                ticks: { maxRotation: 45 },
+                ticks: {
+                  maxRotation: 45
+                }
               },
               y: {
                 grid: { color: '#e5e5e5' },
@@ -319,9 +309,8 @@ export default function Graficas({ filtro }) {
           return (
             <div
               key={`${estacion}_${medida}_${idxGlobal}`}
-              className={`${
-                datosDeEstaEstacion.length > 50 ? 'col-12' : 'col-lg-6 col-md-6'
-              } mb-4`}
+              className={`${datosDeEstaEstacion.length > 50 ? 'col-12' : 'col-lg-6 col-md-6'
+                } mb-4`}
             >
               <div className="grafica-card">
                 <div className="grafica-header">
