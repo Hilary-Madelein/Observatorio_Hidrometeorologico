@@ -171,7 +171,6 @@ export default function Graficas({ filtro }) {
 
       return { labels, datasets: [dataset] };
     } else {
-      // ================ CASO HISTÓRICO (mensual / rangoFechas / diaria) ================
       const ordenados = datosFiltrados
         .slice()
         .sort((a, b) => new Date(a.hora) - new Date(b.hora));
@@ -179,19 +178,16 @@ export default function Graficas({ filtro }) {
       const labels = ordenados.map((d) => {
         const fecha = new Date(d.hora);
         if (filtro.tipo === 'mensual') {
-          // mantiene mes/año
           return fecha.toLocaleDateString('es-ES', {
             month: 'short',
             year: 'numeric',
           });
         } else if (filtro.tipo === 'diaria') {
-          // ¡aquí le decimos mostrar hora en lugar de fecha!
           return fecha.toLocaleTimeString('es-ES', {
             hour: '2-digit',
             minute: '2-digit',
           });
         } else {
-          // rangoFechas u otros -> día/mes
           return fecha.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: 'short',
