@@ -100,9 +100,6 @@ const ListaEstaciones = () => {
     );
   });
 
-  console.log("filteredData", filteredData);
-
-
   return (
     <div className="pagina-microcuencas">
       <Header />

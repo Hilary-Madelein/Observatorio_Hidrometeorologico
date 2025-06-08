@@ -112,9 +112,7 @@ export default function Graficas({ filtro }) {
       </div>
     );
   }
-
-  console.log(datosGrafica);
-
+  
   const isRaw = datosGrafica.length > 0 && datosGrafica[0].hasOwnProperty('valor');
 
   const estacionesUnicas = Array.from(new Set(datosGrafica.map((d) => d.estacion)));
