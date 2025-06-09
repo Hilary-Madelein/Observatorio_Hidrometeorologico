@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/hid/static/css/main.f0f3cb46.css",
-    "main.js": "/hid/static/js/main.96be09ee.js",
+    "main.css": "/hid/static/css/main.37cdb066.css",
+    "main.js": "/hid/static/js/main.2698fce1.js",
     "static/js/206.69a12db9.chunk.js": "/hid/static/js/206.69a12db9.chunk.js",
     "static/media/boxicons.svg": "/hid/static/media/boxicons.9e2b21b135bc7d4c803f.svg",
     "static/media/fondoUNL.jpg": "/hid/static/media/fondoUNL.e06dab84d0b6b8a3a799.jpg",
@@ -15,7 +15,7 @@
     "index.html": "/hid/index.html"
   },
   "entrypoints": [
-    "static/css/main.f0f3cb46.css",
-    "static/js/main.96be09ee.js"
+    "static/css/main.37cdb066.css",
+    "static/js/main.2698fce1.js"
   ]
 }
