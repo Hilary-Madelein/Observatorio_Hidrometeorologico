@@ -18,10 +18,6 @@ const expression = '0 0 * * 0';
 const options = { timezone: 'America/Guayaquil' };
 
 const io = socket.init(server);
-io.on('connection', socket => {
-  console.log('Cliente conectado:', socket.id);
-  socket.on('disconnect', () => console.log('Cliente desconectado:', socket.id));
-});
 
 server.listen(3006, () => console.log('API corriendo en 3006'));
 
@@ -42,7 +38,7 @@ app.use(cors({ origin: '*' }));
 
 
 app.use('/', indexRouter);
-app.use('/api', usersRouter);
+app.use('/', usersRouter);
 
 console.log('→ [Scheduler] Expresión cron:', expression);
 if (!cron.validate(expression)) {

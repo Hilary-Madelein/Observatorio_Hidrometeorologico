@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Spinner } from 'react-bootstrap';
-import { ObtenerGet, URLBASE } from '../hooks/Conexion';
+import { ObtenerGet, URL, URLBASE } from '../hooks/Conexion';
 import '../css/Medidas_Style.css';
 import '../css/Filtro_Style.css';
 import '../css/Principal_Style.css';
@@ -52,7 +52,7 @@ function Medidas() {
         fetchData();
 
         // configuración del socket 
-        socketRef.current = io(URLBASE);
+        socketRef.current = io(URL);
         socketRef.current.on('new-measurements', fetchData);
 
         return () => {

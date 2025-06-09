@@ -1,4 +1,4 @@
-const URL = 'https://computacion.unl.edu.ec/hid/api/api/';
+export const URL = 'https://computacion.unl.edu.ec/hid/api/';
 export const URLBASE = "https://computacion.unl.edu.ec/hid/"; 
 
 export const InicioSesion = async (data) => {
