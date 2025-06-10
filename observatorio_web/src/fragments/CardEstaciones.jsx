@@ -13,20 +13,6 @@ import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFkZWxlaW4iLCJhIjoiY20wd2w4N3VqMDMyYzJqb2ZlNXF5ZnhiZCJ9.i3tWgoA_5CQmQmZyt2yjhg';
 
-const obtenerDatosEstaciones = async () => {
-    try {
-        const response = await ObtenerGet(getToken(), '/listar/microcuenca/operativas');
-        if (response.code === 200) {
-            return response.info;
-        } else {
-            throw new Error(response.msg || 'Error al obtener datos');
-        }
-    } catch (error) {
-        console.error("Error al obtener datos de estaciones:", error);
-        return [];
-    }
-};
-
 function MapaConEstaciones() {
     const mapContainerRef = useRef(null);
     const [map, setMap] = useState(null);
@@ -63,6 +49,19 @@ function MapaConEstaciones() {
         return () => mapInstance.remove();
     }, [mapContainerRef, mapStyle, initialView.center, initialView.zoom]);
 
+    const obtenerDatosEstaciones = async () => {
+        try {
+            const response = await ObtenerGet(getToken(), '/listar/microcuenca/operativas');
+            if (response.code === 200) {
+                return response.info;
+            } else {
+                throw new Error(response.msg || 'Error al obtener datos');
+            }
+        } catch (error) {
+            console.error("Error al obtener datos de estaciones:", error);
+            return [];
+        }
+    };
 
     useEffect(() => {
         const cargarDatos = async () => {
