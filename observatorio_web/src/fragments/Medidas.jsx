@@ -52,7 +52,7 @@ function Medidas() {
         fetchData();
 
         // configuración del socket 
-        socketRef.current = io('https://computacion.unl.edu.ec/hid/api', {
+        socketRef.current = io('https://computacion.unl.edu.ec/', {
             path: '/hid/socket.io'
           });
         socketRef.current.on('new-measurements', fetchData);
