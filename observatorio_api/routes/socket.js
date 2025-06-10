@@ -3,8 +3,7 @@ let io;
 module.exports = {
   init: (server) => {
     const { Server } = require('socket.io');
-    io = new Server(server, {
-      path: '/hid/socket.io',  
+    io = new Server(server, { 
       cors: {
         origin: "https://computacion.unl.edu.ec",
         methods: ["GET", "POST"],
