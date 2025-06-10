@@ -38,7 +38,7 @@ app.use(cors({ origin: '*' }));
 
 
 app.use('/', indexRouter);
-app.use('/api', usersRouter);
+app.use('/', usersRouter);
 
 console.log('→ [Scheduler] Expresión cron:', expression);
 if (!cron.validate(expression)) {
