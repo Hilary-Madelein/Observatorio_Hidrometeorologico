@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/hid/static/css/main.37cdb066.css",
-    "main.js": "/hid/static/js/main.c2039d02.js",
+    "main.js": "/hid/static/js/main.1ee3fbb2.js",
     "static/js/206.69a12db9.chunk.js": "/hid/static/js/206.69a12db9.chunk.js",
     "static/media/boxicons.svg": "/hid/static/media/boxicons.9e2b21b135bc7d4c803f.svg",
     "static/media/fondoUNL.jpg": "/hid/static/media/fondoUNL.e06dab84d0b6b8a3a799.jpg",
@@ -16,6 +16,6 @@
   },
   "entrypoints": [
     "static/css/main.37cdb066.css",
-    "static/js/main.c2039d02.js"
+    "static/js/main.1ee3fbb2.js"
   ]
 }
