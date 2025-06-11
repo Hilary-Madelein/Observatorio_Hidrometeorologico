@@ -67,7 +67,7 @@ function MapaConEstaciones() {
         };
       
         cargarDatos();
-      }, []);  // Se ejecuta *solo* al montar
+      }, []);
       
 
     const obtenerEstacionesMicrocuenca = async (externalId) => {
