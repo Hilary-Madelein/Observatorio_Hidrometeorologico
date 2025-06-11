@@ -49,29 +49,26 @@ function MapaConEstaciones() {
         return () => mapInstance.remove();
     }, [mapContainerRef, mapStyle, initialView.center, initialView.zoom]);
 
-    const obtenerDatosEstaciones = async () => {
-        try {
-            const response = await ObtenerGet(getToken(), '/listar/microcuenca/operativas');
-            if (response.code === 200) {
-                return response.info;
-            } else {
-                throw new Error(response.msg || 'Error al obtener datos');
-            }
-        } catch (error) {
-            console.error("Error al obtener datos de estaciones:", error);
-            return [];
-        }
-    };
-
     useEffect(() => {
         const cargarDatos = async () => {
-            setLoading(true);
-            const estaciones = await obtenerDatosEstaciones();
-            setData(estaciones);
+          setLoading(true);
+          try {
+            const response = await ObtenerGet(getToken(), '/listar/microcuenca/operativas');
+            if (response.code === 200) {
+              setData(response.info);
+            } else {
+              console.error(response.msg);
+            }
+          } catch (err) {
+            console.error(err);
+          } finally {
             setLoading(false);
+          }
         };
+      
         cargarDatos();
-    }, []);
+      }, []);  // Se ejecuta *solo* al montar
+      
 
     const obtenerEstacionesMicrocuenca = async (externalId) => {
         try {
@@ -121,7 +118,7 @@ function MapaConEstaciones() {
             let hasValidCoordinates = false;
 
             estacionesConMediciones.forEach((estacion) => {
-                const { latitude, longitude, name, picture, mediciones } = estacion;
+                const { latitude, longitude, name, mediciones } = estacion;
                 const coords = [longitude, latitude];
 
                 if (
@@ -186,19 +183,6 @@ function MapaConEstaciones() {
                                 color: #e0e0e0;
                                 }
 
-                                /* Imagen */
-                                .popup-image-wrapper {
-                                text-align: center;
-                                background: #f5f5f5;
-                                padding: 8px 0;
-                                }
-                                .popup-image-wrapper img {
-                                width: 240px;
-                                max-width: 100%;
-                                border-radius: 6px;
-                                border: 1px solid #ddd;
-                                }
-
                                 /* Contenido de mediciones */
                                 .popup-content {
                                 padding: 8px 10px 12px 10px;
@@ -248,12 +232,6 @@ function MapaConEstaciones() {
                                 .popup-subtitle {
                                     font-size: 10px;
                                 }
-                                .popup-image-wrapper {
-                                    padding: 6px 0;
-                                }
-                                .popup-image-wrapper img {
-                                    width: 180px;             
-                                }
                                 .popup-content {
                                     padding: 6px 8px 8px 8px;
                                 }
@@ -283,14 +261,6 @@ function MapaConEstaciones() {
                                 <div class="popup-header">
                                 <div class="popup-title">${name}</div>
                                 <div class="popup-subtitle">${microcuencaNombre || ''}</div>
-                                </div>
-
-                                <!-- IMAGEN -->
-                                <div class="popup-image-wrapper">
-                                <img
-                                    src="${URLBASE}/images/estaciones/${picture}"
-                                    alt="${name}"
-                                />
                                 </div>
 
                                 <!-- CONTENIDO: MEDICIONES -->
