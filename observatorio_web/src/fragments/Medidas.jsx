@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Spinner } from 'react-bootstrap';
-import { ObtenerGet, URL, URLBASE } from '../hooks/Conexion';
+import { ObtenerGet, URLBASE } from '../hooks/Conexion';
 import '../css/Medidas_Style.css';
 import '../css/Filtro_Style.css';
 import '../css/Principal_Style.css';

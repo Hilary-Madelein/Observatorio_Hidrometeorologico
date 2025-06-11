@@ -1,6 +1,5 @@
-export const URL = 'https://computacion.unl.edu.ec/hid/api/api/';
-export const URLBASE = "https://computacion.unl.edu.ec/hid/"; 
-export const URLSOCKET = 'https://computacion.unl.edu.ec/hid/api';
+export const URL = "https://computacion.unl.edu.ec/hid/api/api";
+export const URLBASE = "https://computacion.unl.edu.ec/hid/api/"; 
 
 export const InicioSesion = async (data) => {
     const headers = {

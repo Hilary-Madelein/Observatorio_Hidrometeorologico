@@ -48,7 +48,6 @@ export default function Perfil() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Load initial values
   useEffect(() => {
     if (!userLocal) {
       borrarSesion();

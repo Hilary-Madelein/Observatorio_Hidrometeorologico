@@ -1,28 +1,19 @@
-# -------------------------------------------------------------
-# 1) STAGE “builder”: construir la aplicación React
-# -------------------------------------------------------------
-    FROM node:18-alpine AS builder
-    WORKDIR /app
-    
-    COPY package*.json ./
-    RUN npm ci
+FROM node:16-alpine AS builder
 
-    COPY . .
-    ENV CI=true
-    RUN npm run build
-    
-    # -------------------------------------------------------------
-    # 2) STAGE “nginx”: servir los estáticos en /hid
-    # -------------------------------------------------------------
-    FROM nginx:stable-alpine
-    
-    RUN mkdir -p /var/www/hid
-    
-    COPY --from=builder /app/build /var/www/hid
+WORKDIR /app
 
-    COPY nginx.conf /etc/nginx/conf.d/default.conf
-    
-    EXPOSE 80
-    
-    CMD ["nginx", "-g", "daemon off;"]
-    
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+FROM nginx:stable-alpine
+
+COPY --from=builder /app/build /usr/share/nginx/html
+
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
