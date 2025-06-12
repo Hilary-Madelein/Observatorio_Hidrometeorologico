@@ -97,7 +97,7 @@ class PhenomenonTypeController {
             });
             if (exists) {
                 if (req.file?.path) {
-                    fs.unlinkSync(path.join(__dirname, '../public/images/phenomenon_types', req.file.filename));
+                    fs.unlinkSync(path.join(__dirname, '../public/images/icons_estaciones', req.file.filename));
                 }
                 await transaction.rollback();
                 return res.status(400).json({
@@ -113,7 +113,7 @@ class PhenomenonTypeController {
             if (!Array.isArray(operations) || operations.length === 0) {
                 await transaction.rollback();
                 if (req.file?.path) {
-                    fs.unlinkSync(path.join(__dirname, '../public/images/phenomenon_types', req.file.filename));
+                    fs.unlinkSync(path.join(__dirname, '../public/images/icons_estaciones', req.file.filename));
                 }
                 return res.status(400).json({
                     msg: "Debe especificar al menos una operación",
@@ -125,7 +125,7 @@ class PhenomenonTypeController {
             if (invalidOps.length) {
                 await transaction.rollback();
                 if (req.file?.path) {
-                    fs.unlinkSync(path.join(__dirname, '../public/images/phenomenon_types', req.file.filename));
+                    fs.unlinkSync(path.join(__dirname, '../public/images/icons_estaciones', req.file.filename));
                 }
                 return res.status(400).json({
                     msg: "Operaciones inválidas: " + invalidOps.join(", "),
@@ -154,7 +154,7 @@ class PhenomenonTypeController {
                 await transaction.rollback();
             }
             if (req.file?.path) {
-                fs.unlinkSync(path.join(__dirname, '../public/images/phenomenon_types', req.file.filename));
+                fs.unlinkSync(path.join(__dirname, '../public/images/icons_estaciones', req.file.filename));
             }
 
             if (error instanceof UniqueConstraintError) {
@@ -215,7 +215,7 @@ class PhenomenonTypeController {
                 if (dup) {
                     await transaction.rollback();
                     if (req.file?.path) {
-                        fs.unlinkSync(path.join(__dirname, '../public/images/phenomenon_types', req.file.filename));
+                        fs.unlinkSync(path.join(__dirname, '../public/images/icons_estaciones', req.file.filename));
                     }
                     return res.status(400).json({
                         msg: "Ya existe un tipo de fenómeno con ese nombre",
@@ -227,7 +227,7 @@ class PhenomenonTypeController {
             let newIcon = phenomenon.icon;
             if (req.file) {
                 if (phenomenon.icon) {
-                    const oldPath = path.join(__dirname, '../public/images/phenomenon_types', phenomenon.icon);
+                    const oldPath = path.join(__dirname, '../public/images/icons_estaciones', phenomenon.icon);
                     fs.unlink(oldPath, err => {
                         if (err) console.warn('No se pudo borrar icono anterior:', err);
                     });
@@ -241,7 +241,7 @@ class PhenomenonTypeController {
                 if (invalidOps.length > 0) {
                     await transaction.rollback();
                     if (req.file?.path) {
-                        fs.unlinkSync(path.join(__dirname, '../public/images/phenomenon_types', req.file.filename));
+                        fs.unlinkSync(path.join(__dirname, '../public/images/icons_estaciones', req.file.filename));
                     }
                     return res.status(400).json({
                         msg: "Operaciones inválidas: " + invalidOps.join(", "),
@@ -270,7 +270,7 @@ class PhenomenonTypeController {
                 await transaction.rollback();
             }
             if (req.file?.path) {
-                fs.unlinkSync(path.join(__dirname, '../public/images/phenomenon_types', req.file.filename));
+                fs.unlinkSync(path.join(__dirname, '../public/images/icons_estaciones', req.file.filename));
             }
 
             if (error instanceof UniqueConstraintError) {

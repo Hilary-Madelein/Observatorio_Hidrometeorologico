@@ -5,6 +5,8 @@ import { borrarSesion, getToken } from '../utils/SessionUtil';
 import mensajes, { mensajesConRecarga } from '../utils/Mensajes';
 import { ActualizarImagenes, GuardarImages, ObtenerGet } from '../hooks/Conexion';
 import swal from 'sweetalert';
+import OverlayTrigger from 'react-bootstrap/esm/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 
 function AgregarVariable({ external_id_variable }) {
     const { register, setValue, handleSubmit, formState: { errors } } = useForm();
@@ -107,11 +109,19 @@ function AgregarVariable({ external_id_variable }) {
                 <div className="container-modal">
                     {/* Nombre */}
                     <div className="form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Nombre</label>
+                    
+                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}>
+                        <OverlayTrigger
+                                placement="top"
+                                overlay={<Tooltip>Introduzca el nombre de la variable tal como aparece en la plataforma TTN.</Tooltip>}
+                            >
+                                <i class="bi bi-question-circle-fill" style={{ cursor: 'pointer', color: '#60B5FF' }}></i>
+                            </OverlayTrigger>
+                            <strong style={{ color: 'red' }}>* </strong>Nombre</label>
                         <input type="text" {...register('nombre', {
                             required: 'Ingrese un nombre',
                             pattern: {
-                                value: /^(?!\s*$)[a-zA-Z\s]+(?<![<>])$/,
+                                value: /^(?!\s*$)[\w\s%°/³ºμ.*+()-]+$/,
                                 message: "Ingrese un nombre correcto"
                             }
                         })} className="form-control form-control-user" placeholder="Ingrese el nombre" />
