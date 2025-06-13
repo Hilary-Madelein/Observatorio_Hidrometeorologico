@@ -53,6 +53,9 @@ services:
       - "80:80"
     depends_on:
       - backend
+    volumes:
+      - ./nginx-conf/hid.conf:/etc/nginx/conf.d/hid.conf:ro
+      - ./dist:/usr/share/nginx/html:ro
     networks:
       - app-network
 
