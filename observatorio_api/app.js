@@ -14,7 +14,7 @@ const cron = require('node-cron');
 const MeasurementController = require('./controls/MeasurementController');
 const measurementCtrl = new MeasurementController();
 const socket = require('./routes/socket');
-const expression = '0 0 * * 0';
+const expression = '0 0 */2 * *';
 const options = { timezone: 'America/Guayaquil' };
 
 const io = socket.init(server);

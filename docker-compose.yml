@@ -44,21 +44,6 @@ services:
     networks:
       - app-network
 
-  frontend:
-    build:
-      context: ./observatorio_web
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    volumes:
-      - ./nginx-conf/hid.conf:/etc/nginx/conf.d/hid.conf:ro
-      - ./dist:/usr/share/nginx/html:ro
-    networks:
-      - app-network
-
 volumes:
   db_data:
   backend_data:
