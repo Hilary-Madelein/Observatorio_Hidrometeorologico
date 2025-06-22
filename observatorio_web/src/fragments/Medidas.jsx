@@ -110,9 +110,6 @@ function Medidas() {
         };
     }, []);
 
-    console.log(variables);
-
-
     if (loading) {
         return (
             <div className="d-flex justify-content-center align-items-center">
