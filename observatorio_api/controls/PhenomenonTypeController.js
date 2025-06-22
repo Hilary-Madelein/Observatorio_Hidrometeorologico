@@ -4,10 +4,10 @@ const { ValidationError, UniqueConstraintError } = require('sequelize');
 const models = require('../models');
 const uuid = require('uuid');
 const path = require('path');
+const { Op } = require('sequelize');
 const fs = require('fs');
 const { sequelize } = require('../models');
 const PhenomenonType = models.phenomenon_type;
-const TypeOperation = models.type_operation;
 
 class PhenomenonTypeController {
 

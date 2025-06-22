@@ -85,9 +85,6 @@ export default function Graficas({ filtro }) {
     obtenerDatosPorFiltro();
   }, [filtro]);
 
-  console.log('Datos de la gráfica:', datosGrafica);
-  
-
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ flexDirection: 'column' }}>
@@ -115,7 +112,7 @@ export default function Graficas({ filtro }) {
       </div>
     );
   }
-  
+
   const isRaw = datosGrafica.length > 0 && datosGrafica[0].hasOwnProperty('valor');
 
   const estacionesUnicas = Array.from(new Set(datosGrafica.map((d) => d.estacion)));
@@ -134,7 +131,6 @@ export default function Graficas({ filtro }) {
           return fecha.toLocaleTimeString('es-ES', {
             hour: '2-digit',
             minute: '2-digit',
-            timeZone: 'UTC'
           });
 
         })
@@ -156,7 +152,6 @@ export default function Graficas({ filtro }) {
             const check = fecha.toLocaleTimeString('es-ES', {
               hour: '2-digit',
               minute: '2-digit',
-              timeZone: 'UTC'
             });
             return check === lbl && d.tipo_medida === medida;
 
@@ -165,13 +160,13 @@ export default function Graficas({ filtro }) {
         }),
         backgroundColor: `${color}88`,
         borderColor: color,
-        borderWidth: 1.8,
+        borderWidth: 1.5,
         spanGaps: true,
         showLine: true,
         type: isBar ? 'bar' : 'line',
         tension: 0.4,
         pointRadius: 4,
-        pointHoverRadius: 8,
+        pointHoverRadius: 6,
       };
 
       return { labels, datasets: [dataset] };
@@ -186,19 +181,16 @@ export default function Graficas({ filtro }) {
           return fecha.toLocaleDateString('es-ES', {
             month: 'short',
             year: 'numeric',
-            timeZone: 'UTC'
           });
         } else if (filtro.tipo === 'diaria') {
           return fecha.toLocaleTimeString('es-ES', {
             hour: '2-digit',
             minute: '2-digit',
-            timeZone: 'UTC'
           });
         } else {
           return fecha.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: 'short',
-            timeZone: 'UTC'
           });
         }
       });
@@ -251,7 +243,13 @@ export default function Graficas({ filtro }) {
       });
     });
   });
-  
+
+  const anyLarge = todasGraficas.some(({ estacion, medida }) => {
+    const pts = datosGrafica.filter(
+      (d) => d.estacion === estacion && d.tipo_medida === medida
+    ).length;
+    return pts > 50;
+  });
 
   return (
     <div className="custom-container-graficas">
@@ -260,8 +258,17 @@ export default function Graficas({ filtro }) {
       )}
 
       <div className="row">
+
         {todasGraficas.map(({ estacion, medida, idxColor }, idxGlobal) => {
           const datosDeEstaEstacion = datosGrafica.filter((d) => d.estacion === estacion);
+          const colClasses = anyLarge
+            ? 'col-12 mb-4'
+            : (todasGraficas.length === 1
+              ? 'col-12 mb-4'
+              : 'col-lg-6 col-md-6 mb-4'
+            );
+
+
           const { labels, datasets } = prepararDatosPorMedida(
             medida,
             datosDeEstaEstacion,
@@ -311,11 +318,9 @@ export default function Graficas({ filtro }) {
             },
           };
 
+
           return (
-            <div
-              key={`${estacion}_${medida}_${idxGlobal}`}
-              className={todasGraficas.length === 1 ? 'col-12' : `${datosDeEstaEstacion.length > 50 ? 'col-12' : 'col-lg-6 col-md-6'} mb-4`}
-            >
+            <div key={`${estacion}_${medida}_${idxGlobal}`} className={colClasses}>
               <div className="grafica-card">
                 <div className="grafica-header">
                   <i className="bi bi-pin-map-fill icono-estacion" />

@@ -23,7 +23,6 @@ function MapaConEstaciones() {
     const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/satellite-streets-v12');
     const [location, setLocation] = useState({ lat: 0, lng: 0, zoom: 0 });
     const markersRef = useRef([]);
-    const [marker, setMarker] = useState(null);
 
     useEffect(() => {
         if (!mapContainerRef.current) return;
@@ -51,24 +50,24 @@ function MapaConEstaciones() {
 
     useEffect(() => {
         const cargarDatos = async () => {
-          setLoading(true);
-          try {
-            const response = await ObtenerGet(getToken(), '/listar/microcuenca/operativas');
-            if (response.code === 200) {
-              setData(response.info);
-            } else {
-              console.error(response.msg);
+            setLoading(true);
+            try {
+                const response = await ObtenerGet(getToken(), '/listar/microcuenca/operativas');
+                if (response.code === 200) {
+                    setData(response.info);
+                } else {
+                    console.error(response.msg);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
             }
-          } catch (err) {
-            console.error(err);
-          } finally {
-            setLoading(false);
-          }
         };
-      
+
         cargarDatos();
-      }, []);  // Se ejecuta *solo* al montar
-      
+    }, []);
+
 
     const obtenerEstacionesMicrocuenca = async (externalId) => {
         try {
@@ -261,15 +260,20 @@ function MapaConEstaciones() {
                                 <div class="popup-header">
                                 <div class="popup-title">${name}</div>
                                 <div class="popup-subtitle">${microcuencaNombre || ''}</div>
+                                <div class="popup-subtitle">Última medición</div>
                                 </div>
 
                                 <!-- CONTENIDO: MEDICIONES -->
                                 <div class="popup-content">
                                 ${mediciones.length > 0
-                                                        ? mediciones
-                                                            .map((m) => {
-                                                                const fechaLocal = new Date(m.fecha_medicion).toLocaleString();
-                                                                return `
+                            ? mediciones
+                                .map((m) => {
+                                    const fecha = m.fecha_medicion.split('T')[0];
+                                    const hora = m.fecha_medicion.split('T')[1].slice(0, 8);
+                                    const fechaLocal = `${fecha} / ${hora}`;
+
+
+                                    return `
                                             <div class="medicion-item">
                                                 <div class="medicion-row">
                                                 <span class="medicion-tipo">${m.tipo_medida}</span>
@@ -278,10 +282,10 @@ function MapaConEstaciones() {
                                                 <div class="medicion-fecha">${fechaLocal}</div>
                                             </div>
                                             `;
-                                                            })
-                                                            .join('')
-                                                        : `<div class="sin-mediciones">No hay mediciones recientes.</div>`
-                                                    }
+                                })
+                                .join('')
+                            : `<div class="sin-mediciones">No hay mediciones recientes.</div>`
+                        }
                                 </div>
                             </div>
                             `;
@@ -327,26 +331,6 @@ function MapaConEstaciones() {
 
     const changeMapStyle = (event) => {
         setMapStyle(event.target.value);
-    };
-
-    const getUserLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const { latitude, longitude } = position.coords;
-                setLocation({ lat: latitude.toFixed(5), lng: longitude.toFixed(5), zoom: map?.getZoom().toFixed(2) || initialView.zoom });
-                map?.flyTo({ center: [longitude, latitude], zoom: 12 });
-
-                if (marker) {
-                    marker.remove();
-                }
-                const newMarker = new mapboxgl.Marker({ color: 'red' })
-                    .setLngLat([longitude, latitude])
-                    .addTo(map);
-                setMarker(newMarker);
-            });
-        } else {
-            mensajes('Geolocalización no soportada por tu navegador', 'info', 'Informacion');
-        }
     };
 
     return (
@@ -405,7 +389,6 @@ function MapaConEstaciones() {
                         </Select>
                     </FormControl>
 
-                    <button onClick={getUserLocation} className="location-button">Ubicación actual</button>
                     <div className="map-info"> <strong>Lat:</strong> {location.lat} | <strong>Lng:</strong> {location.lng} | <strong>Zoom:</strong> {location.zoom}</div>
                 </div>
                 <div className="mapa-section" ref={mapContainerRef} />

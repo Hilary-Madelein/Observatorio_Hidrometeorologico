@@ -38,14 +38,14 @@ class StationController {
 
     async listByMicrobasinAndStatus(req, res) {
         const { external_id, estado } = req.params;
-    
+
         try {
             const microbasin = await Microbasin.findOne({ where: { external_id } });
-    
+
             if (!microbasin) {
                 return res.status(404).json({ msg: 'Microcuenca no encontrada', code: 404 });
             }
-    
+
             const estaciones = await Station.findAll({
                 where: {
                     id_microbasin: microbasin.id,
@@ -64,7 +64,7 @@ class StationController {
                     'description'
                 ]
             });
-    
+
             return res.status(200).json({
                 msg: 'OK!',
                 code: 200,
@@ -73,13 +73,13 @@ class StationController {
                     estaciones: estaciones
                 }
             });
-    
+
         } catch (error) {
             console.error('Error filtrando estaciones:', error);
             return res.status(500).json({ msg: 'Error interno del servidor', code: 500 });
         }
     }
-    
+
 
     async getByMicrobasinParam(req, res) {
         const external = req.params.external;
@@ -161,6 +161,8 @@ class StationController {
         }
     }
 
+    //ADAPTAR METODO PARA GUARDAR TOPICO
+
     async create(req, res) {
         const transaction = await sequelize.transaction();
 
@@ -214,13 +216,26 @@ class StationController {
             }
 
             const topic = topicTemplate.replace('{id}', station.id_device);
+            const topicFijo = process.env.TTN2_TOPIC;
+
             try {
-                await new Promise((resolve, reject) => {
-                    mqttClient.subscribe(topic, err => {
-                        if (err) reject(err);
-                        else resolve();                        
+                const isMarkDevice = topicFijo.includes(station.id_device);
+
+                if (!isMarkDevice) {
+                    await new Promise((resolve, reject) => {
+                        mqttClient.subscribe(topic, err => {
+                            if (err) {
+                                console.error(`Error al suscribirse a ${topic}:`, err);
+                                return reject(err);
+                            }
+                            console.log(`Suscrito dinámicamente a ${topic}`);
+                            resolve();
+                        });
                     });
-                });
+                } else {
+                    console.log(`Estación con dispositivo ${station.id_device} ya manejada por mqttClient2 (${topicFijo})`);
+                }
+
             } catch (err) {
                 await transaction.rollback();
                 fs.unlinkSync(path.join(__dirname, '../public/images/estaciones', pictureFilename));
@@ -229,6 +244,7 @@ class StationController {
                     code: 500
                 });
             }
+
 
             await transaction.commit();
             return res.status(200).json({
@@ -398,25 +414,25 @@ class StationController {
     async changeStatus(req, res) {
         try {
             const external_id = req.body.external_id;
-    
+
             const estacion = await Station.findOne({
                 where: { external_id }
             });
-    
+
             if (!estacion) {
                 return res.status(404).json({ msg: "Estación no encontrada", code: 404 });
             }
-    
+
             const estadoMap = req.body.estado.replace(/ /g, '_');
-    
+
             const validStates = ['OPERATIVA', 'NO_OPERATIVA', 'MANTENIMIENTO'];
             if (!validStates.includes(estadoMap)) {
                 return res.status(400).json({ msg: "Estado no válido", code: 400 });
             }
-    
+
             estacion.status = estadoMap;
             await estacion.save();
-    
+
             if (estacion.status === 'NO_OPERATIVA' || estacion.status === 'MANTENIMIENTO') {
                 const topic = topicTemplate.replace('{id}', estacion.id_device);
                 if (mqttClient.connected) {
@@ -440,19 +456,19 @@ class StationController {
                     });
                 }
             }
-    
+
             return res.status(200).json({
                 msg: `Estado actualizado correctamente. Nuevo estado: ${estacion.status}`,
                 code: 200,
                 info: { external_id, nuevo_estado: estacion.status }
             });
-    
+
         } catch (error) {
             console.error("Error al cambiar el estado:", error);
             return res.status(500).json({ msg: "Error interno del servidor", code: 500 });
         }
     }
-    
+
 
 }
 

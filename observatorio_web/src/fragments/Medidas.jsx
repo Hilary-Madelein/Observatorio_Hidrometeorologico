@@ -8,13 +8,6 @@ import { getToken } from '../utils/SessionUtil';
 import io from 'socket.io-client';
 import mensajes from '../utils/Mensajes';
 
-const normalize = str =>
-    str
-      .toString()
-      .normalize('NFD')             
-      .replace(/[\u0300-\u036f]/g, '') 
-      .toLowerCase()
-      .replace(/[_\s]/g, '');        
 
 function procesarMedidas(medidas, fenomenos) {
     const agrupadas = {};
@@ -25,14 +18,35 @@ function procesarMedidas(medidas, fenomenos) {
             .toLowerCase()
             .replace(/^\w/, c => c.toUpperCase());
 
-    medidas.forEach((item, index) => {
+    const esp2eng = {
+        Humedad: 'Humidity',
+        Temperatura: 'Temperature',
+        Radiación: 'Radiation',
+        Lluvia: 'Rain'
+    };
+
+    const normalize = str =>
+        str
+            .toString()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[_\s]/g, '');
+
+    medidas.forEach(item => {
         const { tipo_medida, valor, unidad, estacion } = item;
-        const key = normalize(tipo_medida);
+
+        const nombreEsp = tipo_medida;
+        const nombreEng = esp2eng[nombreEsp] || nombreEsp;
+        const key = normalize(nombreEng);
+
         const fenomeno = fenomenos.find(f => normalize(f.nombre) === key);
 
-        if (!agrupadas[tipo_medida]) {
-            agrupadas[tipo_medida] = {
-                nombre: formatName(tipo_medida),
+        const label = formatName(nombreEsp);
+
+        if (!agrupadas[label]) {
+            agrupadas[label] = {
+                nombre: label,
                 icono: fenomeno
                     ? `${URLBASE}/images/icons_estaciones/${fenomeno.icono}`
                     : '',
@@ -41,7 +55,7 @@ function procesarMedidas(medidas, fenomenos) {
             };
         }
 
-        agrupadas[tipo_medida].estaciones.push({
+        agrupadas[label].estaciones.push({
             nombre: estacion,
             valor: parseFloat(valor)
         });
@@ -49,6 +63,7 @@ function procesarMedidas(medidas, fenomenos) {
 
     return Object.values(agrupadas);
 }
+
 
 function Medidas() {
     const [variables, setVariables] = useState([]);
@@ -94,6 +109,9 @@ function Medidas() {
             socketRef.current.disconnect();
         };
     }, []);
+
+    console.log(variables);
+
 
     if (loading) {
         return (
