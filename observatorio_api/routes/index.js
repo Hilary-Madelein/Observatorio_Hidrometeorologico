@@ -25,7 +25,7 @@ const endpoint = process.env.COSMOS_ENDPOINT;
 const key = process.env.COSMOS_KEY;
 const databaseId = process.env.COSMOS_DB;
 const client = new CosmosClient({ endpoint, key });
-const mqttClient = require('./mqtt');
+const { mqttClient, mqttClient2 } = require('./mqtt');
 
 const DESPLAZAMIENTO_HORARIO_MINUTOS = -300;
 const topicTemplate = process.env.TTN_TOPIC_TEMPLATE;
@@ -93,6 +93,44 @@ mqttClient.on('message', async (topic, message) => {
 
   } catch (err) {
     console.error('Error procesando mensaje MQTT:', err.message);
+  }
+});
+
+mqttClient2.on('connect', () => {
+  console.log('Conectado a TTN MQTT (cliente 2)');
+  mqttClient2.subscribe(process.env.TTN2_TOPIC, (err) => {
+    if (err) console.error(`Error suscribiendo a ${process.env.TTN2_TOPIC}:`, err);
+    else console.log(`Suscrito a ${process.env.TTN2_TOPIC}`);
+  });
+});
+
+mqttClient2.on('message', async (topic, message) => {
+  try {
+    const data = JSON.parse(message.toString());
+    if (data.received_at) data.received_at = ajustarZonaHoraria(data.received_at);
+
+    const entrada = {
+      fecha: data.received_at,
+      dispositivo: data.end_device_ids?.device_id,
+      payload: data.uplink_message?.decoded_payload
+    };
+
+    console.log('Datos TTN recibidos (cliente 2):', entrada);
+
+    const req = { body: entrada };
+    const res = {
+      status: (code) => ({
+        json: (response) => {
+          if (code !== 200) console.error(`[ERROR ${code}]`, response);
+          else console.log('[Guardado]', response);
+        }
+      })
+    };
+
+    await measurementController.saveFromTTN(req, res);
+
+  } catch (err) {
+    console.error('Error procesando mensaje MQTT (cliente 2):', err.message);
   }
 });
 

@@ -24,16 +24,24 @@ function Filtro({ onFiltrar }) {
     const [fechaFin, setFechaFin] = useState(null);
     const [estacionSeleccionada, setEstacionSeleccionada] = useState('');
     const [data, setData] = useState([]);
+    const [mensaje, setMensaje] = useState("");
 
     useEffect(() => {
         if (!data.length) {
             (async () => {
                 try {
                     const info = await ObtenerGet(getToken(), '/listar/estacion/operativas');
-                    if (info.code === 200) setData(info.info || []);
-                    else mensajes(info.msg, 'error', 'Error');
-                } catch {
-                    mensajes('Error al cargar estaciones operativas', 'error', 'Error');
+                    if (info.code === 200) {
+                        if (info.info && info.info.length) {
+                            setData(info.info);
+                        } else {
+                            setMensaje("No hay información");
+                        }
+                    } else {
+                        setMensaje(info.msg || "Error al cargar estaciones operativas");
+                    }
+                } catch (error) {
+                    setMensaje('Error al cargar estaciones operativas');
                 }
             })();
         }
@@ -106,7 +114,7 @@ function Filtro({ onFiltrar }) {
                                 <i className="bi bi-calendar-range me-1" />Periodo de tiempo:
                             </Typography>
                             <Chip label={fechaInicio?.toLocaleDateString('es-ES')} size="small" sx={{ mx: 1 }} />
-                            <Typography variant="body1" className="text-muted">hasta</Typography>
+                            <Typography variant="body2" className="text-muted">hasta</Typography>
                             <Chip label={fechaFin?.toLocaleDateString('es-ES')} size="small" sx={{ ml: 1 }} />
                         </Box>
                     )}
@@ -139,14 +147,34 @@ function Filtro({ onFiltrar }) {
                     )}
                 </div>
 
+                {/* Nuevo contenedor explicativo */}
+                {filtroSeleccionado && (
+                    <div className="informacion-presentada col-lg-12 mb-4">
+                        <h5 className="mb-3 info-presentada-text">
+                            <i className="bi bi-info-circle-fill me-2"></i>
+                            Tipo de datos mostrados:
+                        </h5>
+                        <Box>
+                            {['15min', '30min', 'hora'].includes(filtroSeleccionado) ? (
+                                <Typography variant="body2">
+                                    En esta escala temporal, se presentan <strong>las mediciones originales</strong> registradas por las estaciones de monitoreo, sin aplicar agregación ni operaciones.
+                                </Typography>
+                            ) : (
+                                <Typography variant="body2">
+                                    En esta escala temporal, se muestran los datos recabados por las estaciones de monitoreo, <strong>procesados</strong> según la operación estadística adecuada para cada variable hidrometeorológica, ya sea promedio, máximo, mínimo o suma.
+                                </Typography>
+                            )}
+                        </Box>
+                    </div>
+                )}
 
                 <div className={`filtro-container col-lg-12 mb-4 ${filtroSeleccionado === 'rangoFechas' ? 'columna' : ''}`}>
 
                     {/* Selector Escala Temporal */}
                     <FormControl
                         className="filtro-item"
-                        size="small"                  
-                        sx={{ minWidth: 100 }}         
+                        size="small"
+                        sx={{ minWidth: 100 }}
                     >
                         <InputLabel htmlFor="filtro">Escala temporal</InputLabel>
                         <Select
@@ -154,7 +182,7 @@ function Filtro({ onFiltrar }) {
                             value={filtroSeleccionado}
                             label="Escala temporal"
                             onChange={e => setFiltroSeleccionado(e.target.value)}
-                            size="small"                 
+                            size="small"
                         >
                             <MenuItem value="15min">15 minutos</MenuItem>
                             <MenuItem value="30min">30 minutos</MenuItem>
@@ -178,12 +206,17 @@ function Filtro({ onFiltrar }) {
                             label="Estación"
                             onChange={e => setEstacionSeleccionada(e.target.value)}
                             size="small"
+                            sx={{ padding: '0 10px' }}
                         >
-                            {data.map(est => (
-                                <MenuItem key={est.external_id} value={est.external_id}>
-                                    {est.name}
-                                </MenuItem>
-                            ))}
+                            {data.length > 0 ? (
+                                data.map(est => (
+                                    <MenuItem key={est.external_id} value={est.external_id}>
+                                        {est.name}
+                                    </MenuItem>
+                                ))
+                            ) : (
+                                <MenuItem disabled>{mensaje}</MenuItem>
+                            )}
                         </Select>
                     </FormControl>
 

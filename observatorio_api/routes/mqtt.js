@@ -7,6 +7,12 @@ const mqttOptions = {
     password: process.env.TTN_PASSWORD,
 };
 
-const mqttClient = mqtt.connect(ttnServer, mqttOptions);
+const mqttOptions2 = {
+    username: process.env.TTN2_USERNAME,
+    password: process.env.TTN2_PASSWORD,
+  };
 
-module.exports = mqttClient;
+const mqttClient = mqtt.connect(ttnServer, mqttOptions);
+const mqttClient2 = mqtt.connect(ttnServer, mqttOptions2);
+
+module.exports = {mqttClient, mqttClient2};

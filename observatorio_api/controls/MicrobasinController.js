@@ -6,7 +6,7 @@ const models = require('../models');
 const path = require('path');
 const uuid = require('uuid');
 const fs = require('fs');
-
+const { Op } = require('sequelize');
 const Microbasin = models.microbasin;
 const Station = models.station;
 
