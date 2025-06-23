@@ -136,7 +136,7 @@ function AgregarVariable({ external_id_variable }) {
                             {...register('unidad_medida', {
                                 required: 'Ingrese una unidad de medida',
                                 pattern: {
-                                    value: /^(?!\s*$)[\w\s%°/³ºμ.*+()-]+$/,
+                                    value: /^(?!\s*$)[\dA-Za-z_%°/¹²³ºμµeE×^.+\-*()]+$/,
                                     message: "Ingrese una unidad válida"
                                 }
                             })}

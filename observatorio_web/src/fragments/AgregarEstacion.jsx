@@ -33,6 +33,7 @@ function AgregarEstacion({ external_id_estacion }) {
                     setValue('altitud', e.altitude);
                     setValue('tipo', e.type);
                     setValue('id_dispositivo', e.id_device);
+                    setValue('app_user', e.app_user);
                     setDescripcion(e.description);
                 } else {
                     mensajes(`Error al obtener estación: ${response.msg}`, 'error');
@@ -77,6 +78,7 @@ function AgregarEstacion({ external_id_estacion }) {
         formData.append('altitud', data.altitud);
         formData.append('tipo', data.tipo);
         formData.append('id_dispositivo', data.id_dispositivo);
+        formData.append('app_user', data.app_user);
         formData.append('id_microcuenca', external_id);
         if (data.foto && data.foto[0]) {
             formData.append('foto', data.foto[0]);
@@ -129,204 +131,235 @@ function AgregarEstacion({ external_id_estacion }) {
     return (
         <div className="wrapper">
             <form className="user" onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
-                <div className="row container-modal">
-                    {/* Nombre */}
-                    <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Nombre</label>
-                        <input
-                            type="text"
-                            {...register('nombre', { required: 'Ingrese un nombre' })}
-                            className="form-control form-control-user"
-                            placeholder="Ingrese el nombre"
-                        />
-                        {errors.nombre && <div className='alert alert-danger'>{errors.nombre.message}</div>}
-                    </div>
-                    {/* ID dispositivo */}
-                    <div className="col-md-6 form-group mb-3">
-                        <label
-                            style={{ fontWeight: 'bold', paddingTop: '10px' }}>
-                            <OverlayTrigger
-                                placement="top"
-                                overlay={<Tooltip>Identificador proporcionado por la plataforma The Things Network TTN, se encuentra como device_id</Tooltip>}
-                            >
-                                <i class="bi bi-question-circle-fill" style={{ cursor: 'pointer', color: '#60B5FF' }}></i>
-                            </OverlayTrigger>
-                            <strong style={{ color: 'red' }}>* </strong>Identificador del dispositivo
-
-                        </label>
-                        <input
-                            type="text"
-                            {...register('id_dispositivo', { required: 'Ingrese el ID del dispositivo' })}
-                            className="form-control form-control-user"
-                            placeholder="Ingrese el ID del dispositivo"
-                        />
-                        {errors.id_dispositivo && <div className='alert alert-danger'>{errors.id_dispositivo.message}</div>}
-                    </div>
-                    {/* Descripción */}
-                    <div className="col-12 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '20px' }}><strong style={{ color: 'red' }}>* </strong>Descripción</label>
-                        <textarea
-                            {
-                            ...register('descripcion', {
-                                required: 'Ingrese una descripción',
-                                pattern: {
-                                    value: new RegExp("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\\s/%.,()\\-]+$"),
-                                    message: 'Ingrese una descripción correcta'
-                                }
-                            })
-                            }
-                            className="form-control form-control-user"
-                            placeholder="Ingrese la descripción"
-                            value={descripcion}
-                            onChange={handleDescripcionChange}
-                        />
-                        {errors.descripcion && <div className='alert alert-danger'>{errors.descripcion.message}</div>}
-                        <div className="d-flex justify-content-between mt-1">
-                            <small className="text-muted">{descripcion.length}/{maxCaracteres} caracteres</small>
-                            {descripcion.length === maxCaracteres && <small className="text-danger">Máximo alcanzado</small>}
-                        </div>
-                    </div>
-                    {/* Coordenadas */}
-                    <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Longitud</label>
-                        <input
-                            type="text"
-                            {...register('longitud', {
-                                required: 'Ingrese la longitud', pattern: {
-                                    value: /^-?\d+(\.\d+)?$/,
-                                    message: 'Ingrese una coordenada válida (número decimal)'
-                                }
-                            })
-                            }
-                            className="form-control form-control-user"
-                            placeholder="Ingrese la longitud"
-                        />
-                        {errors.longitud && <div className='alert alert-danger'>{errors.longitud.message}</div>}
-                    </div>
-                    <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Latitud</label>
-                        <input
-                            type="text"
-                            {...register('latitud', {
-                                required: 'Ingrese la latitud', pattern: {
-                                    value: /^-?\d+(\.\d+)?$/,
-                                    message: 'Ingrese una coordenada válida (número decimal)'
-                                }
-                            })}
-                            className="form-control form-control-user"
-                            placeholder="Ingrese la latitud"
-                        />
-                        {errors.latitud && <div className='alert alert-danger'>{errors.latitud.message}</div>}
-                    </div>
-                    {/* Altitud & Tipo */}
-                    <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Altitud</label>
-                        <input
-                            type="text"
-                            {...register('altitud', {
-                                required: 'Ingrese la altitud', pattern: {
-                                    value: /^-?\d+(\.\d+)?$/,
-                                    message: 'Ingrese una coordenada válida (número decimal)'
-                                }
-                            })}
-                            className="form-control form-control-user"
-                            placeholder="Ingrese la altitud"
-                        />
-                        {errors.altitud && <div className='alert alert-danger'>{errors.altitud.message}</div>}
-                    </div>
-                    <div className="col-md-6 form-group mb-3">
-                        <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Tipo</label>
-                        <select
-                            {...register('tipo', { required: 'Seleccione un tipo' })}
-                            className="form-control form-control-user"
-                        >
-                            <option value="">Seleccione un tipo</option>
-                            <option value="METEOROLOGICA">METEOROLOGICA</option>
-                            <option value="HIDROLOGICA">HIDROLOGICA</option>
-                            <option value="PLUVIOMETRICA">PLUVIOMETRICA</option>
-                        </select>
-                        {errors.tipo && <div className='alert alert-danger'>{errors.tipo.message}</div>}
-                    </div>
-                    {/* Estado */}
-                    {!modoEdicion && (
+                <div className="container-modal">
+                    <div className="row">
+                        {/* Nombre */}
                         <div className="col-md-6 form-group mb-3">
-                            <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Estado</label>
+                            <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Nombre</label>
+                            <input
+                                type="text"
+                                {...register('nombre', { required: 'Ingrese un nombre' })}
+                                className="form-control form-control-user"
+                                placeholder="Ingrese el nombre"
+                            />
+                            {errors.nombre && <div className='alert alert-danger'>{errors.nombre.message}</div>}
+                        </div>
+
+                        {/* Tipo */}
+                        <div className="col-md-6 form-group mb-3">
+                            <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Tipo</label>
                             <select
-                                {...register('estado', { required: 'Seleccione un estado' })}
+                                {...register('tipo', { required: 'Seleccione un tipo' })}
                                 className="form-control form-control-user"
                             >
-                                <option value="">Seleccione un estado</option>
-                                <option value="OPERATIVA">OPERATIVA</option>
-                                <option value="MANTENIMIENTO">MANTENIMIENTO</option>
-                                <option value="NO OPERATIVA">NO OPERATIVA</option>
+                                <option value="">Seleccione un tipo</option>
+                                <option value="METEOROLOGICA">METEOROLOGICA</option>
+                                <option value="HIDROLOGICA">HIDROLOGICA</option>
+                                <option value="PLUVIOMETRICA">PLUVIOMETRICA</option>
                             </select>
-                            {errors.estado && <div className='alert alert-danger'>{errors.estado.message}</div>}
+                            {errors.tipo && <div className='alert alert-danger'>{errors.tipo.message}</div>}
+                        </div>
+
+                        {/* ID dispositivo */}
+                        <div className="col-md-6 form-group mb-3">
+                            <label
+                                style={{ fontWeight: 'bold', paddingTop: '10px' }}>
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={<Tooltip>Identificador proporcionado por la plataforma The Things Network TTN, se encuentra como End device ID</Tooltip>}
+                                >
+                                    <i class="bi bi-question-circle-fill" style={{ cursor: 'pointer', color: '#60B5FF' }}></i>
+                                </OverlayTrigger>
+                                <strong style={{ color: 'red' }}>* </strong>Identificador del dispositivo
+
+                            </label>
+                            <input
+                                type="text"
+                                {...register('id_dispositivo', { required: 'Ingrese el ID del dispositivo' })}
+                                className="form-control form-control-user"
+                                placeholder="Ingrese el ID del dispositivo"
+                            />
+                            {errors.id_dispositivo && <div className='alert alert-danger'>{errors.id_dispositivo.message}</div>}
+                        </div>
+
+                        {/* App user*/}
+                        <div className="col-md-6 form-group mb-3">
+                            <label
+                                style={{ fontWeight: 'bold', paddingTop: '10px' }}>
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={<Tooltip>Usuario proporcionado por la plataforma The Things Network TTN</Tooltip>}
+                                >
+                                    <i class="bi bi-question-circle-fill" style={{ cursor: 'pointer', color: '#60B5FF' }}></i>
+                                </OverlayTrigger>
+                                <strong style={{ color: 'red' }}>* </strong>Usuario TTN
+
+                            </label>
+                            <input
+                                type="text"
+                                {...register('app_user', { required: 'Ingrese el usuario TTN' })}
+                                className="form-control form-control-user"
+                                placeholder="Ejm: ejemplo@ttn"
+                            />
+                            {errors.app_user && <div className='alert alert-danger'>{errors.app_user.message}</div>}
+                        </div>
+
+                        {/* Descripción */}
+                        <div className="col-12 form-group mb-3">
+                            <label style={{ fontWeight: 'bold', paddingTop: '20px' }}><strong style={{ color: 'red' }}>* </strong>Descripción</label>
+                            <textarea
+                                {
+                                ...register('descripcion', {
+                                    required: 'Ingrese una descripción',
+                                    pattern: {
+                                        value: new RegExp("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\\s/%.,()\\-]+$"),
+                                        message: 'Ingrese una descripción correcta'
+                                    }
+                                })
+                                }
+                                className="form-control form-control-user"
+                                placeholder="Ingrese la descripción"
+                                value={descripcion}
+                                onChange={handleDescripcionChange}
+                            />
+                            {errors.descripcion && <div className='alert alert-danger'>{errors.descripcion.message}</div>}
+                            <div className="d-flex justify-content-between mt-1">
+                                <small className="text-muted">{descripcion.length}/{maxCaracteres} caracteres</small>
+                                {descripcion.length === maxCaracteres && <small className="text-danger">Máximo alcanzado</small>}
+                            </div>
+                        </div>
+                        {/* Coordenadas */}
+                        <div className="col-md-6 form-group mb-3">
+                            <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Longitud</label>
+                            <input
+                                type="text"
+                                {...register('longitud', {
+                                    required: 'Ingrese la longitud',
+                                    pattern: {
+                                        value: /^-?\d+(\.\d+)?$/,
+                                        message: 'Ingrese una coordenada válida (número decimal)'
+                                    }
+                                })}
+                                className="form-control form-control-user"
+                                placeholder="Ej: -9.1124"
+                            />
+
+                            {errors.longitud && <div className='alert alert-danger'>{errors.longitud.message}</div>}
+                        </div>
+                        <div className="col-md-6 form-group mb-3">
+                            <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Latitud</label>
+                            <input
+                                type="text"
+                                {...register('latitud', {
+                                    required: 'Ingrese la latitud', pattern: {
+                                        value: /^-?\d+(\.\d+)?$/,
+                                        message: 'Ingrese una coordenada válida (número decimal)'
+                                    }
+                                })}
+                                className="form-control form-control-user"
+                                placeholder="Ej: -5.10"
+                            />
+                            {errors.latitud && <div className='alert alert-danger'>{errors.latitud.message}</div>}
+                        </div>
+                        {/* Altitud & Tipo */}
+                        <div className="col-md-6 form-group mb-3">
+                            <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Altitud</label>
+                            <input
+                                type="text"
+                                {...register('altitud', {
+                                    required: 'Ingrese la altitud', pattern: {
+                                        value: /^-?\d+(\.\d+)?$/,
+                                        message: 'Ingrese una coordenada válida (número decimal)'
+                                    }
+                                })}
+                                className="form-control form-control-user"
+                                placeholder="Ingrese la altitud"
+                            />
+                            {errors.altitud && <div className='alert alert-danger'>{errors.altitud.message}</div>}
+                        </div>
+
+                        {/* Estado */}
+                        {!modoEdicion && (
+                            <div className="col-md-6 form-group mb-3">
+                                <label style={{ fontWeight: 'bold', paddingTop: '10px' }}><strong style={{ color: 'red' }}>* </strong>Estado</label>
+                                <select
+                                    {...register('estado', { required: 'Seleccione un estado' })}
+                                    className="form-control form-control-user"
+                                >
+                                    <option value="">Seleccione un estado</option>
+                                    <option value="OPERATIVA">OPERATIVA</option>
+                                    <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+                                    <option value="NO OPERATIVA">NO OPERATIVA</option>
+                                </select>
+                                {errors.estado && <div className='alert alert-danger'>{errors.estado.message}</div>}
+                            </div>
+                        )}
+
+                        {/* Foto */}
+                        <div className="col-md-6 form-group mb-3">
+                            <label htmlFor="foto" className="form-label"><strong style={{ color: 'red' }}>* </strong>Seleccionar foto</label>
+                            <input
+                                type="file"
+                                {...register("foto", {
+                                    validate: fileList => {
+                                        if (!modoEdicion && (!fileList || fileList.length === 0)) {
+                                            return "Seleccione una foto";
+                                        }
+                                        return true;
+                                    }
+                                })}
+                                onChange={handlePhotoChange}
+                                className="form-control"
+                                accept="image/*"
+                            />
+                            {uploadedPhoto && (
+                                <div className="d-flex align-items-center mt-3 justify-content-end">
+                                    <button type="button" className="btn btn-info btn-sm me-2 btn-mini" onClick={toggleModal}>
+                                        <i class="bi bi-eye-fill"></i>
+                                    </button>
+                                    <button type="button" className="btn btn-danger btn-sm btn-mini" onClick={handleRemovePhoto}>
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </div>
+                            )}
+                            {errors.foto && <div className='alert alert-danger'>{errors.foto.message}</div>}
+                        </div>
+                    </div>
+
+                    {showModal && (
+                        <div className="modal show" tabIndex="-1" style={{ display: 'block' }}>
+                            <div className="modal-dialog modal-dialog-centered">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h5 className="modal-title titulo-secundario">Previsualización</h5>
+                                        <button className="btn-close" onClick={toggleModal}></button>
+                                    </div>
+                                    <div className="modal-body text-center">
+                                        <img
+                                            src={URL.createObjectURL(uploadedPhoto)}
+                                            alt="Vista previa"
+                                            className="img-fluid"
+                                            style={{ maxWidth: '100%' }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     )}
 
-                    {/* Foto */}
-                    <div className="col-md-12 form-group mb-3">
-                        <label htmlFor="foto" className="form-label"><strong style={{ color: 'red' }}>* </strong>Seleccionar foto</label>
-                        <input
-                            type="file"
-                            {...register("foto", {
-                                validate: fileList => {
-                                    if (!modoEdicion && (!fileList || fileList.length === 0)) {
-                                        return "Seleccione una foto";
-                                    }
-                                    return true;
-                                }
-                            })}
-                            onChange={handlePhotoChange}
-                            className="form-control"
-                            accept="image/*"
-                        />
-                        {uploadedPhoto && (
-                            <div className="d-flex align-items-center mt-3 justify-content-end">
-                                <button type="button" className="btn btn-info btn-sm me-2 btn-mini" onClick={toggleModal}>
-                                    <i class="bi bi-eye-fill"></i>
-                                </button>
-                                <button type="button" className="btn btn-danger btn-sm btn-mini" onClick={handleRemovePhoto}>
-                                    <i class="bi bi-trash-fill"></i>
-                                </button>
-                            </div>
-                        )}
-                        {errors.foto && <div className='alert alert-danger'>{errors.foto.message}</div>}
+                    {/* Botones */}
+                    <div className="btn-Modal d-flex justify-content-end gap-3 mt-4">
+                        <button className="btn btn-cancelar-modal" type="button" onClick={handleCancelClick}>
+                            <i class="bi bi-x-circle-fill"></i>
+                            <span className="ms-2 fw-bold">Cancelar</span>
+                        </button>
+
+                        <button className="btn btn-registrar-modal" type="submit">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span className="ms-2 fw-bold">{modoEdicion ? 'Actualizar' : 'Registrar'}</span>
+                        </button>
                     </div>
-                </div>
-
-                {showModal && (
-                    <div className="modal show" tabIndex="-1" style={{ display: 'block' }}>
-                        <div className="modal-dialog modal-dialog-centered">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title titulo-secundario">Previsualización</h5>
-                                    <button className="btn-close" onClick={toggleModal}></button>
-                                </div>
-                                <div className="modal-body text-center">
-                                    <img
-                                        src={URL.createObjectURL(uploadedPhoto)}
-                                        alt="Vista previa"
-                                        className="img-fluid"
-                                        style={{ maxWidth: '100%' }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Botones */}
-                <div className="btn-Modal d-flex justify-content-end gap-3 mt-4">
-                    <button className="btn btn-cancelar-modal" type="button" onClick={handleCancelClick}>
-                        <i class="bi bi-x-circle-fill"></i>
-                        <span className="ms-2 fw-bold">Cancelar</span>
-                    </button>
-
-                    <button className="btn btn-registrar-modal" type="submit">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span className="ms-2 fw-bold">{modoEdicion ? 'Actualizar' : 'Registrar'}</span>
-                    </button>
                 </div>
             </form>
         </div>

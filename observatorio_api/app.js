@@ -9,17 +9,9 @@ const http = require('http');
 const { Server } = require('socket.io');
 var createError = require('http-errors');
 var app = express();
-const server = http.createServer(app);
-const cron = require('node-cron');
+const { CronJob } = require('cron');
 const MeasurementController = require('./controls/MeasurementController');
 const measurementCtrl = new MeasurementController();
-const socket = require('./routes/socket');
-const expression = '0 0 */2 * *';
-const options = { timezone: 'America/Guayaquil' };
-
-const io = socket.init(server);
-
-server.listen(3006, () => console.log('API corriendo en 3006'));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -32,58 +24,39 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.set('io', io);
 app.use(cors({ origin: '*' }));
+const expression = '0 0 0 */2 * *'
+
+new CronJob(
+  expression,
+  async () => {
+    const fakeReq = {};
+    const fakeRes = {
+      status: (code) => ({ json: body => console.log('[Cron]', code, body) })
+    };
+
+    try {
+      await measurementCtrl.migrateToDaily(fakeReq, fakeRes);
+      console.log('[Cron] Migración diaria completada.');
+
+      await measurementCtrl.cleanOldMeasurements(fakeReq, fakeRes);
+      await measurementCtrl.clearAllQuantity(fakeReq, fakeRes);
+      console.log('[Cron] Tabla Measurement truncada correctamente.');
+    } catch (err) {
+      console.error('[Cron] Error en tareas programadas:', err);
+    }
+  },
+  null,                          
+  true,                          
+  'America/Guayaquil'          
+);
 
 
 app.use('/', indexRouter);
 app.use('/api', usersRouter);
 
-console.log('→ [Scheduler] Expresión cron:', expression);
-if (!cron.validate(expression)) {
-  console.error('Expresión cron inválida:', expression);
-  process.exit(1);
-}
-
-try {
-  cron.schedule(
-    expression,
-    async () => {
-      const fakeReq = {};
-      const fakeRes = {
-        status: (code) => ({
-          json: (body) => console.log(`[Cron] Task =>`, code, body)
-        })
-      };
-
-      try {
-        await measurementCtrl.migrateToDaily(fakeReq, fakeRes);
-        console.log('[Cron] Migración diaria completada.');
-
-        await measurementCtrl.cleanOldMeasurements(fakeReq, fakeRes);
-        await measurementCtrl.clearAllQuantity(fakeReq, fakeRes);
-        console.log('[Cron] Tabla Measurement truncada correctamente.');
-      } catch (err) {
-        console.error('[Cron] Error en tareas programadas:', err);
-      }
-    },
-    options
-  );
-  console.log('[Scheduler] Cron programado correctamente con timezone America/Guayaquil.');
-} catch (err) {
-  console.error('[Scheduler] Error al programar cron:', err);
-  process.exit(1);
-}
-
-
 app.get('/', (req, res) => {
   res.status(200).send('Hello, World!');
-});
-
-io.on('connection', (socket) => {
-  console.log('Cliente conectado:', socket.id);
-  socket.on('disconnect', () => console.log('Cliente desconectado:', socket.id));
 });
 
 // catch 404 and forward to error handler

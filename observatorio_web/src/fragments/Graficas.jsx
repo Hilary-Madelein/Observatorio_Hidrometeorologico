@@ -112,7 +112,7 @@ export default function Graficas({ filtro }) {
       </div>
     );
   }
-  
+
   const isRaw = datosGrafica.length > 0 && datosGrafica[0].hasOwnProperty('valor');
 
   const estacionesUnicas = Array.from(new Set(datosGrafica.map((d) => d.estacion)));
@@ -160,13 +160,13 @@ export default function Graficas({ filtro }) {
         }),
         backgroundColor: `${color}88`,
         borderColor: color,
-        borderWidth: 2,
+        borderWidth: 1.5,
         spanGaps: true,
         showLine: true,
         type: isBar ? 'bar' : 'line',
         tension: 0.4,
-        pointRadius: 6,
-        pointHoverRadius: 10,
+        pointRadius: 4,
+        pointHoverRadius: 6,
       };
 
       return { labels, datasets: [dataset] };
@@ -212,11 +212,11 @@ export default function Graficas({ filtro }) {
           ),
           borderColor: color,
           backgroundColor: `${color}88`,
-          borderWidth: 2,
+          borderWidth: 1.8,
           fill: false,
           tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 10,
+          pointRadius: 4,
+          pointHoverRadius: 8,
           type: isBar ? 'bar' : 'line',
         };
       });
@@ -244,6 +244,13 @@ export default function Graficas({ filtro }) {
     });
   });
 
+  const anyLarge = todasGraficas.some(({ estacion, medida }) => {
+    const pts = datosGrafica.filter(
+      (d) => d.estacion === estacion && d.tipo_medida === medida
+    ).length;
+    return pts > 50;
+  });
+
   return (
     <div className="custom-container-graficas">
       {todasGraficas.length === 0 && (
@@ -251,8 +258,17 @@ export default function Graficas({ filtro }) {
       )}
 
       <div className="row">
+
         {todasGraficas.map(({ estacion, medida, idxColor }, idxGlobal) => {
           const datosDeEstaEstacion = datosGrafica.filter((d) => d.estacion === estacion);
+          const colClasses = anyLarge
+            ? 'col-12 mb-4'
+            : (todasGraficas.length === 1
+              ? 'col-12 mb-4'
+              : 'col-lg-6 col-md-6 mb-4'
+            );
+
+
           const { labels, datasets } = prepararDatosPorMedida(
             medida,
             datosDeEstaEstacion,
@@ -302,12 +318,9 @@ export default function Graficas({ filtro }) {
             },
           };
 
+
           return (
-            <div
-              key={`${estacion}_${medida}_${idxGlobal}`}
-              className={`${datosDeEstaEstacion.length > 50 ? 'col-12' : 'col-lg-6 col-md-6'
-                } mb-4`}
-            >
+            <div key={`${estacion}_${medida}_${idxGlobal}`} className={colClasses}>
               <div className="grafica-card">
                 <div className="grafica-header">
                   <i className="bi bi-pin-map-fill icono-estacion" />
