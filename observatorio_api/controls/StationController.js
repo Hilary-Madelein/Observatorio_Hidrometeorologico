@@ -1,12 +1,12 @@
 'use strict';
 const { validationResult } = require('express-validator');
 const { ValidationError, UniqueConstraintError } = require('sequelize');
+const brokers = require('../routes/mqtt');
 const models = require('../models');
 const path = require('path');
 const uuid = require('uuid');
 const fs = require('fs');
 const { sequelize } = require('../models');
-const mqttClient = require('../routes/mqtt');
 const topicTemplate = process.env.TTN_TOPIC_TEMPLATE;
 const Station = models.station;
 const Microbasin = models.microbasin;
@@ -16,7 +16,7 @@ class StationController {
     async list(req, res) {
         try {
             const results = await Station.findAll({
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device'],
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'app_user'],
             });
             res.json({ msg: 'OK!', code: 200, info: results });
         } catch (error) {
@@ -28,13 +28,38 @@ class StationController {
         try {
             const results = await Station.findAll({
                 where: { status: 'OPERATIVA' },
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device'],
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'app_user'],
             });
             res.json({ msg: 'OK!', code: 200, info: results });
         } catch (error) {
             res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
         }
     }
+
+    async listActiveMQTT(req, res) {
+        try {
+            const where = { status: 'OPERATIVA' };
+            if (req.user) {
+                where.app_user = req.user;
+            }
+
+            const results = await Station.findAll({
+                where,
+                attributes: ['external_id', 'status', 'id_device', 'app_user'],
+            });
+
+            return res.json({ msg: 'OK!', code: 200, info: results });
+        } catch (error) {
+            return res
+                .status(500)
+                .json({
+                    msg: 'Error al listar estaciones operativas: ' + error.message,
+                    code: 500,
+                    info: error
+                });
+        }
+    }
+
 
     async listByMicrobasinAndStatus(req, res) {
         const { external_id, estado } = req.params;
@@ -61,7 +86,8 @@ class StationController {
                     'status',
                     'type',
                     'id_device',
-                    'description'
+                    'description', 
+                    'app_user'
                 ]
             });
 
@@ -91,7 +117,7 @@ class StationController {
 
         const results = await Station.findAll({
             where: { id_microbasin: microbasin.id },
-            attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+            attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description', 'app_user'],
         });
 
         return res.status(200).json({
@@ -122,7 +148,7 @@ class StationController {
                     id_microbasin: microbasin.id,
                     status: "OPERATIVA"
                 },
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description'],
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description', 'app_user'],
             });
 
             return res.status(200).json({
@@ -143,7 +169,7 @@ class StationController {
         try {
             const station = await Station.findOne({
                 where: { external_id: external },
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description', 'id_microbasin']
+                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description', 'id_microbasin', 'app_user']
             });
 
             if (!station) {
@@ -161,11 +187,10 @@ class StationController {
         }
     }
 
-    //ADAPTAR METODO PARA GUARDAR TOPICO
-
     async create(req, res) {
         const transaction = await sequelize.transaction();
-
+        console.log(req.body);
+        
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -207,44 +232,41 @@ class StationController {
                 description: req.body.descripcion,
                 external_id: uuid.v4(),
                 id_microbasin: microbasin.id,
+                app_user: req.body.app_user
             };
 
             const station = await Station.create(data, { transaction });
 
-            if (!mqttClient.connected) {
+
+            const topicTemplate = process.env.TTN_TOPIC_TEMPLATE;
+            if (!topicTemplate) throw new Error('Falta TTN_TOPIC_TEMPLATE');
+
+            const entry = Object.entries(brokers)
+                .find(([, cfg]) => cfg.user === station.app_user);
+
+            if (!entry) {
+                throw new Error(`No se encontró broker para app_user=${station.app_user}`);
+            }
+
+            const [brokerId, { client }] = entry;
+            const topic = topicTemplate
+                .replace('{user}', station.app_user)
+                .replace('{id}', station.id_device);
+
+            if (!client.connected) {
                 throw new Error('No hay conexión con el servidor MQTT');
             }
 
-            const topic = topicTemplate.replace('{id}', station.id_device);
-            const topicFijo = process.env.TTN2_TOPIC;
-
-            try {
-                const isMarkDevice = topicFijo.includes(station.id_device);
-
-                if (!isMarkDevice) {
-                    await new Promise((resolve, reject) => {
-                        mqttClient.subscribe(topic, err => {
-                            if (err) {
-                                console.error(`Error al suscribirse a ${topic}:`, err);
-                                return reject(err);
-                            }
-                            console.log(`Suscrito dinámicamente a ${topic}`);
-                            resolve();
-                        });
-                    });
-                } else {
-                    console.log(`Estación con dispositivo ${station.id_device} ya manejada por mqttClient2 (${topicFijo})`);
-                }
-
-            } catch (err) {
-                await transaction.rollback();
-                fs.unlinkSync(path.join(__dirname, '../public/images/estaciones', pictureFilename));
-                return res.status(500).json({
-                    msg: "No se pudo suscribir al tópico MQTT. Intenta de nuevo más tarde.",
-                    code: 500
+            await new Promise((resolve, reject) => {
+                client.subscribe(topic, err => {
+                    if (err) {
+                        console.error(`[${brokerId}] Error al suscribirse a ${topic}:`, err);
+                        return reject(err);
+                    }
+                    console.log(`✔️ [${brokerId}] Suscrito dinámicamente a ${topic}`);
+                    resolve();
                 });
-            }
-
+            });
 
             await transaction.commit();
             return res.status(200).json({
@@ -256,8 +278,10 @@ class StationController {
             if (transaction && !transaction.finished) {
                 await transaction.rollback();
             }
-            if (req.file?.path) {
-                fs.unlinkSync(path.join(__dirname, '../public/images/estaciones', req.file.filename));
+            if (req.file?.filename) {
+                fs.unlinkSync(
+                    path.join(__dirname, '../public/images/estaciones', req.file.filename)
+                );
             }
 
             if (error instanceof UniqueConstraintError) {
@@ -354,23 +378,55 @@ class StationController {
             station.type = req.body.tipo;
             station.description = req.body.descripcion;
             station.id_device = req.body.id_dispositivo;
+            station.app_user = req.body.app_user;
             station.picture = newPicture;
             station.external_id = uuid.v4();
 
             const updated = await station.save({ transaction });
             if (!updated) {
-                throw new Error('No se lograron aplicar los cambios');
+                throw new Error('No se aplicaron los cambios');
             }
 
             if (req.body.id_dispositivo && req.body.id_dispositivo !== oldDevice) {
-                if (!mqttClient.connected) {
+                const topicTemplate = process.env.TTN_TOPIC_TEMPLATE;
+                if (!topicTemplate) throw new Error('Falta TTN_TOPIC_TEMPLATE en .env');
+
+                const entry = Object.entries(brokers)
+                    .find(([, cfg]) => cfg.user === station.app_user);
+                if (!entry) {
+                    throw new Error(`No se encontró broker para app_user=${station.app_user}`);
+                }
+                const [brokerId, { client }] = entry;
+
+                if (!client.connected) {
                     throw new Error('No hay conexión con el servidor MQTT');
                 }
-                const topic = topicTemplate.replace('{id}', updated.id_device);
+
+                const oldTopic = topicTemplate
+                    .replace('{user}', station.app_user)
+                    .replace('{id}', oldDevice);
                 await new Promise((resolve, reject) => {
-                    mqttClient.subscribe(topic, err => {
-                        if (err) reject(err);
-                        else resolve();
+                    client.unsubscribe(oldTopic, err => {
+                        if (err) {
+                            console.error(`[${brokerId}] Error desuscribiendo ${oldTopic}:`, err.message);
+                            return reject(err);
+                        }
+                        console.log(`[${brokerId}] Desuscrito de ${oldTopic}`);
+                        resolve();
+                    });
+                });
+
+                const newTopic = topicTemplate
+                    .replace('{user}', station.app_user)
+                    .replace('{id}', station.id_device);
+                await new Promise((resolve, reject) => {
+                    client.subscribe(newTopic, err => {
+                        if (err) {
+                            console.error(`[${brokerId}] Error suscribiendo ${newTopic}:`, err.message);
+                            return reject(err);
+                        }
+                        console.log(`✔️ [${brokerId}] Suscrito dinámicamente a ${newTopic}`);
+                        resolve();
                     });
                 });
             }
@@ -385,8 +441,10 @@ class StationController {
             if (transaction && !transaction.finished) {
                 await transaction.rollback();
             }
-            if (req.file?.path) {
-                fs.unlinkSync(path.join(__dirname, '../public/images/estaciones', req.file.filename));
+            if (req.file?.filename) {
+                fs.unlinkSync(
+                    path.join(__dirname, '../public/images/estaciones', req.file.filename)
+                );
             }
 
             if (error instanceof UniqueConstraintError) {
@@ -413,61 +471,72 @@ class StationController {
 
     async changeStatus(req, res) {
         try {
-            const external_id = req.body.external_id;
-
-            const estacion = await Station.findOne({
-                where: { external_id }
-            });
-
-            if (!estacion) {
-                return res.status(404).json({ msg: "Estación no encontrada", code: 404 });
+          const { external_id, estado } = req.body;
+      
+          const estacion = await Station.findOne({ where: { external_id } });
+          if (!estacion) {
+            return res.status(404).json({ msg: "Estación no encontrada", code: 404 });
+          }
+      
+          const estadoMap = estado.replace(/ /g, '_').toUpperCase();
+          const validStates = ['OPERATIVA', 'NO_OPERATIVA', 'MANTENIMIENTO'];
+          if (!validStates.includes(estadoMap)) {
+            return res.status(400).json({ msg: "Estado no válido", code: 400 });
+          }
+      
+          estacion.status = estadoMap;
+          await estacion.save();
+      
+          const entry = Object.entries(brokers)
+            .find(([ , cfg ]) => cfg.user === estacion.app_user);
+          if (!entry) {
+            console.warn(`No se encontró broker para app_user=${estacion.app_user}`);
+          } else {
+            const [ brokerId, { client, user } ] = entry;
+            const topic = topicTemplate
+              .replace('{user}', user)
+              .replace('{id}',   estacion.id_device);
+      
+            if (['NO_OPERATIVA', 'MANTENIMIENTO'].includes(estadoMap)) {
+              if (client.connected) {
+                await new Promise((resolve, reject) => {
+                  client.unsubscribe(topic, err => {
+                    if (err) {
+                      console.error(`[${brokerId}] Error desuscribiendo ${topic}:`, err.message);
+                      return reject(err);
+                    }
+                    console.log(`[${brokerId}] Desuscrito de ${topic}`);
+                    resolve();
+                  });
+                });
+              }
+            } else { 
+              if (client.connected) {
+                await new Promise((resolve, reject) => {
+                  client.subscribe(topic, err => {
+                    if (err) {
+                      console.error(`[${brokerId}] Error suscribiendo ${topic}:`, err.message);
+                      return reject(err);
+                    }
+                    console.log(`[${brokerId}] Suscripción exitosa a ${topic}`);
+                    resolve();
+                  });
+                });
+              }
             }
-
-            const estadoMap = req.body.estado.replace(/ /g, '_');
-
-            const validStates = ['OPERATIVA', 'NO_OPERATIVA', 'MANTENIMIENTO'];
-            if (!validStates.includes(estadoMap)) {
-                return res.status(400).json({ msg: "Estado no válido", code: 400 });
-            }
-
-            estacion.status = estadoMap;
-            await estacion.save();
-
-            if (estacion.status === 'NO_OPERATIVA' || estacion.status === 'MANTENIMIENTO') {
-                const topic = topicTemplate.replace('{id}', estacion.id_device);
-                if (mqttClient.connected) {
-                    mqttClient.unsubscribe(topic, (err) => {
-                        if (err) {
-                            console.error("Error al desuscribirse del tópico:", err);
-                        } else {
-                            console.log(`Desuscripción exitosa del tópico: ${topic}`);
-                        }
-                    });
-                }
-            } else {
-                const topic = topicTemplate.replace('{id}', estacion.id_device);
-                if (mqttClient.connected) {
-                    mqttClient.subscribe(topic, (err) => {
-                        if (err) {
-                            console.error("Error al suscribirse al tópico:", err);
-                        } else {
-                            console.log(`Suscripción exitosa al tópico: ${topic}`);
-                        }
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                msg: `Estado actualizado correctamente. Nuevo estado: ${estacion.status}`,
-                code: 200,
-                info: { external_id, nuevo_estado: estacion.status }
-            });
-
+          }
+      
+          return res.status(200).json({
+            msg: `Estado actualizado correctamente. Nuevo estado: ${estacion.status}`,
+            code: 200,
+            info: { external_id, nuevo_estado: estacion.status }
+          });
+      
         } catch (error) {
-            console.error("Error al cambiar el estado:", error);
-            return res.status(500).json({ msg: "Error interno del servidor", code: 500 });
+          console.error("Error al cambiar el estado:", error);
+          return res.status(500).json({ msg: "Error interno del servidor", code: 500 });
         }
-    }
+      }
 
 
 }

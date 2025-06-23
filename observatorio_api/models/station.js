@@ -38,6 +38,11 @@ module.exports = (sequelize, DataTypes) => {
             unique: true,
             defaultValue: "NO_DATA"
         },
+        app_user: { 
+            type: DataTypes.STRING(20), 
+            allowNull: false, 
+            defaultValue: "NO_DATA",
+        }, 
         type: {
             type: DataTypes.ENUM('METEOROLOGICA', 'HIDROLOGICA', 'PLUVIOMETRICA'),
             allowNull: false,

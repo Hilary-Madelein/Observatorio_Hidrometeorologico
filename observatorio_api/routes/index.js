@@ -1,11 +1,8 @@
 'use strict';
 
 const express = require('express');
-const mqtt = require('mqtt');
 const router = express.Router();
 require('dotenv').config();
-
-const { Sequelize } = require('sequelize');
 const models = require('./../models');
 const StationController = require('../controls/StationController');
 const stationController = new StationController();
@@ -25,10 +22,9 @@ const endpoint = process.env.COSMOS_ENDPOINT;
 const key = process.env.COSMOS_KEY;
 const databaseId = process.env.COSMOS_DB;
 const client = new CosmosClient({ endpoint, key });
-const { mqttClient, mqttClient2 } = require('./mqtt');
+const brokers = require('./mqtt');
 
 const DESPLAZAMIENTO_HORARIO_MINUTOS = -300;
-const topicTemplate = process.env.TTN_TOPIC_TEMPLATE;
 
 function ajustarZonaHoraria(timestamp) {
   const date = new Date(timestamp);
@@ -36,102 +32,103 @@ function ajustarZonaHoraria(timestamp) {
   return date.toISOString();
 }
 
-mqttClient.on('connect', async () => {
-  console.log('Conectado a TTN MQTT');
+const topicTemplate = process.env.TTN_TOPIC_TEMPLATE; // 'v3/{user}/devices/{id}/up'
+if (!topicTemplate) {
+  console.error('Falta TTN_TOPIC_TEMPLATE en tu .env');
+  process.exit(1);
+}
 
-  try {
-    let estaciones;
-    const fakeReq = {};
-    const fakeRes = {
-      json: body => { estaciones = body.info; },
-      status: code => ({
-        json: body => { throw new Error(body.msg || 'Error listing stations'); }
-      })
-    };
-    await stationController.listActive(fakeReq, fakeRes);
+const REFRESH_MS = 12 * 60 * 1000;
 
-    estaciones.forEach(({ id_device }) => {
-      const topic = topicTemplate.replace('{id}', id_device);
-      mqttClient.subscribe(topic, err => {
-        if (err) console.error(`Error suscribiendo ${topic}:`, err);
-        else console.log(`Suscrito a ${topic}`);
-      });
-    });
+Object.entries(brokers).forEach(([brokerId, { client, user }]) => {
+  let currentSubs = new Set();
 
-  } catch (err) {
-    console.error('Error al obtener estaciones para suscripción:', err);
-  }
-});
+  async function updateSubscriptions() {
+    try {
+      let estaciones;
+      const fakeReq = { user };
+      const fakeRes = {
+        json: body => { estaciones = body.info; },
+        status: () => ({ json: err => { throw new Error(err.msg); } })
+      };
+      await stationController.listActiveMQTT(fakeReq, fakeRes);
 
-mqttClient.on('message', async (topic, message) => {
-  try {
-    const data = JSON.parse(message.toString());
-    if (data.received_at) data.received_at = ajustarZonaHoraria(data.received_at);
+      const newIds = new Set(estaciones.map(e => e.id_device));
 
-    const entrada = {
-      fecha: data.received_at,
-      dispositivo: data.end_device_ids?.device_id,
-      payload: data.uplink_message?.decoded_payload
-    };
+      for (const id_device of newIds) {
+        if (!currentSubs.has(id_device)) {
+          const topic = topicTemplate
+            .replace('{user}', user)
+            .replace('{id}',   id_device);
 
-    console.log('Datos TTN recibidos:', entrada);
-
-    const req = { body: entrada };
-    const res = {
-      status: (code) => ({
-        json: (response) => {
-          if (code !== 200) {
-            console.error(`[ERROR ${code}]`, response);
-          } else {
-            console.log('[Guardado]', response);
-          }
+          client.subscribe(topic, err => {
+            if (err) console.error(`[${brokerId}] Error suscribiendo ${topic}:`, err.message);
+            else     console.log(`[${brokerId}] Suscrito a ${topic}`);
+          });
         }
-      })
-    };
+      }
 
-    await measurementController.saveFromTTN(req, res);
+      for (const oldId of currentSubs) {
+        if (!newIds.has(oldId)) {
+          const topic = topicTemplate
+            .replace('{user}', user)
+            .replace('{id}',   oldId);
 
-  } catch (err) {
-    console.error('Error procesando mensaje MQTT:', err.message);
+          client.unsubscribe(topic, err => {
+            if (err) console.error(`[${brokerId}] Error desuscribiendo ${topic}:`, err.message);
+            else     console.log(`[${brokerId}] Desuscrito de ${topic}`);
+          });
+        }
+      }
+
+      currentSubs = newIds;
+
+    } catch (err) {
+      console.error(`[${brokerId}] Error en updateSubscriptions():`, err.message);
+    }
   }
-});
 
-mqttClient2.on('connect', () => {
-  console.log('Conectado a TTN MQTT (cliente 2)');
-  mqttClient2.subscribe(process.env.TTN2_TOPIC, (err) => {
-    if (err) console.error(`Error suscribiendo a ${process.env.TTN2_TOPIC}:`, err);
-    else console.log(`Suscrito a ${process.env.TTN2_TOPIC}`);
+  client.on('connect', () => {
+    console.log(`[${brokerId}] Conectado a ${process.env.TTN_SERVER}`);
+    updateSubscriptions();
+    setInterval(updateSubscriptions, REFRESH_MS);
   });
-});
 
-mqttClient2.on('message', async (topic, message) => {
-  try {
-    const data = JSON.parse(message.toString());
-    if (data.received_at) data.received_at = ajustarZonaHoraria(data.received_at);
+  client.on('message', async (receivedTopic, message) => {
+    try {
+      const parts    = receivedTopic.split('/');
+      const deviceId = parts[3];
 
-    const entrada = {
-      fecha: data.received_at,
-      dispositivo: data.end_device_ids?.device_id,
-      payload: data.uplink_message?.decoded_payload
-    };
+      if (!currentSubs.has(deviceId)) return;
 
-    console.log('Datos TTN recibidos (cliente 2):', entrada);
+      const data = JSON.parse(message.toString());
+      if (data.received_at) data.received_at = ajustarZonaHoraria(data.received_at);
 
-    const req = { body: entrada };
-    const res = {
-      status: (code) => ({
-        json: (response) => {
-          if (code !== 200) console.error(`[ERROR ${code}]`, response);
-          else console.log('[Guardado]', response);
-        }
-      })
-    };
+      const entrada = {
+        fecha:       data.received_at,
+        dispositivo: deviceId,
+        payload:     data.uplink_message?.decoded_payload
+      };
 
-    await measurementController.saveFromTTN(req, res);
+      console.log(`[${brokerId}] Datos de ${deviceId}:`, entrada);
 
-  } catch (err) {
-    console.error('Error procesando mensaje MQTT (cliente 2):', err.message);
-  }
+      const req = { body: entrada };
+      const res = {
+        status: code => ({
+          json: response => {
+            if (code !== 200) console.error(`[${brokerId}][${code}]`, response);
+            else              console.log(`[${brokerId}] Guardado exitoso`, response);
+          }
+        })
+      };
+
+      await measurementController.saveFromTTN(req, res);
+
+    } catch (err) {
+      console.error(`[${brokerId}] Error procesando mensaje:`, err.message);
+    }
+  });
+
 });
 
 // Ruta de verificación

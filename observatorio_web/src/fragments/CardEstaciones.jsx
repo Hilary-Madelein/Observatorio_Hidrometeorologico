@@ -425,7 +425,7 @@ function MapaConEstaciones() {
                                         <div className="modern-card">
                                             <img
                                                 className="card-img-top"
-                                                src={`${URLBASE}/images/estaciones/${item.picture}`}
+                                                src={`${URLBASE}/images/estaciones/${item.picture}`|| null}
                                                 alt={item.name}
                                             />
                                             <div className="card-body">

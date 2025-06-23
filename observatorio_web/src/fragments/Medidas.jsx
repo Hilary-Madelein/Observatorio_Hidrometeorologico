@@ -49,7 +49,7 @@ function procesarMedidas(medidas, fenomenos) {
                 nombre: label,
                 icono: fenomeno
                     ? `${URLBASE}/images/icons_estaciones/${fenomeno.icono}`
-                    : '',
+                    : null,
                 unidad: unidad || fenomeno?.unidad || '',
                 estaciones: []
             };
