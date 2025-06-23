@@ -45,7 +45,7 @@ services:
     
   frontend:
     build:
-      context: ./observatorio_frontend
+      context: ./observatorio_web
       dockerfile: Dockerfile
     restart: always
     ports:
