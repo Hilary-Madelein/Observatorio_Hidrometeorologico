@@ -30,9 +30,8 @@ services:
       COSMOS_KEY: qiQcJSvCarkoxOemEpqvzZeA3xk2AoJIaHOSzuR0IcfsZxvAllc4BDoPsid5p1EpSeeFupt9JAPTACDbUyxgAw==
       COSMOS_DB: PUEAR
       TTN_SERVER: mqtt://nam1.cloud.thethings.network:1883
-      TTN_USERNAME: puar-unl-esp32@ttn
-      TTN_PASSWORD: NNSXS.FGSQU3PH2K2E32I5U5QDUFKURE4OB42PWDP6N7A.GBTQGXU4TRE3ELIOBWTBLGXDOFQPFIN5UH6CVDHU27Q2E4XMHO3Q
-      TTN_TOPIC_TEMPLATE: v3/puar-unl-esp32@ttn/devices/{id}/up
+      MQTT_BROKERS: '[{"id":"ttn1","user":"puar-unl-esp32@ttn","pass":"NNSXS.FGSQU3PH2K2E32I5U5QDUFKURE4OB42PWDP6N7A.GBTQGXU4TRE3ELIOBWTBLGXDOFQPFIN5UH6CVDHU27Q2E4XMHO3Q"},{"id":"ttn2","user":"mark3@ttn","pass":"NNSXS.NDG55OZCWD6DTON4UJO4DLRQAIOBNOCTOJ7HIZI.MEF5NG2ASTC6VN6XGHC7P4PGFDKYQ6MIRAKLDLMFJFC37NFA5GBQ"}]'
+      TTN_TOPIC_TEMPLATE: v3/{user}/devices/{id}/up
       KEY_SQ: OBSERVATORIO-IOT-MQTT
       KEY: OBSERVATORIO-IOT
     depends_on:
@@ -41,6 +40,18 @@ services:
       - backend_data:/usr/src/app
     ports:
       - "3006:3006"
+    networks:
+      - app-network
+    
+  frontend:
+    build:
+      context: ./observatorio_frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
     networks:
       - app-network
 
