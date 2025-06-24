@@ -15,7 +15,7 @@ COPY . .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
-EXPOSE 3006
+EXPOSE 5007
 
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["npm", "start"]

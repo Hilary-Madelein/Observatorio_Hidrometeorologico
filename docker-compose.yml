@@ -37,7 +37,7 @@ services:
     depends_on:
       - db
     ports:
-      - "3006:3006"
+      - "5007:5007"
     networks:
       - app-network
     
