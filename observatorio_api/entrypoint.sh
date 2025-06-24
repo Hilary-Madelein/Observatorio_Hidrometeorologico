@@ -10,11 +10,11 @@ if [ ! -f "$FLAG" ]; then
   npm start &
   APP_PID=$!
 
-  echo "Esperando a que la API HTTP esté disponible en el puerto 3006…"
-  until nc -z localhost 3006; do sleep 1; done
+  echo "Esperando a que la API HTTP esté disponible en el puerto 5007…"
+  until nc -z localhost 5007; do sleep 1; done
 
   echo "API lista, ejecutando migración inicial vía HTTP…"
-  curl -s "http://localhost:3006/privado/${KEY_SQ}" \
+  curl -s "http://localhost:5007/privado/${KEY_SQ}" \
     || echo "curl falló"
 
   touch "$FLAG"
