@@ -44,8 +44,8 @@ function App() {
   return (
     <Routes>
       {/** Ruta principal de monitoreo */}
-      <Route path="/principal/monitorizacion" element={<Principal />} />
-      <Route path="*" element={<Navigate to="/principal/monitorizacion" />} />
+      <Route path="/" element={<Principal />} />
+      <Route path="*" element={<Navigate to="/" />} />
 
       {/** Rutas administrativas */}
       <Route path="/admin" element={<Login />} />
