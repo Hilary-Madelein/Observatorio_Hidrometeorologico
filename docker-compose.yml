@@ -36,8 +36,6 @@ services:
       KEY: OBSERVATORIO-IOT
     depends_on:
       - db
-    volumes:
-      - backend_data:/usr/src/app
     ports:
       - "3006:3006"
     networks:
@@ -57,7 +55,6 @@ services:
 
 volumes:
   db_data:
-  backend_data:
 
 networks:
   app-network:
