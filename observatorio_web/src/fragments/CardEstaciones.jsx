@@ -360,11 +360,11 @@ function MapaConEstaciones() {
                                 '&.Mui-focused': {
                                     color: '#fff',
                                 },
-                                fontSize: { xs: '0.55rem', sm: '0.7rem' },
+                                fontSize: { xs: '0.55rem', sm: '0.8rem' },
                             },
                             '& .MuiSelect-select': {
                                 padding: { xs: '4px 32px 4px 8px', sm: '6px 32px 6px 8px' },
-                                fontSize: { xs: '0.55rem', sm: '0.6rem' },
+                                fontSize: { xs: '0.55rem', sm: '0.7rem' },
                             },
                             '& .MuiSvgIcon-root': {
                                 color: '#fff',
