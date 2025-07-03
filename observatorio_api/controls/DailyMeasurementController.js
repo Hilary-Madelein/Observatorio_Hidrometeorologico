@@ -24,6 +24,8 @@ class DailyMeasurementController {
       Humidity: 'Humedad',
       Radiation: 'Radiación',
       Rain: 'Lluvia',
+      'Caudal (L/s)': 'Caudal',
+      'Solidos_Suspendidos_GS (mg/s)': 'Sólidos suspendidos',
     };
 
     try {

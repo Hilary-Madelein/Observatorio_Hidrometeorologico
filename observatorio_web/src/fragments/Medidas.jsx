@@ -22,7 +22,9 @@ function procesarMedidas(medidas, fenomenos) {
         Humedad: 'Humidity',
         Temperatura: 'Temperature',
         Radiación: 'Radiation',
-        Lluvia: 'Rain'
+        Lluvia: 'Rain',
+        Caudal: 'Caudal (L/s)',
+        'Sólidos suspendidos': 'Solidos_Suspendidos_GS (mg/s)',
     };
 
     const normalize = str =>

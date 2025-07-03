@@ -182,6 +182,8 @@ class MeasurementController {
                 Humidity: 'Humedad',
                 Radiation: 'Radiación',
                 Rain: 'LLuvia',
+                'Caudal (L/s)': 'Caudal',
+                'Solidos_Suspendidos_GS (mg/s)': 'Sólidos suspendidos',
             };
 
             salida = salida.map(med => ({
