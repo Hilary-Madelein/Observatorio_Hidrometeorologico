@@ -301,6 +301,10 @@ function MapaConEstaciones() {
                         .setPopup(popup)
                         .addTo(map);
 
+                    marker.getElement().setAttribute('title', 'Clic para más información');
+                    marker.getElement().style.cursor = 'pointer';
+                    marker.setPopup(popup);
+
                     markersRef.current.push(marker);
                     bounds.extend(coords);
                     hasValidCoordinates = true;
@@ -425,7 +429,7 @@ function MapaConEstaciones() {
                                         <div className="modern-card">
                                             <img
                                                 className="card-img-top"
-                                                src={`${URLBASE}/images/estaciones/${item.picture}`|| null}
+                                                src={`${URLBASE}/images/estaciones/${item.picture}` || null}
                                                 alt={item.name}
                                             />
                                             <div className="card-body">
