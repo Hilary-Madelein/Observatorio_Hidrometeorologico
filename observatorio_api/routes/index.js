@@ -11,17 +11,6 @@ const sequelize = models.sequelize;
 const MeasurementController = require('../controls/MeasurementController');
 const measurementController = new MeasurementController();
 
-const { CosmosClient } = require('@azure/cosmos');
-const AbortController = require('abort-controller');
-
-if (typeof global.AbortController === 'undefined') {
-  global.AbortController = AbortController;
-}
-
-const endpoint = process.env.COSMOS_ENDPOINT;
-const key = process.env.COSMOS_KEY;
-const databaseId = process.env.COSMOS_DB;
-const client = new CosmosClient({ endpoint, key });
 const brokers = require('./mqtt');
 
 const DESPLAZAMIENTO_HORARIO_MINUTOS = -300;
@@ -59,11 +48,11 @@ Object.entries(brokers).forEach(([brokerId, { client, user }]) => {
         if (!currentSubs.has(id_device)) {
           const topic = topicTemplate
             .replace('{user}', user)
-            .replace('{id}',   id_device);
+            .replace('{id}', id_device);
 
           client.subscribe(topic, err => {
             if (err) console.error(`[${brokerId}] Error suscribiendo ${topic}:`, err.message);
-            else     console.log(`[${brokerId}] Suscrito a ${topic}`);
+            else console.log(`[${brokerId}] Suscrito a ${topic}`);
           });
         }
       }
@@ -72,11 +61,11 @@ Object.entries(brokers).forEach(([brokerId, { client, user }]) => {
         if (!newIds.has(oldId)) {
           const topic = topicTemplate
             .replace('{user}', user)
-            .replace('{id}',   oldId);
+            .replace('{id}', oldId);
 
           client.unsubscribe(topic, err => {
             if (err) console.error(`[${brokerId}] Error desuscribiendo ${topic}:`, err.message);
-            else     console.log(`[${brokerId}] Desuscrito de ${topic}`);
+            else console.log(`[${brokerId}] Desuscrito de ${topic}`);
           });
         }
       }
@@ -96,7 +85,7 @@ Object.entries(brokers).forEach(([brokerId, { client, user }]) => {
 
   client.on('message', async (receivedTopic, message) => {
     try {
-      const parts    = receivedTopic.split('/');
+      const parts = receivedTopic.split('/');
       const deviceId = parts[3];
 
       if (!currentSubs.has(deviceId)) return;
@@ -105,9 +94,9 @@ Object.entries(brokers).forEach(([brokerId, { client, user }]) => {
       if (data.received_at) data.received_at = ajustarZonaHoraria(data.received_at);
 
       const entrada = {
-        fecha:       data.received_at,
+        fecha: data.received_at,
         dispositivo: deviceId,
-        payload:     data.uplink_message?.decoded_payload
+        payload: data.uplink_message?.decoded_payload
       };
 
       console.log(`[${brokerId}] Datos de ${deviceId}:`, entrada);
@@ -117,7 +106,7 @@ Object.entries(brokers).forEach(([brokerId, { client, user }]) => {
         status: code => ({
           json: response => {
             if (code !== 200) console.error(`[${brokerId}][${code}]`, response);
-            else              console.log(`[${brokerId}] Guardado exitoso`, response);
+            else console.log(`[${brokerId}] Guardado exitoso`, response);
           }
         })
       };
@@ -144,20 +133,13 @@ router.get('/privado/:external', async function (req, res) {
     await sequelize.authenticate();
     console.log('Conectado a PostgreSQL');
 
-    // Verificar conexión temporal a Azure Cosmos para migración
-    const db = client.database(databaseId);
-    const { resources: containers } = await db.containers.readAll().fetchAll();
-    console.log(`Conectado a Cosmos DB: ${databaseId}, contenedores encontrados:`, containers.map(c => c.id));
-
-    return res.status(200).send(`Conexión exitosa a PostgreSQL y Cosmos DB (${databaseId})`);
+    return res.status(200).send('Conexión exitosa a PostgreSQL');
   } catch (err) {
-    console.error('Error en conexión a PostgreSQL o Cosmos:', err.message);
-    return res.status(500).json({ message: 'Error conectando a bases de datos', error: err.message });
+    console.error('Error en conexión a PostgreSQL:', err.message);
+    return res.status(500).json({ message: 'Error conectando a PostgreSQL', error: err.message });
   }
 });
 
 module.exports = {
-  router,
-  client,
-  databaseId
+  router
 };
