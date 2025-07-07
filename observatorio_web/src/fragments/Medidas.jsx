@@ -22,7 +22,7 @@ function procesarMedidas(medidas, fenomenos) {
         Humedad: 'Humidity',
         Temperatura: 'Temperature',
         Radiación: 'Radiation',
-        Lluvia: 'Rain',
+        LLuvia: 'Rain',
         Caudal: 'Caudal (L/s)',
         'Sólidos suspendidos': 'Solidos_Suspendidos_GS (mg/s)',
     };
@@ -65,7 +65,6 @@ function procesarMedidas(medidas, fenomenos) {
 
     return Object.values(agrupadas);
 }
-
 
 function Medidas() {
     const [variables, setVariables] = useState([]);

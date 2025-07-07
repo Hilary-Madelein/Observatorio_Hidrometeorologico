@@ -1,59 +1,73 @@
 'use strict';
 
-const { client, databaseId } = require('../routes/index');
-const Sequelize = require('sequelize');
+// Cargamos las vars de entorno (asegúrate de tener .env en la raíz)
+// En la cabecera de auto-migracion.js o MigracionController.js
+const path = require('path');
+require('dotenv').config({
+  path: path.resolve(__dirname, '../.env')
+});
+
+
+const { CosmosClient } = require('@azure/cosmos');
+const Sequelize      = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
-const { Op } = require("sequelize");
-const models = require('../models');
+const models         = require('../models');
 
 const VALOR_UMBRAL = 1e6;
 
+// Mapas de campos Cosmos → fenómenos
 const medidaMapeo = {
   EMA: {
     Temperatura: 'Temperatura',
-    Presion: 'Presion',
-    Humedad: 'Humedad',
-    Lluvia: 'Lluvia'
+    Presion:     'Presion',
+    Humedad:     'Humedad',
+    Lluvia:      'Lluvia'
   },
   EHA: {
     Nivel_de_agua: 'Nivel_de_agua',
-    Carga_H: 'Carga_H',
-    Distancia_Hs: 'Distancia_Hs'
+    Carga_H:       'Carga_H',
+    Distancia_Hs:  'Distancia_Hs'
   }
 };
 
+// Normalización para buscar phenomenon_type en DB
 const normalizacionNombres = {
-  'DISTANCIA_HS': 'DISTANCIA_H',
-  'NIVEL_DE_AGUA': 'NIVEL_DE_AGUA',
-  'CARGA_H': 'CARGA_H',
-  'LLUVIA': 'LLUVIA',
-  'PRESION': 'PRESION',
-  'HUMEDAD': 'HUMEDAD',
-  'TEMPERATURA': 'TEMPERATURA'
+  'DISTANCIA_HS':   'DISTANCIA_H',
+  'NIVEL_DE_AGUA':  'NIVEL_DE_AGUA',
+  'CARGA_H':        'CARGA_H',
+  'LLUVIA':         'LLUVIA',
+  'PRESION':        'PRESION',
+  'HUMEDAD':        'HUMEDAD',
+  'TEMPERATURA':    'TEMPERATURA'
 };
-
 
 class MigracionController {
   constructor() {
-    this.database = client.database(databaseId);
+    // Inicializo **sólo** CosmosClient, sin tocar index.js
+    const endpoint   = process.env.COSMOS_ENDPOINT;
+    const key        = process.env.COSMOS_KEY;
+    const databaseId = process.env.COSMOS_DB;
+    this.database    = new CosmosClient({ endpoint, key }).database(databaseId);
   }
 
   esValorValido(valor) {
-    return valor !== null && !isNaN(valor) && Math.abs(valor) < VALOR_UMBRAL;
+    return valor != null && !isNaN(valor) && Math.abs(valor) < VALOR_UMBRAL;
   }
 
   async migrar() {
     const contenedores = ['EMA', 'EHA'];
-    const fechas = await this.generarFechasParaMigrar();
-    console.log('🔄 Fechas a migrar:', fechas);
+    const fechas       = await this.generarFechasParaMigrar();
 
+    console.log('🔄 Fechas a migrar:', fechas);
     for (const fecha of fechas) {
       for (const contenedor of contenedores) {
-        console.log(`📦 Procesando contenedor ${contenedor} para fecha ${fecha}`);
+        console.log(`📦 Procesando ${contenedor} para fecha ${fecha}`);
         const container = this.database.container(contenedor);
-        const mapeo = medidaMapeo[contenedor];
+        const mapeo    = medidaMapeo[contenedor];
+
         const items = await this.obtenerDatosCosmosConFiltro(container, fecha);
-        console.log(`📥 Datos obtenidos de Cosmos (${items.length} items)`);
+        console.log(`📥 Items de Cosmos: ${items.length}`);
+
         const agrupado = this.agruparPorEstacionYMedida(items, mapeo);
         await this.procesarMigracion(agrupado, fecha);
       }
@@ -61,17 +75,14 @@ class MigracionController {
   }
 
   async generarFechasParaMigrar() {
-    const fechaInicio = new Date('2024-01-01'); // o la fecha más antigua que tengas en Cosmos
-    const fechaFin = new Date();
-    fechaFin.setHours(0, 0, 0, 0); // hasta hoy sin hora
+    const desde   = new Date('2024-01-01');
+    const hasta   = new Date();
+    hasta.setHours(0,0,0,0);
 
     const fechas = [];
-    let actual = new Date(fechaInicio);
-    while (actual < fechaFin) {
-      fechas.push(actual.toISOString().split('T')[0]);
-      actual.setDate(actual.getDate() + 1);
+    for (let d = new Date(desde); d < hasta; d.setDate(d.getDate()+1)) {
+      fechas.push(d.toISOString().slice(0,10));
     }
-
     return fechas;
   }
 
@@ -95,8 +106,8 @@ class MigracionController {
         const fenomeno = mapeo[campo];
         if (!fenomeno) continue;
 
-        if (!estaciones[deviceId]) estaciones[deviceId] = {};
-        if (!estaciones[deviceId][fenomeno]) estaciones[deviceId][fenomeno] = [];
+        estaciones[deviceId] ||= {};
+        estaciones[deviceId][fenomeno] ||= [];
 
         if (this.esValorValido(valor)) estaciones[deviceId][fenomeno].push(valor);
       }
@@ -108,76 +119,64 @@ class MigracionController {
     for (const [deviceId, fenomenos] of Object.entries(estaciones)) {
       const estacion = await models.station.findOne({ where: { id_device: deviceId } });
       if (!estacion) {
-        console.warn(`🚫 Estación no encontrada para deviceId ${deviceId}`);
+        console.warn(`🚫 No existe station.id_device=${deviceId}`);
         continue;
       }
 
-      for (const [fenomenoNombre, valores] of Object.entries(fenomenos)) {
-        const nombreNormalizado = normalizacionNombres[fenomenoNombre.toUpperCase()];
-        if (!nombreNormalizado) {
-          console.warn(`🚫 Fenómeno no mapeado: ${fenomenoNombre}`);
+      for (const [nombreFen, valores] of Object.entries(fenomenos)) {
+        const nombreNorm = normalizacionNombres[nombreFen.toUpperCase()];
+        if (!nombreNorm) {
+          console.warn(`🚫 Fenómeno no mapeado: ${nombreFen}`);
           continue;
         }
 
         const fenomeno = await models.phenomenon_type.findOne({
           where: Sequelize.where(
             Sequelize.fn('UPPER', Sequelize.col('name')),
-            nombreNormalizado
+            nombreNorm
           )
         });
-
-
         if (!fenomeno) {
-          console.warn(`🚫 Fenómeno no encontrado: ${fenomenoNombre}`);
+          console.warn(`🚫 phenotype missing: ${nombreNorm}`);
           continue;
         }
 
-        if (!Array.isArray(fenomeno.operations) || fenomeno.operations.length === 0) {
-          console.warn(`⚠️ Fenómeno sin operaciones definidas: ${fenomeno.name}`);
-          continue;
-        }
-
-        console.log(`🔎 Estación: ${estacion.id}, Fenómeno: ${fenomeno.name}, Valores: ${valores}`);
-
-        for (const operacion of fenomeno.operations) {
-          const tipoOperacion = await models.type_operation.findOne({ where: { operation: operacion } });
-          if (!tipoOperacion) {
-            console.warn(`⚠️ Tipo de operación no encontrada: ${operacion}`);
+        // operaciones predefinidas en phenomenon_type.operations
+        for (const oper of fenomeno.operations) {
+          const tipoOp = await models.type_operation.findOne({ where: { operation: oper } });
+          if (!tipoOp) {
+            console.warn(`⚠️ type_operation faltante: ${oper}`);
             continue;
           }
 
           let resultado = 0;
-          switch (operacion) {
+          switch (oper) {
             case 'PROMEDIO':
-              resultado = valores.length ? valores.reduce((a, b) => a + b, 0) / valores.length : 0;
+              resultado = valores.length > 0
+                ? valores.reduce((a,b)=>a+b,0)/valores.length
+                : 0;
               break;
-            case 'MAX':
-              resultado = Math.max(...valores);
-              break;
-            case 'MIN':
-              resultado = Math.min(...valores);
-              break;
-            case 'SUMA':
-              resultado = valores.reduce((a, b) => a + b, 0);
-              break;
+            case 'MAX': resultado = Math.max(...valores); break;
+            case 'MIN': resultado = Math.min(...valores); break;
+            case 'SUMA': resultado = valores.reduce((a,b)=>a+b,0); break;
             default:
-              console.warn(`❓ Operación desconocida: ${operacion}`);
+              console.warn(`❓ Operación desconocida: ${oper}`);
               continue;
           }
 
           if (this.esValorValido(resultado)) {
-            console.log(`✅ Insertando: ${fenomeno.name} (${operacion}) = ${resultado.toFixed(2)} para estación ${estacion.id}`);
+            console.log(`✅ Inserto ${fenomeno.name}(${oper})=${resultado.toFixed(2)} en station ${estacion.id}`);
             await models.daily_measurement.create({
-              local_date: new Date(`${fecha}T00:00:00Z`),
-              quantity: resultado.toFixed(2),
-              external_id: uuidv4(),
-              status: true,
-              id_station: estacion.id,
+              local_date:        new Date(`${fecha}T00:00:00Z`),
+              quantity:          Number(resultado.toFixed(2)),
+              external_id:       uuidv4(),
+              status:            true,
+              id_station:        estacion.id,
               id_phenomenon_type: fenomeno.id,
-              id_type_operation: tipoOperacion.id
+              id_type_operation:  tipoOp.id
             });
           } else {
-            console.warn(`❌ Valor inválido calculado para ${fenomeno.name} (${operacion}):`, resultado);
+            console.warn(`❌ ${fenomeno.name}(${oper}) inválido: ${resultado}`);
           }
         }
       }

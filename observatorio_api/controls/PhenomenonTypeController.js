@@ -7,6 +7,7 @@ const path = require('path');
 const { Op } = require('sequelize');
 const fs = require('fs');
 const { sequelize } = require('../models');
+const { log } = require('console');
 const PhenomenonType = models.phenomenon_type;
 
 class PhenomenonTypeController {

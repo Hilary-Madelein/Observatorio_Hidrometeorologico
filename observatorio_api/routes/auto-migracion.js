@@ -1,4 +1,9 @@
-require('dotenv').config();
+// En la cabecera de auto-migracion.js o MigracionController.js
+const path = require('path');
+require('dotenv').config({
+  path: path.resolve(__dirname, '../.env')
+});
+
 const MigracionController = require('../controls/MigracionController'); // Ajusta la ruta si está en otro lugar
 
 (async () => {
