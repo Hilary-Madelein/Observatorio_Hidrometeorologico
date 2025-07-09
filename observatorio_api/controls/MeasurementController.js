@@ -171,7 +171,8 @@ class MeasurementController {
                         tipo_medida: formatName(row.tipo_medida),
                         valor: parseFloat(row.valor),
                         unidad: row.unidad,
-                        estacion: row.estacion
+                        estacion: row.estacion,
+                        fecha_medicion: row.local_date.toISOString()
                     };
                 }
             });

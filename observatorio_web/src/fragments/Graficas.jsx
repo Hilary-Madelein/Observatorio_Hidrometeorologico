@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import { ObtenerGet, URLBASE } from '../hooks/Conexion';
 import { getToken } from '../utils/SessionUtil';
 import mensajes from '../utils/Mensajes';
@@ -25,7 +26,8 @@ ChartJS.register(
   PointElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  zoomPlugin
 );
 
 const chartColors = ['#BF3131', '#00ADB5', '#FFB1B1', '#1679AB', '#FF0075', '#AE00FB'];
@@ -37,6 +39,13 @@ const formatName = (name) =>
 export default function Graficas({ filtro }) {
   const [datosGrafica, setDatosGrafica] = useState([]);
   const [loading, setLoading] = useState(false);
+  const chartRef = useRef(null)
+  // Funciones de ayuda
+  const zoomIn = () => chartRef.current.zoom(1.2);
+  const zoomOut = () => chartRef.current.zoom(0.8);
+  const panLeft = () => chartRef.current.pan({ x: -100 });
+  const panRight = () => chartRef.current.pan({ x: 100 });
+  const reset = () => chartRef.current.resetZoom();
 
   useEffect(() => {
     const obtenerDatosPorFiltro = async () => {
@@ -299,17 +308,31 @@ export default function Graficas({ filtro }) {
                 font: { size: 20, weight: 'bold', family: 'Poppins' },
                 color: '#0C2840',
               },
+              zoom: {
+                pan: {
+                  enabled: true,      
+                  mode: 'x',          
+                  onPan: ({ chart }) => chart.update('none'),
+                },
+                zoom: {
+                  wheel: {
+                    enabled: true,   
+                  },
+                  pinch: {
+                    enabled: true     
+                  },
+                  mode: 'x',       
+                }
+              }
             },
             scales: {
               x: {
                 grid: { color: '#e5e5e5' },
-                ticks: {
-                  maxRotation: 45
-                }
+                ticks: { maxRotation: 45 },
               },
               y: {
                 grid: { color: '#e5e5e5' },
-                ticks: { callback: (v) => (typeof v === 'number' ? v.toFixed(2) : v) },
+                ticks: { callback: v => (typeof v === 'number' ? v.toFixed(2) : v) },
                 title: {
                   display: Boolean(unidad),
                   text: unidad || '',
@@ -317,7 +340,6 @@ export default function Graficas({ filtro }) {
               },
             },
           };
-
 
           return (
             <div key={`${estacion}_${medida}_${idxGlobal}`} className={colClasses}>
@@ -337,8 +359,37 @@ export default function Graficas({ filtro }) {
                     </div>
                   )}
                 </div>
-                <div className="chart-wrapper">
-                  <ChartCmp data={{ labels, datasets }} options={opciones} />
+
+                <div className="zoom-controls">
+                  <button title="Acercar zoom" onClick={zoomIn}>
+                    <i className="bi bi-zoom-in"></i>
+                  </button>
+                  <button title="Alejar zoom" onClick={zoomOut}>
+                    <i className="bi bi-zoom-out"></i>
+                  </button>
+                  <button title="Desplazar izquierda" onClick={panLeft}>
+                    <i className="bi bi-arrow-left"></i>
+                  </button>
+                  <button title="Desplazar derecha" onClick={panRight}>
+                    <i className="bi bi-arrow-right"></i>
+                  </button>
+                  <button
+                    title="Restablecer zoom"
+                    onClick={reset}
+                    className="btn-reset"
+                  >
+                    <i className="bi bi-arrow-counterclockwise"></i>
+                  </button>
+                </div>
+
+
+
+                <div className="chart-wrapper" style={{ position: 'relative', height: '300px' }}>
+                  <ChartCmp
+                    ref={chartRef}         
+                    data={{ labels, datasets }}
+                    options={opciones}
+                  />
                 </div>
               </div>
             </div>
