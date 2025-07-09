@@ -438,6 +438,7 @@ function MapaConEstaciones() {
                                                 <button
                                                     className="btn-principal"
                                                     onClick={() => localizarEstacion(item.latitude, item.longitude)}
+                                                    title="Clic para ubicar la estación en el mapa"
                                                 >
                                                     Localizar Estación
                                                 </button>
@@ -467,6 +468,7 @@ function MapaConEstaciones() {
                                             <button
                                                 className="btn-principal"
                                                 onClick={() => obtenerEstacionesMicrocuenca(microcuenca.external_id)}
+                                                title="Clic para ver las estaciones de monitoreo de la microcuenca"
                                             >
                                                 Ver Estaciones
                                             </button>
