@@ -3,7 +3,7 @@
 module.exports = (sequelize, DataTypes) => {
     const phenomenon_type = sequelize.define('phenomenon_type', {
         name: {
-            type: DataTypes.STRING(20),
+            type: DataTypes.STRING(30),
             unique: true,
             allowNull: false
         },
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: "NO_DATA"
         },
         unit_measure: {
-            type: DataTypes.STRING(4),
+            type: DataTypes.STRING(10),
             allowNull: false
         },
         external_id: {

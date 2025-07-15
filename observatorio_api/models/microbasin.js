@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: "NO_DATA"
         },
         description: {
-            type: DataTypes.STRING(350),
+            type: DataTypes.STRING(450),
             defaultValue: "NO_DATA"
         }
     }, {

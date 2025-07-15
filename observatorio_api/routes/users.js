@@ -351,6 +351,8 @@ router.put('/modificar/tipo_medida', auth({ checkAdmin: true }), (req, res, next
   });
 });
 router.get('/listar/tipo_medida', phenomenonTypeController.list);
+router.get('/listar/tipo_medida/activas', phenomenonTypeController.getActiveVariables);
+router.get('/listar/tipo_medida/estacion/:external_id', phenomenonTypeController.getVariablesByStation);
 router.get('/listar/tipo_medida/desactivos', auth({ checkAdmin: true }), phenomenonTypeController.listFalse);
 router.get('/obtener/tipo_medida/:external', auth({ checkAdmin: true }), phenomenonTypeController.get);
 router.get('/tipo_fenomeno/cambiar_estado/:external_id', auth({ checkAdmin: true }), phenomenonTypeController.changeStatus);

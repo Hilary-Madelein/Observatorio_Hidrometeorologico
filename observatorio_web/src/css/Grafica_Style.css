@@ -1,81 +1,113 @@
 .grafica-card {
-    position: relative;
-    padding: 1.25rem;          
-    border: 1px solid #ddd;
-    border-radius: 0.5rem;   
-    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
-    background: #fff;
-    display: flex;
-    flex-direction: column;
+  position: relative;
+  padding: 1.25rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.grafica-header {
+  display: flex;
+  margin-bottom: 1rem;
+  position: relative;
+  gap: 0.5rem;
+  font-size: 13px;
+}
+
+.estacion-text {
+  flex-grow: 1;
+  font-size: 0.9rem;
+  color: #0C2840;
+  text-align: left;
+}
+
+.icono-superior {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  width: 3rem;
+  height: 3rem;
+}
+
+.icono-superior .icono-variable {
+  width: 100%;
+  height: auto;
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 380px;
+}
+
+.zoom-controls {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.zoom-controls button {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  color: #495057;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-controls button:hover,
+.zoom-controls button:focus {
+  background-color: #e9ecef;
+  border-color: #e9ecef;
+}
+
+.zoom-controls button i {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Responsividad */
+@media (max-width: 992px) {
+  .grafica-card {
+    padding: 1rem;
   }
-  
-  .grafica-header {
-    display: flex;
-    margin-bottom: 1rem;
-    position: relative;   
-    gap: 0.5rem;   
-    font-size: 13px;
-  }
-  
-  .estacion-text {
-    flex-grow: 1;
-    font-size: 0.9rem;
-    color: #0C2840;
-    text-align: left;
-  }
-  
+
   .icono-superior {
-    position: absolute;
-    top: -0.5rem;                 
-    right: -0.5rem;
-    width: 3rem;              
-    height: 3rem;
+    top: -0.3rem;
+    right: -0rem;
+    width: 2rem;
+    height: 2rem;
   }
-  
-  .icono-superior .icono-variable {
-    width: 100%;
-    height: auto;
-  }
-  
+}
+
+@media (max-width: 576px) {
+
   .chart-wrapper {
-    position: relative;
-    width: 100%;
-    height: 380px;      
+    height: 300px;
   }
-  
-  /* Responsividad */
-  @media (max-width: 992px) {
-    .grafica-card {
-      padding: 1rem;
-    }
 
-    .icono-superior {
-      top: -0.3rem;
-      right: -0rem;
-      width: 2rem;
-      height: 2rem;
-    }
+  .grafica-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
   }
-  
-  @media (max-width: 576px) {
 
-    .chart-wrapper {
-        height: 300px;
-      }
-
-    .grafica-header {
-      flex-direction: column;
-      align-items: flex-start;
-        margin-bottom: 0.5rem;
-    }
-
-    .icono-superior {
-      margin-top: 0rem;
-      margin-right: -10px;
-    }
-
-    .estacion-text{
-        font-size: 0.9rem;
-    }
+  .icono-superior {
+    margin-top: 0rem;
+    margin-right: -10px;
   }
-  
+
+  .estacion-text {
+    font-size: 0.9rem;
+  }
+}

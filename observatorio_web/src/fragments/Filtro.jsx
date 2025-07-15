@@ -23,50 +23,106 @@ function Filtro({ onFiltrar }) {
     const [fechaInicio, setFechaInicio] = useState(null);
     const [fechaFin, setFechaFin] = useState(null);
     const [estacionSeleccionada, setEstacionSeleccionada] = useState('');
-    const [data, setData] = useState([]);
-    const [mensaje, setMensaje] = useState("");
+    const [variableSeleccionada, setVariableSeleccionada] = useState('');
+    const [estaciones, setEstaciones] = useState([]);
+    const [variables, setVariables] = useState([]);
+    const [mensaje, setMensaje] = useState('');
 
+    // Cargar estaciones operativas
     useEffect(() => {
-        if (!data.length) {
+        (async () => {
+            try {
+                const info = await ObtenerGet(getToken(), '/listar/estacion/operativas');
+                if (info.code === 200 && info.info?.length) {
+                    setEstaciones(info.info);
+                } else {
+                    setMensaje(info.msg || 'No hay estaciones operativas');
+                }
+            } catch {
+                setMensaje('Error al cargar estaciones');
+            }
+        })();
+    }, []);
+
+    // Cargar todas las variables activas al montar
+    useEffect(() => {
+        (async () => {
+            try {
+                const info = await ObtenerGet(getToken(), '/listar/tipo_medida/activas');
+                if (info.code === 200 && info.info?.length) {
+                    setVariables(info.info);
+                } else {
+                    setMensaje(info.msg || 'No hay variables');
+                }
+            } catch {
+                setMensaje('Error al cargar variables');
+            }
+        })();
+    }, []);
+
+    // Cuando cambie la estación, recargar variables de esa estación
+    useEffect(() => {
+        if (estacionSeleccionada === "TODAS") {
+            // Cargar todas las variables activas
+            (async () => {
+                const info = await ObtenerGet(getToken(), '/listar/tipo_medida/activas');
+                if (info.code === 200) {
+                    setVariables(info.info);
+                    setVariableSeleccionada("TODAS");
+                }
+            })();
+        } else if (!estacionSeleccionada) {
+            // Si no hay selección (realmente ninguna)
+            setVariables([]);
+            setVariableSeleccionada('');
+        } else {
+            // Cargar variables de la estación seleccionada
             (async () => {
                 try {
-                    const info = await ObtenerGet(getToken(), '/listar/estacion/operativas');
+                    const info = await ObtenerGet(
+                        getToken(),
+                        `/listar/tipo_medida/estacion/${estacionSeleccionada}`
+                    );
                     if (info.code === 200) {
-                        if (info.info && info.info.length) {
-                            setData(info.info);
-                        } else {
-                            setMensaje("No hay información");
-                        }
+                        setVariables(info.info);
+                        setVariableSeleccionada('');
                     } else {
-                        setMensaje(info.msg || "Error al cargar estaciones operativas");
+                        mensajes(info.msg || 'Error al cargar variables de la estación', 'error');
                     }
-                } catch (error) {
-                    setMensaje('Error al cargar estaciones operativas');
+                } catch {
+                    mensajes('Error al cargar variables de la estación', 'error');
                 }
             })();
         }
-    }, [data]);
+    }, [estacionSeleccionada]);
+
 
     const manejarFiltrado = () => {
-        let errorMsg = '';
-        if (filtroSeleccionado === 'rangoFechas') {
-            if (!fechaInicio || !fechaFin) errorMsg = 'Debe proporcionar un rango de fechas completo.';
-            else if (fechaInicio > fechaFin) errorMsg = 'La fecha de inicio no puede ser mayor que la fecha de fin.';
-        } else if (!filtroSeleccionado) {
+        if (!filtroSeleccionado) {
             mensajes('Debe seleccionar una escala temporal.', 'info', 'Selección Inválida');
             return;
         }
-        if (errorMsg) {
-            mensajes(errorMsg, 'warning', 'Error de selección');
-            return;
+        if (filtroSeleccionado === 'rangoFechas') {
+            if (!fechaInicio || !fechaFin) {
+                mensajes('Debe proporcionar un rango de fechas completo.', 'warning', 'Error');
+                return;
+            }
+            if (fechaInicio > fechaFin) {
+                mensajes('La fecha de inicio no puede ser mayor que la fecha de fin.', 'warning', 'Error');
+                return;
+            }
         }
 
-        onFiltrar({
+        // Construir objeto de filtro opcional
+        const filtro = {
             tipo: filtroSeleccionado,
-            estacion: estacionSeleccionada,
+            estacion: estacionSeleccionada || null,
+            variable: variableSeleccionada || null,
             fechaInicio: filtroSeleccionado === 'rangoFechas' ? fechaInicio.toISOString() : null,
             fechaFin: filtroSeleccionado === 'rangoFechas' ? fechaFin.toISOString() : null
-        });
+        };
+
+        onFiltrar(filtro);
     };
 
     const calcularHoraRango = (filtroSeleccionado) => {
@@ -87,7 +143,16 @@ function Filtro({ onFiltrar }) {
         return `${horaInicio} - ${horaFin}`;
     };
 
-    const estacionNombre = data.find(e => e.external_id === estacionSeleccionada)?.name || 'No seleccionada';
+    const estacionNombre =
+        estacionSeleccionada === "TODAS"
+            ? "Todas las estaciones"
+            : estaciones.find(e => e.external_id === estacionSeleccionada)?.name || 'No seleccionada';
+
+    const variableNombre =
+        variableSeleccionada === "TODAS"
+            ? "Todas las variables"
+            : variables.find(v => v.external_id === variableSeleccionada)?.nombre || 'No seleccionada';
+
 
     return (
         <div>
@@ -106,6 +171,13 @@ function Filtro({ onFiltrar }) {
                             <i className="bi bi-pin-map-fill me-1" />Estación:
                         </Typography>
                         <Chip label={estacionNombre} size="small" sx={{ ml: 1 }} />
+                    </Box>
+
+                    <Box display="flex" alignItems="center" flexWrap="wrap">
+                        <Typography variant="body2" className="info-params">
+                            <i className="bi bi-moisture me-1" />Variable:
+                        </Typography>
+                        <Chip label={variableNombre} size="small" sx={{ ml: 1 }} />
                     </Box>
 
                     {filtroSeleccionado === 'rangoFechas' && (
@@ -147,27 +219,6 @@ function Filtro({ onFiltrar }) {
                     )}
                 </div>
 
-                {/* Nuevo contenedor explicativo */}
-                {filtroSeleccionado && (
-                    <div className="informacion-presentada col-lg-12 mb-4">
-                        <h5 className="mb-3 info-presentada-text">
-                            <i className="bi bi-info-circle-fill me-2"></i>
-                            Tipo de datos mostrados:
-                        </h5>
-                        <Box>
-                            {['15min', '30min', 'hora'].includes(filtroSeleccionado) ? (
-                                <Typography variant="body2">
-                                    En esta escala temporal, se presentan <strong>las mediciones originales</strong> registradas por las estaciones de monitoreo, sin aplicar agregación ni operaciones.
-                                </Typography>
-                            ) : (
-                                <Typography variant="body2">
-                                    En esta escala temporal, se muestran los datos recabados por las estaciones de monitoreo, <strong>procesados</strong> según la operación estadística adecuada para cada variable hidrometeorológica, ya sea promedio, máximo, mínimo o suma.
-                                </Typography>
-                            )}
-                        </Box>
-                    </div>
-                )}
-
                 <div className={`filtro-container col-lg-12 mb-4 ${filtroSeleccionado === 'rangoFechas' ? 'columna' : ''}`}>
 
                     {/* Selector Escala Temporal */}
@@ -201,15 +252,13 @@ function Filtro({ onFiltrar }) {
                     >
                         <InputLabel htmlFor="estacion">Estación</InputLabel>
                         <Select
-                            id="estacion"
                             value={estacionSeleccionada}
                             label="Estación"
                             onChange={e => setEstacionSeleccionada(e.target.value)}
-                            size="small"
-                            sx={{ padding: '0 10px' }}
                         >
-                            {data.length > 0 ? (
-                                data.map(est => (
+                            <MenuItem value="TODAS">Todas</MenuItem>
+                            {estaciones.length > 0 ? (
+                                estaciones.map(est => (
                                     <MenuItem key={est.external_id} value={est.external_id}>
                                         {est.name}
                                     </MenuItem>
@@ -219,6 +268,32 @@ function Filtro({ onFiltrar }) {
                             )}
                         </Select>
                     </FormControl>
+
+                    {/* Selector Variable */}
+                    <FormControl
+                        className="filtro-item"
+                        size="small"
+                        sx={{ minWidth: 120 }}
+                    >
+                        <InputLabel htmlFor="variable">Variable</InputLabel>
+                        <Select
+                            value={variableSeleccionada}
+                            label="Variable"
+                            onChange={e => setVariableSeleccionada(e.target.value)}
+                        >
+                            <MenuItem value="TODAS">Todas</MenuItem>
+                            {variables.length > 0 ? (
+                                variables.map(v => (
+                                    <MenuItem key={v.external_id} value={v.external_id}>
+                                        {v.nombre}
+                                    </MenuItem>
+                                ))
+                            ) : (
+                                <MenuItem disabled>{mensaje}</MenuItem>
+                            )}
+                        </Select>
+                    </FormControl>
+
 
                     {filtroSeleccionado === 'rangoFechas' && (
                         <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>
