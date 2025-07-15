@@ -24,7 +24,8 @@ class DailyMeasurementController {
       'Radiation': 'Radiación',
       'Rain': 'Lluvia',
       'Caudal (L/s)': 'Caudal',
-      'Solidos_Suspendidos_GS (mg/s)': 'Sólidos suspendidos'
+      'Solidos_Suspendidos_GS (mg/s)': 'Sólidos suspendidos',
+      'Nivel_de_agua': 'Nivel de Agua',
     };
 
     const traducciones = Object.fromEntries(

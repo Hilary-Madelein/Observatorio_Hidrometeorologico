@@ -10,6 +10,29 @@ const { sequelize } = require('../models');
 const { log } = require('console');
 const PhenomenonType = models.phenomenon_type;
 
+
+// Traducciones de variables
+const rawTraducciones = {
+    'Temperature': 'Temperatura',
+    'Humidity': 'Humedad',
+    'Radiation': 'Radiación',
+    'Rain': 'Lluvia',
+    'Caudal (L/s)': 'Caudal',
+    'Solidos_Suspendidos_GS (mg/s)': 'Sólidos suspendidos',
+    'Nivel_de_agua': 'Nivel de Agua',
+};
+const traducciones = Object.fromEntries(
+    Object.entries(rawTraducciones).map(([k, v]) => [
+        k.replace(/_/g, ' ').trim().toLowerCase(),
+        v
+    ])
+);
+// Normaliza clave de búsqueda
+const normalizeKey = s =>
+    s.replace(/_/g, ' ')
+        .trim()
+        .toLowerCase();
+
 class PhenomenonTypeController {
 
     async list(req, res) {
@@ -55,6 +78,60 @@ class PhenomenonTypeController {
         } catch (error) {
             console.error(error);
             res.status(500).json({ msg: 'Error al listar tipos de medida: ' + error.message, code: 500 });
+        }
+    }
+
+    async getActiveVariables(req, res) {
+        try {
+            const results = await PhenomenonType.findAll({
+                where: { status: true },
+                attributes: ['name', 'icon', 'unit_measure', 'external_id', 'operations']
+            });
+            const vars = results.map(f => {
+                const clave = normalizeKey(f.name);
+                return {
+                    nombre: traducciones[clave] || f.name,
+                    icono: f.icon,
+                    unidad: f.unit_measure,
+                    external_id: f.external_id,
+                    operaciones: f.operations || []
+                };
+            });
+            return res.status(200).json({ msg: 'Variables activas', code: 200, info: vars });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ msg: 'Error al obtener variables activas: ' + error.message, code: 500 });
+        }
+    }
+
+    /** Devuelve variables activas medidas por una estación */
+    async getVariablesByStation(req, res) {
+        const externalId = req.params.external_id;
+        if (!externalId) return res.status(400).json({ msg: 'Falta external_id', code: 400 });
+        try {
+            const results = await models.sequelize.query(
+                `SELECT DISTINCT p.name AS name, p.icon AS icon, p.unit_measure AS unit_measure, p.external_id AS external_id, p.operations AS operations
+             FROM phenomenon_type p
+             JOIN measurement m ON m.id_phenomenon_type=p.id
+             JOIN station st ON m.id_station=st.id
+             WHERE p.status=true AND m.status=true AND st.external_id=:externalId
+             ORDER BY p.name;`,
+                { replacements: { externalId }, type: models.sequelize.QueryTypes.SELECT }
+            );
+            const vars = results.map(f => {
+                const clave = normalizeKey(f.name);
+                return {
+                    nombre: traducciones[clave] || f.name,
+                    icono: f.icon,
+                    unidad: f.unit_measure,
+                    external_id: f.external_id,
+                    operaciones: f.operations || []
+                };
+            });
+            return res.status(200).json({ msg: `Variables por estación ${externalId}`, code: 200, info: vars });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ msg: 'Error al obtener variables por estación: ' + error.message, code: 500 });
         }
     }
 
