@@ -36,6 +36,12 @@ const formatName = (name) =>
     ? name.replace(/_/g, ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
     : '';
 
+const stationNameMap = {
+  'UNL-PUEAR3': 'EHA1-NOREC',
+  'MARK 4': 'EMA1-NOREC',
+};
+
+
 export default function Graficas({ filtro }) {
   const [datosGrafica, setDatosGrafica] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -61,6 +67,9 @@ export default function Graficas({ filtro }) {
         }
         if (filtro.estacion) {
           url += `&estacion=${filtro.estacion}`;
+        }
+        if (filtro.variable) {
+          url += `&variable=${filtro.variable}`;
         }
 
         const info = await ObtenerGet(getToken(), url);
@@ -116,9 +125,6 @@ export default function Graficas({ filtro }) {
     );
   }
 
-  console.log('Datos de la gráfica:', filtro);
-
-
   const isRaw = datosGrafica.length > 0 && datosGrafica[0].hasOwnProperty('valor');
   const estacionesUnicas = Array.from(new Set(datosGrafica.map((d) => d.estacion)));
 
@@ -128,12 +134,6 @@ export default function Graficas({ filtro }) {
 
     const showLastPointOnly = ['15min', '30min', 'hora', 'diaria'].includes(filtro.tipo);
 
-    if (isRaw) {
-      // ... (tu lógica RAW, como la tenías antes)
-    }
-
-    // ——— BLOQUE AGREGADOS CORREGIDO ———
-    // Ordenar y formatear etiquetas
     const ordenados = datosFiltrados.slice().sort((a, b) => {
       const fa = new Date(a.hora ?? a.dia);
       const fb = new Date(b.hora ?? b.dia);
@@ -315,7 +315,7 @@ export default function Graficas({ filtro }) {
                 <div className="grafica-header">
                   <i className="bi bi-pin-map-fill icono-estacion" />
                   <span className="estacion-text">
-                    <strong>Estación:</strong> {estacion}
+                    <strong>Estación:</strong> { stationNameMap[estacion] || estacion }
                   </span>
                   {iconUrl && (
                     <div className="icono-superior">

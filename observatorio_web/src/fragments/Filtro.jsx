@@ -62,16 +62,21 @@ function Filtro({ onFiltrar }) {
 
     // Cuando cambie la estación, recargar variables de esa estación
     useEffect(() => {
-        if (!estacionSeleccionada) {
-            // si quita selección, mostrar todas
+        if (estacionSeleccionada === "TODAS") {
+            // Cargar todas las variables activas
             (async () => {
                 const info = await ObtenerGet(getToken(), '/listar/tipo_medida/activas');
                 if (info.code === 200) {
                     setVariables(info.info);
-                    setVariableSeleccionada('');
+                    setVariableSeleccionada("TODAS");
                 }
             })();
+        } else if (!estacionSeleccionada) {
+            // Si no hay selección (realmente ninguna)
+            setVariables([]);
+            setVariableSeleccionada('');
         } else {
+            // Cargar variables de la estación seleccionada
             (async () => {
                 try {
                     const info = await ObtenerGet(
@@ -90,6 +95,7 @@ function Filtro({ onFiltrar }) {
             })();
         }
     }, [estacionSeleccionada]);
+
 
     const manejarFiltrado = () => {
         if (!filtroSeleccionado) {
@@ -137,7 +143,16 @@ function Filtro({ onFiltrar }) {
         return `${horaInicio} - ${horaFin}`;
     };
 
-    const estacionNombre = estaciones.find(e => e.external_id === estacionSeleccionada)?.name || 'No seleccionada';
+    const estacionNombre =
+        estacionSeleccionada === "TODAS"
+            ? "Todas las estaciones"
+            : estaciones.find(e => e.external_id === estacionSeleccionada)?.name || 'No seleccionada';
+
+    const variableNombre =
+        variableSeleccionada === "TODAS"
+            ? "Todas las variables"
+            : variables.find(v => v.external_id === variableSeleccionada)?.nombre || 'No seleccionada';
+
 
     return (
         <div>
@@ -160,12 +175,9 @@ function Filtro({ onFiltrar }) {
 
                     <Box display="flex" alignItems="center" flexWrap="wrap">
                         <Typography variant="body2" className="info-params">
-                            <i className="bi bi-bar-chart-line me-1" />Variable:
+                            <i className="bi bi-moisture me-1" />Variable:
                         </Typography>
-                        <Chip label={
-                            variables.find(v => v.external_id === variableSeleccionada)?.nombre
-                            || 'No seleccionada'
-                        } size="small" sx={{ ml: 1 }} />
+                        <Chip label={variableNombre} size="small" sx={{ ml: 1 }} />
                     </Box>
 
                     {filtroSeleccionado === 'rangoFechas' && (
@@ -244,6 +256,7 @@ function Filtro({ onFiltrar }) {
                             label="Estación"
                             onChange={e => setEstacionSeleccionada(e.target.value)}
                         >
+                            <MenuItem value="TODAS">Todas</MenuItem>
                             {estaciones.length > 0 ? (
                                 estaciones.map(est => (
                                     <MenuItem key={est.external_id} value={est.external_id}>
@@ -262,12 +275,13 @@ function Filtro({ onFiltrar }) {
                         size="small"
                         sx={{ minWidth: 120 }}
                     >
-                        <InputLabel htmlFor="estacion">Variable</InputLabel>
+                        <InputLabel htmlFor="variable">Variable</InputLabel>
                         <Select
                             value={variableSeleccionada}
                             label="Variable"
                             onChange={e => setVariableSeleccionada(e.target.value)}
                         >
+                            <MenuItem value="TODAS">Todas</MenuItem>
                             {variables.length > 0 ? (
                                 variables.map(v => (
                                     <MenuItem key={v.external_id} value={v.external_id}>
@@ -279,6 +293,7 @@ function Filtro({ onFiltrar }) {
                             )}
                         </Select>
                     </FormControl>
+
 
                     {filtroSeleccionado === 'rangoFechas' && (
                         <LocalizationProvider dateAdapter={AdapterDateFns} locale={es}>

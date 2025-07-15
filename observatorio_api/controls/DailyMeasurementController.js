@@ -12,11 +12,20 @@ const formatName = (name) => {
 
 class DailyMeasurementController {
   async getMedicionesHistoricas(req, res) {
-    const { rango, estacion, fechaInicio, fechaFin } = req.query;
+    const {
+      rango,
+      estacion = null,
+      fechaInicio,
+      fechaFin,
+      variable: tipo_medida = null
+    } = req.query;
 
     if (!rango || !['mensual', 'rangoFechas'].includes(rango)) {
       return res.status(400).json({ msg: 'Rango de tiempo inválido', code: 400 });
     }
+
+    const estacionFinal = estacion === 'TODAS' ? null : estacion;
+    const tipoMedidaFinal = tipo_medida === 'TODAS' ? null : tipo_medida;
 
     const rawTraducciones = {
       'Temperature': 'Temperatura',
@@ -27,33 +36,27 @@ class DailyMeasurementController {
       'Solidos_Suspendidos_GS (mg/s)': 'Sólidos suspendidos',
       'Nivel_de_agua': 'Nivel de Agua',
     };
-
     const traducciones = Object.fromEntries(
       Object.entries(rawTraducciones).map(([k, v]) => [
-        k.replace(/_/g, ' ')
-          .trim()
-          .toLowerCase(),
+        k.replace(/_/g, ' ').trim().toLowerCase(),
         v
       ])
     );
-
-    const normalizeKey = s =>
-      s.replace(/_/g, ' ')
-        .trim()
-        .toLowerCase();
+    const normalizeKey = s => s.replace(/_/g, ' ').trim().toLowerCase();
 
     try {
-      let rows = [];
+      let sql, replacements;
+
       const whereBase = `
         dm.status = true
         AND (st.external_id = :estacion OR :estacion IS NULL)
+        AND (:tipo_medida IS NULL OR p.external_id = :tipo_medida)
         AND (
           p.name NOT ILIKE '%TEMP%'
           OR dm.quantity <= 50
         )
       `;
 
-      let sql, replacements;
       if (rango === 'mensual') {
         sql = `
           SELECT
@@ -76,9 +79,11 @@ class DailyMeasurementController {
           GROUP BY periodo, p.name, p.icon, p.unit_measure, st.name
           ORDER BY periodo, p.name;
         `;
-        replacements = { estacion: estacion || null };
-      }
-       else {
+        replacements = {
+          estacion: estacionFinal,
+          tipo_medida: tipoMedidaFinal
+        };
+      } else {
         if (!fechaInicio || !fechaFin) {
           return res.status(400).json({
             msg: 'Se requiere fechaInicio y fechaFin para rangoFechas',
@@ -87,6 +92,7 @@ class DailyMeasurementController {
         }
         const inicio = fechaInicio.slice(0, 10);
         const fin = fechaFin.slice(0, 10);
+
         sql = `
           SELECT
             dm.local_date  AS periodo,
@@ -109,13 +115,14 @@ class DailyMeasurementController {
           ORDER BY periodo, p.name;
         `;
         replacements = {
-          estacion: estacion || null,
+          estacion: estacionFinal,
+          tipo_medida: tipoMedidaFinal,
           fechaInicio: inicio,
           fechaFin: fin
         };
       }
 
-      rows = await models.sequelize.query(sql, {
+      const rows = await models.sequelize.query(sql, {
         replacements,
         type: models.sequelize.QueryTypes.SELECT
       });
@@ -124,6 +131,7 @@ class DailyMeasurementController {
       rows.forEach(r => {
         const periodoISO = new Date(r.periodo).toISOString();
         const key = `${r.estacion_nombre}__${periodoISO}`;
+
         if (!seriesMap[key]) {
           seriesMap[key] = {
             hora: periodoISO,
@@ -134,7 +142,7 @@ class DailyMeasurementController {
 
         const rawName = formatName(r.tipo_medida);
         const normKey = normalizeKey(rawName);
-        const nombreTrad = traducciones[normKey] || rawName;
+        const nombreRut = traducciones[normKey] || rawName;
 
         const ops = {};
         if (r.promedio != null) ops.PROMEDIO = +parseFloat(r.promedio).toFixed(2);
@@ -144,7 +152,7 @@ class DailyMeasurementController {
         ops.icon = r.variable_icon;
         ops.unidad = r.unidad;
 
-        seriesMap[key].medidas[nombreTrad] = ops;
+        seriesMap[key].medidas[nombreRut] = ops;
       });
 
       return res.status(200).json({
@@ -154,14 +162,13 @@ class DailyMeasurementController {
       });
 
     } catch (error) {
-      console.error(error);
+      console.error('Error en getMedicionesHistoricas:', error);
       return res.status(500).json({
         msg: 'Error al obtener mediciones históricas',
         code: 500
       });
     }
   }
-
 }
 
 module.exports = DailyMeasurementController;

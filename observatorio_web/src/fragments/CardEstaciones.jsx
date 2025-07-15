@@ -396,7 +396,6 @@ function MapaConEstaciones() {
                                     const hora = m.fecha_medicion.split('T')[1].slice(0, 8);
                                     const fechaLocal = `${fecha} / ${hora}`;
 
-
                                     return `
                                             <div class="medicion-item">
                                                 <div class="medicion-row">
@@ -592,7 +591,7 @@ function MapaConEstaciones() {
                                             <button
                                                 className="btn-principal"
                                                 onClick={() => obtenerEstacionesMicrocuenca(microcuenca.external_id)}
-                                                title="Clic para ver las estaciones de monitoreo de la microcuenca"
+                                                title="Clic para ver las estaciones de monitoreo de la cuenca"
                                             >
                                                 Ver cuenca
                                             </button>

@@ -26,15 +26,50 @@ class StationController {
 
     async listActive(req, res) {
         try {
-            const results = await Station.findAll({
-                where: { status: 'OPERATIVA' },
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'app_user'],
-            });
-            res.json({ msg: 'OK!', code: 200, info: results });
+          const stations = await Station.findAll({
+            where: { status: 'OPERATIVA' },
+            attributes: [
+              'name',
+              'external_id',
+              'picture',
+              'longitude',
+              'latitude',
+              'altitude',
+              'status',
+              'type',
+              'id_device',
+              'app_user'
+            ],
+          });
+      
+          const nameMap = {
+            'UNL-PUEAR3': 'EHA1-NOREC',
+            'MARK 4':     'EMA1-NOREC'
+          };
+      
+          const translated = stations.map(st => {
+            const plain = st.get({ plain: true });
+            if (nameMap[plain.name]) {
+              plain.name = nameMap[plain.name];
+            }
+            return plain;
+          });
+      
+          return res.status(200).json({
+            msg: 'OK!',
+            code: 200,
+            info: translated
+          });
         } catch (error) {
-            res.status(500).json({ msg: 'Error al listar estaciones operativas: ' + error.message, code: 500, info: error });
+          console.error("Error al listar estaciones operativas:", error);
+          return res.status(500).json({
+            msg: 'Error al listar estaciones operativas: ' + error.message,
+            code: 500,
+            info: error
+          });
         }
-    }
+      }
+      
 
     async listActiveMQTT(req, res) {
         try {
@@ -129,40 +164,68 @@ class StationController {
 
     async getByMicrobasinBody(req, res) {
         try {
-            const external = req.body.external;
-            if (!external) {
-                return res.status(400).json({ msg: 'Falta informacion de la microcuenca', code: 400 });
+          const external = req.body.external;
+          if (!external) {
+            return res.status(400).json({ msg: 'Falta informacion de la microcuenca', code: 400 });
+          }
+      
+          // Busca la microcuenca
+          const microbasin = await Microbasin.findOne({
+            where: { external_id: external },
+            attributes: ['id', 'name', 'external_id']
+          });
+          if (!microbasin) {
+            return res.status(404).json({ msg: 'Microcuenca no encontrada', code: 404 });
+          }
+      
+          // Trae todas las estaciones operativas de esa microcuenca
+          const stations = await Station.findAll({
+            where: {
+              id_microbasin: microbasin.id,
+              status: "OPERATIVA"
+            },
+            attributes: [
+              'name',
+              'external_id',
+              'picture',
+              'longitude',
+              'latitude',
+              'altitude',
+              'status',
+              'type',
+              'id_device',
+              'description',
+              'app_user'
+            ],
+          });
+      
+          // Mapeo de traducción de nombres especiales
+          const nameMap = {
+            'UNL-PUEAR3': 'EHA1-NOREC',
+            'MARK 4':     'EMA1-NOREC'
+          };
+      
+          const translated = stations.map(st => {
+            const plain = st.get({ plain: true });
+            if (nameMap[plain.name]) {
+              plain.name = nameMap[plain.name];
             }
-
-            const microbasin = await Microbasin.findOne({
-                where: { external_id: external },
-                attributes: ['id', 'name', 'external_id']
-            });
-
-            if (!microbasin) {
-                return res.status(404).json({ msg: 'Microcuenca no encontrada', code: 404 });
-            }
-
-            const results = await Station.findAll({
-                where: {
-                    id_microbasin: microbasin.id,
-                    status: "OPERATIVA"
-                },
-                attributes: ['name', 'external_id', 'picture', 'longitude', 'latitude', 'altitude', 'status', 'type', 'id_device', 'description', 'app_user'],
-            });
-
-            return res.status(200).json({
-                msg: 'OK!',
-                code: 200,
-                microcuenca_nombre: microbasin.name,
-                info: results
-            });
-
+            return plain;
+          });
+      
+          return res.status(200).json({
+            msg: 'OK!',
+            code: 200,
+            microcuenca_nombre: microbasin.name,
+            info: translated
+          });
+      
         } catch (error) {
-            console.error("Error al obtener datos:", error);
-            return res.status(500).json({ msg: 'Error interno del servidor', code: 500 });
+          console.error("Error al obtener datos:", error);
+          return res.status(500).json({ msg: 'Error interno del servidor', code: 500 });
         }
-    }
+      }
+      
 
     async getByExternal(req, res) {
         const external = req.params.external_id;

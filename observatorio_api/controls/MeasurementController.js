@@ -19,12 +19,12 @@ function calcularFechas(rango, ahora) {
         fechaInicio = new Date(inicioHoy.getTime() - 3 * 24 * 60 * 60 * 1000);
     } else if (rango === 'diaria') {
         const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
-        fechaInicio = new Date(inicioHoy.getTime() - 14*24*60*60*1000);
+        fechaInicio = new Date(inicioHoy.getTime() - 14 * 24 * 60 * 60 * 1000);
         fechaFin = new Date(
-          ahora.getFullYear(),
-          ahora.getMonth(),
-          ahora.getDate(),
-          23, 59, 59, 999
+            ahora.getFullYear(),
+            ahora.getMonth(),
+            ahora.getDate(),
+            23, 59, 59, 999
         );
     } else {
         throw new Error('Rango inválido');
@@ -283,58 +283,72 @@ class MeasurementController {
    */
 
     async getMedicionesPorTiempo(req, res) {
-        const { rango, estacion } = req.query;
+        const {
+            rango,
+            estacion = null,
+            variable: tipo_medida = null
+        } = req.query;
+
         if (!rango || !['15min', '30min', 'hora', 'diaria'].includes(rango)) {
             return res.status(400).json({ msg: 'Rango inválido', code: 400 });
         }
+
+        const estacionFinal = estacion === 'TODAS' ? null : estacion;
+        const tipoMedidaFinal = tipo_medida === 'TODAS' ? null : tipo_medida;
 
         try {
             const ahora = new Date();
             const { fechaInicio, fechaFin } = calcularFechas(rango, ahora);
 
             const joinMeasurement = `
-            JOIN quantity q
-              ON m.id_quantity = q.id AND q.status = true
-            JOIN phenomenon_type p
-              ON m.id_phenomenon_type = p.id AND p.status = true
-            JOIN station st
-              ON m.id_station = st.id AND st.status = 'OPERATIVA'
-          `;
+                JOIN quantity q
+                  ON m.id_quantity = q.id AND q.status = true
+                JOIN phenomenon_type p
+                  ON m.id_phenomenon_type = p.id AND p.status = true
+                JOIN station st
+                  ON m.id_station = st.id AND st.status = 'OPERATIVA'
+            `;
             const joinDaily = `
-            JOIN phenomenon_type p
-              ON dm.id_phenomenon_type = p.id AND p.status = true
-            JOIN station st
-              ON dm.id_station = st.id AND st.status = 'OPERATIVA'
-          `;
+                JOIN phenomenon_type p
+                  ON dm.id_phenomenon_type = p.id AND p.status = true
+                JOIN station st
+                  ON dm.id_station = st.id AND st.status = 'OPERATIVA'
+            `;
 
             if (['15min', '30min', 'hora'].includes(rango)) {
                 const intervalMap = { '15min': 15, '30min': 30, 'hora': 60 };
                 const bucket = intervalMap[rango];
                 const sql = `
-              SELECT
-                (
-                  date_trunc('day', m.local_date)
-                  + date_part('hour', m.local_date) * interval '1 hour'
-                  + floor(date_part('minute', m.local_date)/${bucket}) * interval '${bucket} minutes'
-                ) AS periodo,
-                p.name         AS tipo_medida,
-                p.icon         AS variable_icon,
-                p.unit_measure AS unidad,
-                st.name        AS estacion_nombre,
-                AVG(q.quantity) FILTER(WHERE 'PROMEDIO'=ANY(p.operations)) AS promedio,
-                MAX(q.quantity) FILTER(WHERE 'MAX'=ANY(p.operations))     AS maximo,
-                MIN(q.quantity) FILTER(WHERE 'MIN'=ANY(p.operations))     AS minimo,
-                SUM(q.quantity) FILTER(WHERE 'SUMA'=ANY(p.operations))    AS suma
-              FROM measurement m
-              ${joinMeasurement}
-              WHERE m.local_date BETWEEN :fechaInicio AND :fechaFin
-                AND m.status = true
-                AND (:estacion IS NULL OR st.external_id = :estacion)
-              GROUP BY periodo, p.name, p.icon, p.unit_measure, st.name
-              ORDER BY periodo;
-            `;
+                  SELECT
+                    (
+                      date_trunc('day', m.local_date)
+                      + date_part('hour', m.local_date) * interval '1 hour'
+                      + floor(date_part('minute', m.local_date)/${bucket}) * interval '${bucket} minutes'
+                    ) AS periodo,
+                    p.name         AS tipo_medida,
+                    p.icon         AS variable_icon,
+                    p.unit_measure AS unidad,
+                    st.name        AS estacion_nombre,
+                    AVG(q.quantity) FILTER(WHERE 'PROMEDIO'=ANY(p.operations)) AS promedio,
+                    MAX(q.quantity) FILTER(WHERE 'MAX'=ANY(p.operations))     AS maximo,
+                    MIN(q.quantity) FILTER(WHERE 'MIN'=ANY(p.operations))     AS minimo,
+                    SUM(q.quantity) FILTER(WHERE 'SUMA'=ANY(p.operations))    AS suma
+                  FROM measurement m
+                  ${joinMeasurement}
+                  WHERE m.local_date BETWEEN :fechaInicio AND :fechaFin
+                    AND m.status = true
+                    AND (:estacion IS NULL OR st.external_id = :estacion)
+                    AND (:tipo_medida IS NULL OR p.external_id = :tipo_medida)
+                  GROUP BY periodo, p.name, p.icon, p.unit_measure, st.name
+                  ORDER BY periodo;
+                `;
                 const rows = await models.sequelize.query(sql, {
-                    replacements: { fechaInicio, fechaFin, estacion: estacion || null },
+                    replacements: {
+                        fechaInicio,
+                        fechaFin,
+                        estacion: estacionFinal,
+                        tipo_medida: tipoMedidaFinal
+                    },
                     type: models.sequelize.QueryTypes.SELECT
                 });
 
@@ -342,11 +356,7 @@ class MeasurementController {
                 rows.forEach(r => {
                     const fechaKey = r.periodo.toISOString();
                     const mapKey = `${fechaKey}__${r.estacion_nombre}`;
-                    seriesMap[mapKey] ??= {
-                        hora: fechaKey,
-                        estacion: r.estacion_nombre,
-                        medidas: {}
-                    };
+                    seriesMap[mapKey] ??= { hora: fechaKey, estacion: r.estacion_nombre, medidas: {} };
 
                     const norm = normalizeKey(r.tipo_medida);
                     const tr = traducciones[norm] || formatName(r.tipo_medida);
@@ -361,61 +371,70 @@ class MeasurementController {
                     seriesMap[mapKey].medidas[tr] = ops;
                 });
 
-                return res.json({
-                    msg: `Series cada ${rango}`,
-                    code: 200,
-                    info: Object.values(seriesMap)
-                });
+                return res.json({ msg: `Series cada ${rango}`, code: 200, info: Object.values(seriesMap) });
             }
 
             if (rango === 'diaria') {
                 const sqlPre = `
-        SELECT
-          dm.local_date        AS periodo,
-          p.name               AS tipo_medida,
-          p.icon               AS variable_icon,
-          p.unit_measure       AS unidad,
-          st.name              AS estacion_nombre,
-          dm.quantity          AS valor,
-          dm.id_type_operation AS op
-        FROM daily_measurement dm
-        ${joinDaily}
-        WHERE dm.local_date BETWEEN :fechaInicio AND :fechaFin
-          AND dm.status = true
-          AND (:estacion IS NULL OR st.external_id = :estacion)
-      `;
+                  SELECT
+                    dm.local_date        AS periodo,
+                    p.name               AS tipo_medida,
+                    p.icon               AS variable_icon,
+                    p.unit_measure       AS unidad,
+                    st.name              AS estacion_nombre,
+                    dm.quantity          AS valor,
+                    dm.id_type_operation AS op
+                  FROM daily_measurement dm
+                  ${joinDaily}
+                  WHERE dm.local_date BETWEEN :fechaInicio AND :fechaFin
+                    AND dm.status = true
+                    AND (:estacion IS NULL OR st.external_id = :estacion)
+                    AND (:tipo_medida IS NULL OR p.external_id = :tipo_medida)
+                `;
+
                 const sqlRaw = `
-        SELECT
-          date_trunc('day', m.local_date) AS periodo,
-          p.name         AS tipo_medida,
-          p.icon         AS variable_icon,
-          p.unit_measure AS unidad,
-          st.name        AS estacion_nombre,
-          AVG(q.quantity) FILTER(WHERE 'PROMEDIO'=ANY(p.operations)) AS promedio,
-          MAX(q.quantity) FILTER(WHERE 'MAX'=ANY(p.operations))     AS maximo,
-          MIN(q.quantity) FILTER(WHERE 'MIN'=ANY(p.operations))     AS minimo,
-          SUM(q.quantity) FILTER(WHERE 'SUMA'=ANY(p.operations))    AS suma
-        FROM measurement m
-        ${joinMeasurement}
-        WHERE m.local_date BETWEEN :fechaInicio AND :fechaFin
-          AND m.status = true
-          AND (:estacion IS NULL OR st.external_id = :estacion)
-          AND date_trunc('day', m.local_date) NOT IN (
-            SELECT dm.local_date FROM daily_measurement dm
-            WHERE dm.local_date BETWEEN :fechaInicio AND :fechaFin
-              AND dm.status = true
-          )
-        GROUP BY periodo, p.name, p.icon, p.unit_measure, st.name;
-      `;
+                  SELECT
+                    date_trunc('day', m.local_date) AS periodo,
+                    p.name         AS tipo_medida,
+                    p.icon         AS variable_icon,
+                    p.unit_measure AS unidad,
+                    st.name        AS estacion_nombre,
+                    AVG(q.quantity) FILTER(WHERE 'PROMEDIO'=ANY(p.operations)) AS promedio,
+                    MAX(q.quantity) FILTER(WHERE 'MAX'=ANY(p.operations))     AS maximo,
+                    MIN(q.quantity) FILTER(WHERE 'MIN'=ANY(p.operations))     AS minimo,
+                    SUM(q.quantity) FILTER(WHERE 'SUMA'=ANY(p.operations))    AS suma
+                  FROM measurement m
+                  ${joinMeasurement}
+                  WHERE m.local_date BETWEEN :fechaInicio AND :fechaFin
+                    AND m.status = true
+                    AND (:estacion IS NULL OR st.external_id = :estacion)
+                    AND (:tipo_medida IS NULL OR p.external_id = :tipo_medida)
+                    AND NOT EXISTS (
+                      SELECT 1 FROM daily_measurement dm
+                      WHERE dm.local_date = date_trunc('day', m.local_date)
+                        AND dm.id_phenomenon_type = m.id_phenomenon_type
+                        AND dm.status = true
+                    )
+                  GROUP BY periodo, p.name, p.icon, p.unit_measure, st.name
+                  ORDER BY periodo;
+                `;
 
                 const [pre, raw] = await Promise.all([
                     models.sequelize.query(sqlPre, {
-                        replacements: { fechaInicio, fechaFin, estacion: estacion || null },
-                        type: models.sequelize.QueryTypes.SELECT
+                        replacements: {
+                            fechaInicio,
+                            fechaFin,
+                            estacion: estacionFinal,
+                            tipo_medida: tipoMedidaFinal
+                        }, type: models.sequelize.QueryTypes.SELECT
                     }),
                     models.sequelize.query(sqlRaw, {
-                        replacements: { fechaInicio, fechaFin, estacion: estacion || null },
-                        type: models.sequelize.QueryTypes.SELECT
+                        replacements: {
+                            fechaInicio,
+                            fechaFin,
+                            estacion: estacionFinal,
+                            tipo_medida: tipoMedidaFinal
+                        }, type: models.sequelize.QueryTypes.SELECT
                     })
                 ]);
 
@@ -424,17 +443,11 @@ class MeasurementController {
                 pre.forEach(r => {
                     const dayKey = r.periodo.toISOString().slice(0, 10);
                     const mapKey = `${dayKey}__${r.estacion_nombre}`;
-                    mapDaily[mapKey] ??= {
-                        dia: dayKey,
-                        estacion: r.estacion_nombre,
-                        medidas: {}
-                    };
-
+                    mapDaily[mapKey] ??= { dia: dayKey, estacion: r.estacion_nombre, medidas: {} };
                     const opMap = { 1: 'PROMEDIO', 2: 'MAX', 3: 'MIN', 4: 'SUMA' };
                     const opName = opMap[r.op] || `OP${r.op}`;
                     const norm = normalizeKey(r.tipo_medida);
                     const tr = traducciones[norm] || formatName(r.tipo_medida);
-
                     mapDaily[mapKey].medidas[tr] ??= {};
                     mapDaily[mapKey].medidas[tr][opName] = parseFloat(r.valor);
                     mapDaily[mapKey].medidas[tr].icon = r.variable_icon;
@@ -444,12 +457,7 @@ class MeasurementController {
                 raw.forEach(r => {
                     const dayKey = r.periodo.toISOString().slice(0, 10);
                     const mapKey = `${dayKey}__${r.estacion_nombre}`;
-                    mapDaily[mapKey] ??= {
-                        dia: dayKey,
-                        estacion: r.estacion_nombre,
-                        medidas: {}
-                    };
-
+                    mapDaily[mapKey] ??= { dia: dayKey, estacion: r.estacion_nombre, medidas: {} };
                     const norm = normalizeKey(r.tipo_medida);
                     const tr = traducciones[norm] || formatName(r.tipo_medida);
                     const ops = {};
@@ -459,20 +467,10 @@ class MeasurementController {
                     if (r.suma) ops.SUMA = parseFloat(r.suma);
                     ops.icon = r.variable_icon;
                     ops.unidad = r.unidad;
-
-                    mapDaily[mapKey].medidas[tr] = {
-                        ...mapDaily[mapKey].medidas[tr],
-                        ...ops
-                    };
+                    mapDaily[mapKey].medidas[tr] = { ...mapDaily[mapKey].medidas[tr], ...ops };
                 });
 
-                const series = Object.values(mapDaily);
-
-                return res.json({
-                    msg: 'Series diarias combinadas (últimos días)',
-                    code: 200,
-                    info: series
-                });
+                return res.json({ msg: 'Series diarias combinadas (últimos días)', code: 200, info: Object.values(mapDaily) });
             }
 
         } catch (e) {
@@ -492,7 +490,7 @@ class MeasurementController {
                 attributes: ['local_date']
             });
             const desde = last ? new Date(last.local_date) : new Date(0);
-    
+
             const agg = await models.sequelize.query(
                 `
                 SELECT
@@ -516,7 +514,7 @@ class MeasurementController {
                     type: models.sequelize.QueryTypes.SELECT
                 }
             );
-    
+
             const opsList = await TypeOperation.findAll({
                 attributes: ['id', 'operation'],
                 where: { status: true }
@@ -525,29 +523,29 @@ class MeasurementController {
                 m[op.operation] = op.id;
                 return m;
             }, {});
-    
+
             const inserts = [];
             for (const r of agg) {
                 ['PROMEDIO', 'MAX', 'MIN', 'SUMA'].forEach(opKey => {
                     const valor = r[opKey.toLowerCase()];
                     if (valor != null && opMap[opKey]) {
                         inserts.push({
-                            local_date:         r.day,
-                            id_station:         r.id_station,
+                            local_date: r.day,
+                            id_station: r.id_station,
                             id_phenomenon_type: r.id_phenomenon_type,
-                            id_type_operation:  opMap[opKey],
-                            quantity:           parseFloat(Number(valor).toFixed(2)),
-                            external_id:        uuidv4(),
-                            status:             true
+                            id_type_operation: opMap[opKey],
+                            quantity: parseFloat(Number(valor).toFixed(2)),
+                            external_id: uuidv4(),
+                            status: true
                         });
                     }
                 });
             }
-    
+
             if (inserts.length) {
                 await DailyMeasurement.bulkCreate(inserts);
             }
-    
+
             return res.status(200).json({
                 msg: 'Migración diaria completada',
                 code: 200,
@@ -561,7 +559,7 @@ class MeasurementController {
             });
         }
     }
-    
+
 
 
     /**
