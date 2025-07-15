@@ -13,7 +13,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
     const [showModal, setShowModal] = useState(false);
     const [uploadedPhoto, setUploadedPhoto] = useState(null);
     const [modoEdicion, setModoEdicion] = useState(false);
-    const maxCaracteres = 350;
+    const maxCaracteres = 450;
 
     const handleDescripcionChange = (event) => {
         const { value } = event.target;
@@ -134,9 +134,9 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                             ...register('descripcion', {
                                 required: 'Ingrese una descripción',
                                 pattern: {
-                                    value: new RegExp("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\\s/%.,()\\-]+$"),
+                                    value: /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s/%.,()\-'"“”]+$/,
                                     message: 'Ingrese una descripción correcta'
-                                }
+                                }                                
                             })
                             }
 
@@ -151,7 +151,7 @@ function AgregarMicrocuenca({ external_id, onClose }) {
                             {descripcion.length === maxCaracteres && <small className="text-danger">Máximo alcanzado</small>}
                         </div>
                     </div>
-
+                    
                     {/* Foto */}
                     <div className="form-group mb-3">
                         <label htmlFor="foto" className="form-label"><strong style={{ color: 'red' }}>* </strong>Seleccionar foto</label>

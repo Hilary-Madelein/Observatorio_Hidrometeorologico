@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({ origin: '*' }));
-const expression = '0 0 0 */2 * *'
+const expression = '0 0 0 */4 * *'
 
 new CronJob(
   expression,
@@ -88,7 +88,5 @@ app.use(function (err, req, res, next) {
     error: err
   });
 });
-
-
 
 module.exports = app;

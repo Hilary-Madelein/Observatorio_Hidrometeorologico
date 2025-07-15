@@ -8,7 +8,6 @@ import { getToken } from '../utils/SessionUtil';
 import io from 'socket.io-client';
 import mensajes from '../utils/Mensajes';
 
-// Helper para formatear fecha y hora en español
 function formatDateTime(isoString) {
     const date = new Date(isoString);
     const fecha = date.toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -29,7 +28,7 @@ function procesarMedidas(medidas, fenomenos) {
         Humedad: 'Humidity',
         Temperatura: 'Temperature',
         Radiación: 'Radiation',
-        LLuvia: 'Rain',
+        Lluvia: 'Rain',
         Caudal: 'Caudal (L/s)',
         'Sólidos suspendidos': 'Solidos_Suspendidos_GS (mg/s)',
     };

@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: "NO_DATA"
         },
         unit_measure: {
-            type: DataTypes.STRING(4),
+            type: DataTypes.STRING(10),
             allowNull: false
         },
         external_id: {

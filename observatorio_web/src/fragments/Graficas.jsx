@@ -39,13 +39,7 @@ const formatName = (name) =>
 export default function Graficas({ filtro }) {
   const [datosGrafica, setDatosGrafica] = useState([]);
   const [loading, setLoading] = useState(false);
-  const chartRef = useRef(null)
-  // Funciones de ayuda
-  const zoomIn = () => chartRef.current.zoom(1.2);
-  const zoomOut = () => chartRef.current.zoom(0.8);
-  const panLeft = () => chartRef.current.pan({ x: -100 });
-  const panRight = () => chartRef.current.pan({ x: 100 });
-  const reset = () => chartRef.current.resetZoom();
+  const chartRefs = useRef([]);
 
   useEffect(() => {
     const obtenerDatosPorFiltro = async () => {
@@ -122,116 +116,79 @@ export default function Graficas({ filtro }) {
     );
   }
 
-  const isRaw = datosGrafica.length > 0 && datosGrafica[0].hasOwnProperty('valor');
+  console.log('Datos de la gráfica:', filtro);
 
+
+  const isRaw = datosGrafica.length > 0 && datosGrafica[0].hasOwnProperty('valor');
   const estacionesUnicas = Array.from(new Set(datosGrafica.map((d) => d.estacion)));
 
   const prepararDatosPorMedida = (medida, datosFiltrados, idxColor) => {
     const isBar = medida.toLowerCase() === 'lluvia';
+    if (!datosFiltrados.length) return { labels: [], datasets: [] };
 
-    if (!datosFiltrados.length) {
-      return { labels: [], datasets: [] };
-    }
+    const showLastPointOnly = ['15min', '30min', 'hora', 'diaria'].includes(filtro.tipo);
 
     if (isRaw) {
-      const labelsUnicos = new Set(
-        datosFiltrados.map((d) => {
-          const fecha = new Date(d.hora);
-          return fecha.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
+      // ... (tu lógica RAW, como la tenías antes)
+    }
 
-        })
-      );
+    // ——— BLOQUE AGREGADOS CORREGIDO ———
+    // Ordenar y formatear etiquetas
+    const ordenados = datosFiltrados.slice().sort((a, b) => {
+      const fa = new Date(a.hora ?? a.dia);
+      const fb = new Date(b.hora ?? b.dia);
+      return fa - fb;
+    });
 
-      const labels = Array.from(labelsUnicos).sort((a, b) => {
-        const fechaA = new Date(`1970-01-01T${a}`);
-        const fechaB = new Date(`1970-01-01T${b}`);
-        return fechaA - fechaB;
-      });
+    const labels = ordenados.map(d => {
+      const fecha = new Date(d.hora ?? d.dia);
+      if (filtro.tipo === 'mensual') {
+        return fecha.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+      }
+      if (filtro.tipo === 'rangoFechas') {
+        return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+      if (filtro.tipo === 'diaria') {
+        return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
 
+      return fecha.toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    });
 
-      const color = chartColors[idxColor % chartColors.length];
-      const dataset = {
-        label: formatName(medida),
-        data: labels.map((lbl) => {
-          const rec = datosFiltrados.find((d) => {
-            const fecha = new Date(d.hora);
-            const check = fecha.toLocaleTimeString('es-ES', {
-              hour: '2-digit',
-              minute: '2-digit',
-            });
-            return check === lbl && d.tipo_medida === medida;
+    const primerRegistro = ordenados.find(d => d.medidas && d.medidas[medida]);
+    if (!primerRegistro || !primerRegistro.medidas[medida]) {
+      return { labels, datasets: [] };
+    }
 
-          });
-          return rec ? parseFloat(rec.valor) : null;
-        }),
-        backgroundColor: `${color}88`,
+    const metricas = Object
+      .keys(primerRegistro.medidas[medida])
+      .filter(k => k !== 'icon' && k !== 'unidad');
+
+    const datasets = metricas.map((metrica, mi) => {
+      const color = chartColors[(idxColor + mi) % chartColors.length];
+      const data = ordenados.map(d => d.medidas[medida]?.[metrica] ?? null);
+
+      return {
+        label: formatName(metrica),
+        data,
         borderColor: color,
+        backgroundColor: `${color}88`,
         borderWidth: 1.5,
-        spanGaps: true,
-        showLine: true,
+        fill: false,
         type: isBar ? 'bar' : 'line',
         tension: 0.4,
-        pointRadius: 4,
+        pointRadius: ctx => {
+          if (isBar) return 0;
+          const lastIdx = ctx.dataset.data.length - 1;
+          return showLastPointOnly
+            ? (ctx.dataIndex === lastIdx ? 4 : 0)
+            : 4;
+        },
         pointHoverRadius: 6,
       };
+    });
 
-      return { labels, datasets: [dataset] };
-    } else {
-      const ordenados = datosFiltrados
-        .slice()
-        .sort((a, b) => new Date(a.hora) - new Date(b.hora));
-
-      const labels = ordenados.map((d) => {
-        const fecha = new Date(d.hora);
-        if (filtro.tipo === 'mensual') {
-          return fecha.toLocaleDateString('es-ES', {
-            month: 'short',
-            year: 'numeric',
-          });
-        } else if (filtro.tipo === 'diaria') {
-          return fecha.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-        } else {
-          return fecha.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: 'short',
-          });
-        }
-      });
-
-
-      const primerRegistro = datosFiltrados.find((d) => d.medidas?.[medida]);
-      const metricas = primerRegistro
-        ? Object.keys(primerRegistro.medidas[medida]).filter((k) => k !== 'icon' && k !== 'unidad')
-        : [];
-
-      const datasets = metricas.map((metrica, mi) => {
-        const color = chartColors[(idxColor + mi) % chartColors.length];
-        return {
-          label: formatName(`${metrica.toUpperCase()}`),
-          data: ordenados.map((d) =>
-            d.medidas && d.medidas[medida] && d.medidas[medida][metrica] != null
-              ? d.medidas[medida][metrica]
-              : null
-          ),
-          borderColor: color,
-          backgroundColor: `${color}88`,
-          borderWidth: 1.8,
-          fill: false,
-          tension: 0.4,
-          pointRadius: 4,
-          pointHoverRadius: 8,
-          type: isBar ? 'bar' : 'line',
-        };
-      });
-
-      return { labels, datasets };
-    }
+    return { labels, datasets };
   };
 
   const todasGraficas = [];
@@ -284,6 +241,8 @@ export default function Graficas({ filtro }) {
             idxColor + idxGlobal
           );
 
+          const showLegend = datasets.length > 1;
+
           const primerRegistro = datosDeEstaEstacion.find((d) =>
             isRaw ? d.tipo_medida === medida : d.medidas?.[medida]
           );
@@ -300,28 +259,29 @@ export default function Graficas({ filtro }) {
           const opciones = {
             responsive: true,
             maintainAspectRatio: false,
+
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
+
             plugins: {
-              legend: { display: true, position: 'top' },
-              title: {
-                display: true,
-                text: formatName(medida),
-                font: { size: 20, weight: 'bold', family: 'Poppins' },
-                color: '#0C2840',
-              },
+              legend: { display: showLegend, position: 'top' },
+              title: { display: false },
               zoom: {
                 pan: {
-                  enabled: true,      
-                  mode: 'x',          
+                  enabled: true,
+                  mode: 'x',
                   onPan: ({ chart }) => chart.update('none'),
                 },
                 zoom: {
                   wheel: {
-                    enabled: true,   
+                    enabled: true,
                   },
                   pinch: {
-                    enabled: true     
+                    enabled: true
                   },
-                  mode: 'x',       
+                  mode: 'x',
                 }
               }
             },
@@ -329,13 +289,21 @@ export default function Graficas({ filtro }) {
               x: {
                 grid: { color: '#e5e5e5' },
                 ticks: { maxRotation: 45 },
+                title: {
+                  display: true,
+                  text: 'Tiempo',
+                  font: { size: 11, weight: '500', family: 'Poppins' },
+                  color: '#213555',
+                },
               },
               y: {
                 grid: { color: '#e5e5e5' },
                 ticks: { callback: v => (typeof v === 'number' ? v.toFixed(2) : v) },
                 title: {
                   display: Boolean(unidad),
-                  text: unidad || '',
+                  text: `${formatName(medida)}${unidad ? ` (${unidad})` : ''}`,
+                  font: { size: 11, weight: '500', family: 'Poppins' },
+                  color: '#213555',
                 },
               },
             },
@@ -361,32 +329,16 @@ export default function Graficas({ filtro }) {
                 </div>
 
                 <div className="zoom-controls">
-                  <button title="Acercar zoom" onClick={zoomIn}>
-                    <i className="bi bi-zoom-in"></i>
-                  </button>
-                  <button title="Alejar zoom" onClick={zoomOut}>
-                    <i className="bi bi-zoom-out"></i>
-                  </button>
-                  <button title="Desplazar izquierda" onClick={panLeft}>
-                    <i className="bi bi-arrow-left"></i>
-                  </button>
-                  <button title="Desplazar derecha" onClick={panRight}>
-                    <i className="bi bi-arrow-right"></i>
-                  </button>
-                  <button
-                    title="Restablecer zoom"
-                    onClick={reset}
-                    className="btn-reset"
-                  >
-                    <i className="bi bi-arrow-counterclockwise"></i>
-                  </button>
+                  <button title="Acercar zoom" onClick={() => chartRefs.current[idxGlobal]?.zoom(1.2)}><i className="bi bi-zoom-in" /></button>
+                  <button title="Alejar zoom" onClick={() => chartRefs.current[idxGlobal]?.zoom(0.8)}><i className="bi bi-zoom-out" /></button>
+                  <button title="Desplazar izquierda" onClick={() => chartRefs.current[idxGlobal]?.pan({ x: -100 })}><i className="bi bi-arrow-left" /></button>
+                  <button title="Desplazar derecha" onClick={() => chartRefs.current[idxGlobal]?.pan({ x: 100 })}><i className="bi bi-arrow-right" /></button>
+                  <button title="Restablecer zoom" onClick={() => chartRefs.current[idxGlobal]?.resetZoom()} className="btn-reset"><i className="bi bi-arrow-counterclockwise" /></button>
                 </div>
-
-
 
                 <div className="chart-wrapper" style={{ position: 'relative', height: '300px' }}>
                   <ChartCmp
-                    ref={chartRef}         
+                    ref={(el) => (chartRefs.current[idxGlobal] = el)}
                     data={{ labels, datasets }}
                     options={opciones}
                   />

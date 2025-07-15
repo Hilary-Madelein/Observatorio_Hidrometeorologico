@@ -147,27 +147,6 @@ function Filtro({ onFiltrar }) {
                     )}
                 </div>
 
-                {/* Nuevo contenedor explicativo */}
-                {filtroSeleccionado && (
-                    <div className="informacion-presentada col-lg-12 mb-4">
-                        <h5 className="mb-3 info-presentada-text">
-                            <i className="bi bi-info-circle-fill me-2"></i>
-                            Tipo de datos mostrados:
-                        </h5>
-                        <Box>
-                            {['15min', '30min', 'hora'].includes(filtroSeleccionado) ? (
-                                <Typography variant="body2">
-                                    En esta escala temporal, se presentan <strong>las mediciones originales</strong> registradas por las estaciones de monitoreo, sin aplicar agregación ni operaciones.
-                                </Typography>
-                            ) : (
-                                <Typography variant="body2">
-                                    En esta escala temporal, se muestran los datos recabados por las estaciones de monitoreo, <strong>procesados</strong> según la operación estadística adecuada para cada variable hidrometeorológica, ya sea promedio, máximo, mínimo o suma.
-                                </Typography>
-                            )}
-                        </Box>
-                    </div>
-                )}
-
                 <div className={`filtro-container col-lg-12 mb-4 ${filtroSeleccionado === 'rangoFechas' ? 'columna' : ''}`}>
 
                     {/* Selector Escala Temporal */}
@@ -200,6 +179,33 @@ function Filtro({ onFiltrar }) {
                         sx={{ minWidth: 120 }}
                     >
                         <InputLabel htmlFor="estacion">Estación</InputLabel>
+                        <Select
+                            id="estacion"
+                            value={estacionSeleccionada}
+                            label="Estación"
+                            onChange={e => setEstacionSeleccionada(e.target.value)}
+                            size="small"
+                            sx={{ padding: '0 10px' }}
+                        >
+                            {data.length > 0 ? (
+                                data.map(est => (
+                                    <MenuItem key={est.external_id} value={est.external_id}>
+                                        {est.name}
+                                    </MenuItem>
+                                ))
+                            ) : (
+                                <MenuItem disabled>{mensaje}</MenuItem>
+                            )}
+                        </Select>
+                    </FormControl>
+
+                    {/* Selector Variable */}
+                    <FormControl
+                        className="filtro-item"
+                        size="small"
+                        sx={{ minWidth: 120 }}
+                    >
+                        <InputLabel htmlFor="estacion">Variable</InputLabel>
                         <Select
                             id="estacion"
                             value={estacionSeleccionada}
